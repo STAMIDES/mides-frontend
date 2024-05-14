@@ -46,6 +46,7 @@ function LoginComponent() {
             label="Contraseña"
             type="password"
             margin="normal"
+            value='123'
             fullWidth
           />
           <Button variant="contained" color="primary" type="submit" fullWidth>
