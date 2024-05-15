@@ -15,9 +15,11 @@ function App() {
       <SideNavBar />
       <Box flex={1}>
           <Routes>
-            <Route path="/" element={<Requests />} />
+            <Route path="/requests" element={<Requests />} />
             <Route path="/account/login" element={<LoginComponent />} />
             <Route path="/users" element={<UserList/>} />
+            //add default route /requests
+            <Route path="/" element={<Requests />} />
           </Routes>
       </Box>
     </Box>}
