@@ -10,10 +10,10 @@ const SideNavBar = () => {
   };
 
   const menuItems = [
-    { label: "Pedidos", path: "/requests" },
-    { label: "Planificaciones", path: "/planning" },
-    { label: "Usuarios", path: "/users" },
-    { label: "Camionetas", path: "/vans" }
+    "Pedidos",
+    "Planificaciones",
+    "Clientes",
+    "Camionetas"
   ];
 
   return (
@@ -32,9 +32,9 @@ const SideNavBar = () => {
         onClick={handleLogoClick}
       />
       {menuItems.map((item) => (
-        <Link key={item.label} to={item.path} style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+        <Link key={item} to={item.toLowerCase()} style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
           <Box
-            key={item.label}
+            key={item}
             textAlign="left"
             py={1}
             px={2}
@@ -51,7 +51,7 @@ const SideNavBar = () => {
               }
             }}
           >
-            <Typography variant="h6">{item.label}</Typography>
+            <Typography variant="h6">{item}</Typography>
           </Box>
         </Link>
       ))}
