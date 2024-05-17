@@ -16,7 +16,7 @@ function App() {
       <Box flex={1}>
           <Routes>
             <Route path="/account*" element={<LoginComponent />} />
-            <Route path="/requests*" element={<Requests />} />
+            <Route path="/pedidos*" element={<Requests />} />
             <Route path="/clientes*" element={<ClientesRutas />} />
             <Route path="/" element={<Requests />} />
           </Routes>

@@ -1,55 +1,47 @@
-import React from "react";
-import { Container, Paper, Box, Grid, Avatar, Typography, IconButton, Button } from "@mui/material";
-// import { DeleteIcon } from "@mui/icons-material";
-import DeleteIcon from '@mui/icons-material/Delete';
+import React, { useState, useEffect } from "react";
+import { Container } from "@mui/material";
 import Header from "../components/headerList";
-//add email to clients
-const clients = [
-  { name: "John", surname: "Doe",    cedula: "12345678" , email: "johndoe@gmail.com"},
-  { name: "Jane", surname: "Smith",  cedula: "87654321" , email: "janet@gmail.com"},
-  { name: "Bob", surname: "Johnson", cedula: "4730435-2" , email: "bobi@hotmail.com" }
+import ListComponent from "../components/listados";
+import api from "../network/axios"; // Ensure this path matches your actual API file path
+
+const columns = [
+  { label: "Nombre", key: "name" },
+  { label: "Apellidos", key: "surname" },
+  { label: "Cedula", key: "cedula" },
+  { label: "Email", key: "email" }
 ];
 
 const ClienteListado = () => {
-  console.log(clients)
+  const [clients, setClients] = useState([]);
+  const [error, setError] = useState(null);
+
+  const obtenerClientes = async () => {
+    try {
+      const response = await api.get('/clientes', {});
+      setClients(response.data.clientes);
+    } catch (error) {
+      if (error.response) {
+        setError(error.response.statusText);
+      } else {
+        setError('An unexpected error occurred');
+      }
+    }
+  };
+
+  useEffect(() => {
+    obtenerClientes();
+  }, []);
+
   return (
     <Container>
       <Header createLink="/clientes/crear" />
-      <Box mt={2}>
-        <Paper elevation={2} style={{ padding: "16px" }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">Clientes</Typography>
-            <Button variant="outlined" size="small">
-              View All
-            </Button>
-          </Box>
-          <Box mt={2}>
-            <Grid container spacing={2}>
-              {clients.map((client, index) => (
-                <Grid item xs={12} key={index}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Box display="flex" alignItems="center">
-                      <Avatar alt="Cliente Avatar" src="/placeholder.svg" />
-                      <Box ml={2}>
-                        <Typography variant="body1">{client.name + ' ' + client.surname}</Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          {client.cedula}
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          {client.email}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <IconButton size="small">
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        </Paper>
-      </Box>
+      {error && <p>{error}</p>}
+      <ListComponent 
+        title="Clientes" 
+        data={clients} 
+        columns={columns} 
+        createLink="/clientes/crear" 
+      />
     </Container>
   );
 };
