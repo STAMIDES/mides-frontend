@@ -2,19 +2,16 @@ import React from "react";
 import { Box, Grid, Avatar, Typography, IconButton, Paper, Button } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const ListComponent = ({ title, data, columns, createLink }) => {
+
+const ListComponent = ({ title, data, columns, createLink, filterComponentProps, filterComponent: FilterComponent }) => {
   return (
     <Box mt={2}>
       <Paper elevation={2} style={{ padding: "16px" }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">{title}</Typography>
-          {createLink && (
-            <Button variant="outlined" size="small" href={createLink}>
-              Create
-            </Button>
-          )}
-        </Box>
-        <Box mt={2}>
+        
+        <Box mt={2}  >
+        {FilterComponent && (
+          <FilterComponent  {...filterComponentProps} />
+        )}
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -45,7 +42,7 @@ const ListComponent = ({ title, data, columns, createLink }) => {
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   {columns.map((column, colIndex) => (
                     <Box key={colIndex} flexBasis="20%">
-                      <Typography variant="body2" color="textSecondary">
+                      <Typography variant="body2" color="textSecondary" style={{ whiteSpace: 'pre-line' }}>
                         {item[column.key]}
                       </Typography>
                     </Box>
