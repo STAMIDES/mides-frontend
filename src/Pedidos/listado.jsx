@@ -19,7 +19,6 @@ const PedidoListado = () => {
   twoDaysLater.setDate(twoDaysLater.getDate() + 2);
   const defaultValue = twoDaysLater.toISOString().slice(0, 10);
   const [error, setError] = useState(null);
-
   const obtenerPedidos = async (fechaPedidos) => {
     try {
       // Obtener /pedidos para fecha 

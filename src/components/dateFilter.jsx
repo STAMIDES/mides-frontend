@@ -6,7 +6,7 @@ import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import moment from 'moment';
 
 const DateFilter = ({ defaultValue, getElementosFiltrados }) => {
-  const [date, setDate] = useState(moment(defaultValue, "DD-MM-YYYY"));
+  const [date, setDate] = useState(moment(defaultValue, "YYYY-MM-DD"));
   moment.locale('en', {
     longDateFormat: {
       L: 'DD-MM-YYYY',
@@ -14,7 +14,7 @@ const DateFilter = ({ defaultValue, getElementosFiltrados }) => {
   });
   useEffect(() => {
     if (defaultValue) {
-      setDate(moment(defaultValue, "DD-MM-YYYY"));
+      setDate(moment(defaultValue, "YYYY-MM-DD"));
     }
   }, [defaultValue]);
 
