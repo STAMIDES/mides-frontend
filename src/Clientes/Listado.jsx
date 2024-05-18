@@ -5,10 +5,14 @@ import ListComponent from "../components/listados";
 import api from "../network/axios"; // Ensure this path matches your actual API file path
 
 const columns = [
-  { label: "Nombre", key: "name" },
-  { label: "Apellidos", key: "surname" },
-  { label: "Cedula", key: "cedula" },
-  { label: "Email", key: "email" }
+  { label: "ID", key: "id_cliente"},
+  { label: "Nombre", key: "nombre" },
+  { label: "Apellidos", key: "apellido" },
+  { label: "Cedula", key: "documento" },
+  { label: "Email", key: "email" },
+  { label: "Telefono", key: "telefono" },
+  { label: "Tipo", key: "tipo" },
+
 ];
 
 const ClienteListado = () => {
