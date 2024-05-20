@@ -13,22 +13,22 @@ const ListComponent = ({
   iconsTooltip
 }) => {
   return (
-    <Box mt={2} >
-      <Paper elevation={2} style={{ padding: "16px" }} >
+    <Box mt={2}>
+      <Paper elevation={2} style={{ padding: "16px" }}>
         <Box mt={2}>
           {FilterComponent && <FilterComponent {...filterComponentProps} />}
-          <Grid container spacing={1.5}>
+          <Grid container spacing={0.1}>
             <Grid item xs={12}>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 {columns.map((column, colIndex) => (
-                  <Box key={colIndex} flexBasis={`${100 / columns.length}%`} >
-                    <Typography variant="body1" fontWeight="bold" className="dataText">
+                  <Box key={colIndex} flexBasis={`${100 / columns.length}%`}>
+                    <Typography variant="body1" fontWeight="bold" className="headerText">
                       {column.label}
                     </Typography>
                   </Box>
                 ))}
-                <Box flexBasis="10%">
-                  <Typography variant="body1" fontWeight="bold" className="dataText">
+                <Box flexBasis={`${100 / columns.length}%`}>
+                  <Typography variant="body1" fontWeight="bold" className="headerText">
                     Acciones
                   </Typography>
                 </Box>
@@ -48,15 +48,15 @@ const ListComponent = ({
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     {columns.map((column, colIndex) => (
                       <Box key={colIndex} flexBasis={`${100 / columns.length}%`}>
-                        <Typography variant="body2" color="textSecondary"  className="dataText">
+                        <Typography variant="body2" color="textSecondary" className="dataText">
                           {item[column.key]}
                         </Typography>
                       </Box>
                     ))}
-                    <Box flexBasis="10%" display="flex" justifyContent="center">
+                    <Box flexBasis={`${100 / columns.length}%`} display="flex" justifyContent="center">
                       {icons.map((icon, iconIndex) => (
                         <IconButton size="small" href={iconsLinks[iconIndex]} key={iconIndex} title={iconsTooltip[iconIndex]}>
-                          {icon } 
+                          {icon}
                         </IconButton>
                       ))}
                     </Box>

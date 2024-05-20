@@ -1,16 +1,27 @@
 .grid-item:nth-of-type(odd) {
-    background-color: rgba(0, 0, 0, 0.04); /* Adjust color as needed */
-  }
+    background-color: rgba(0, 0, 0, 0.04);
+}
   
-  .grid-item:nth-of-type(even) {
-    background-color: #fff; /* Adjust color as needed */
-  }
-  
-  .grid-item {
-    padding: 8px; /* Adjust padding as needed */
-  }
+.grid-item:nth-of-type(even) {
+  background-color: #fff;
+}
+
+.grid-item {
+  padding: 8px;
+}
+
 .dataText{
     white-space: pre-wrap;
     display: flex;
     justify-content: center;
+}
+
+.headerText, .dataText {
+  display: block;
+  text-align: center; 
+  margin-right: 8px;
+}
+
+.grid-item .dataText {
+  padding: 8px 0;
 }
