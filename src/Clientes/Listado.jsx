@@ -5,9 +5,9 @@ import ListComponent from "../components/listados";
 import api from "../network/axios"; // Ensure this path matches your actual API file path
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 
 const columns = [
-  { label: "ID", key: "id_cliente"},
   { label: "Nombre", key: "nombre" },
   { label: "Apellidos", key: "apellido" },
   { label: "Cedula", key: "documento" },
@@ -44,8 +44,9 @@ const ClienteListado = () => {
         data={clients} 
         columns={columns} 
         createLink="/clientes/crear" 
-        icons={[<AddCircleIcon />, <DeleteIcon />]}
-        iconsLinks={["/pedidos/crear", "/clientes/eliminar"]}
+        icons={[<AddCircleIcon />, <ModeEditOutlineIcon />, <DeleteIcon />]}
+        iconsLinks={["/pedidos/crear?cliente_id=", "/clientes/editar?cliente_id=",  "/clientes/eliminar?cliente_id="]}
+        iconsTooltip={["Agregar Pedido", "Editar Cliente", "Eliminar Cliente"]}
       />
     </Container>
   );

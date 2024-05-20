@@ -4,6 +4,8 @@ import Header from "../components/headerList";
 import ListComponent from "../components/listados";
 import api from "../network/axios"; // Ensure this path matches your actual API file path
 import DateFilter from "../components/dateFilter";
+import DeleteIcon from '@mui/icons-material/Delete';
+import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 
 const columns = [
   { label: "Pedido por", key: "nombre_y_apellido" },
@@ -59,6 +61,9 @@ const PedidoListado = () => {
         columns={columns} 
         createLink="/pedidos/crear" 
         showMultiLine={true}
+        icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
+        iconsLinks={[ "/pedidos/editar",  "/pedidos/eliminar"]} 
+        iconsTooltip={[ "Editar Pedido", "Eliminar Pedido"]}
       />
     </Container>
   );

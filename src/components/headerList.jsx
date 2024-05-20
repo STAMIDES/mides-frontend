@@ -22,13 +22,13 @@ const Header = (
                 left: 8,
                 top: "50%",
                 transform: "translateY(-50%)",
-                color: "grey",
+                color: "black"
               }}
             />
             <InputBase
               placeholder="Buscar..."
               fullWidth
-              style={{ paddingLeft: 40, backgroundColor: "white", borderRadius: 4 }}
+              style={{ paddingLeft: 40, backgroundColor: "#b9c1c087", borderRadius: 4 }}
             />
           </Box>
         </Box>

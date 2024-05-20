@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Grid, Typography, IconButton, Paper } from "@mui/material";
+import "./css/listado.css";
 
 const ListComponent = ({
   title,
@@ -8,25 +9,26 @@ const ListComponent = ({
   filterComponentProps,
   filterComponent: FilterComponent,
   icons,
-  iconsLinks
+  iconsLinks,
+  iconsTooltip
 }) => {
   return (
-    <Box mt={2}>
-      <Paper elevation={2} style={{ padding: "16px" }}>
+    <Box mt={2} >
+      <Paper elevation={2} style={{ padding: "16px" }} >
         <Box mt={2}>
           {FilterComponent && <FilterComponent {...filterComponentProps} />}
-          <Grid container spacing={2}>
+          <Grid container spacing={1.5}>
             <Grid item xs={12}>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 {columns.map((column, colIndex) => (
-                  <Box key={colIndex} flexBasis={`${100 / columns.length}%`}>
-                    <Typography variant="body1" fontWeight="bold">
+                  <Box key={colIndex} flexBasis={`${100 / columns.length}%`} >
+                    <Typography variant="body1" fontWeight="bold" className="dataText">
                       {column.label}
                     </Typography>
                   </Box>
                 ))}
                 <Box flexBasis="10%">
-                  <Typography variant="body1" fontWeight="bold">
+                  <Typography variant="body1" fontWeight="bold" className="dataText">
                     Acciones
                   </Typography>
                 </Box>
@@ -42,19 +44,19 @@ const ListComponent = ({
               </Grid>
             ) : (
               data.map((item, index) => (
-                <Grid item xs={12} key={index}>
+                <Grid item xs={12} key={index} className="grid-item">
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     {columns.map((column, colIndex) => (
                       <Box key={colIndex} flexBasis={`${100 / columns.length}%`}>
-                        <Typography variant="body2" color="textSecondary" style={{ whiteSpace: "pre-line" }}>
+                        <Typography variant="body2" color="textSecondary"  className="dataText">
                           {item[column.key]}
                         </Typography>
                       </Box>
                     ))}
                     <Box flexBasis="10%" display="flex" justifyContent="center">
                       {icons.map((icon, iconIndex) => (
-                        <IconButton size="small" href={iconsLinks[iconIndex]} key={iconIndex}>
-                          {icon}
+                        <IconButton size="small" href={iconsLinks[iconIndex]} key={iconIndex} title={iconsTooltip[iconIndex]}>
+                          {icon } 
                         </IconButton>
                       ))}
                     </Box>
