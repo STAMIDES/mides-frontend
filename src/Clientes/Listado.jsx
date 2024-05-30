@@ -17,10 +17,12 @@ const columns = [
 const ClienteListado = () => {
   const [clients, setClients] = useState([]);
   const [error, setError] = useState(null);
+  const [pageSize, setPageSize] = useState(10);
 
-  const obtenerClientes = async () => {
+  const obtenerClientes = async (page=1) => {
     try {
-      const response = await api.get('/clientes', {});
+      const offset = page * 10 - pageSize;
+      const response = await api.get(`/clientes?offset=${offset}&limit=${pageSize}`);
       setClients(response.data.clientes);
     } catch (error) {
       if (error.response) {
@@ -47,6 +49,8 @@ const ClienteListado = () => {
         icons={[<AddCircleIcon />, <ModeEditOutlineIcon />, <DeleteIcon />]}
         iconsLinks={["/pedidos/crear?cliente_id=", "/clientes/editar?cliente_id=",  "/clientes/eliminar?cliente_id="]}
         iconsTooltip={["Agregar Pedido", "Editar Cliente", "Eliminar Cliente"]}
+        getFunction={obtenerClientes}
+        pageCounter={Math.round(clients.length/pageSize+1)}
       />
     </Container>
   );

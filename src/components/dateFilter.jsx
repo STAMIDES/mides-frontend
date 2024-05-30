@@ -3,27 +3,8 @@ import { Grid, TextField } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
-import moment from 'moment';
 
-const DateFilter = ({ defaultValue, getElementosFiltrados }) => {
-  const [date, setDate] = useState(moment(defaultValue, "YYYY-MM-DD"));
-  moment.locale('en', {
-    longDateFormat: {
-      L: 'DD-MM-YYYY',
-    }
-  });
-  useEffect(() => {
-    if (defaultValue) {
-      setDate(moment(defaultValue, "YYYY-MM-DD"));
-    }
-  }, [defaultValue]);
-
-  const handleDateChange = (newDate) => {
-    setDate(newDate);
-    if (moment(newDate, "DD-MM-YYYY", true).isValid()) {
-      getElementosFiltrados(newDate.format("YYYY-MM-DD"));
-    }
-  };
+const DateFilter = ({ date, handleDateChange, getElementosFiltrados }) => {
   return (
     <LocalizationProvider dateAdapter={AdapterMoment}>
       <Grid container spacing={2}>

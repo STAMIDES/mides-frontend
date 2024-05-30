@@ -1,16 +1,18 @@
 import React from "react";
-import { Box, Grid, Typography, IconButton, Paper } from "@mui/material";
+import { Box, Grid, Typography, IconButton, Paper, Pagination } from "@mui/material";
 import "./css/listado.css";
 
 const ListComponent = ({
-  title,
   data,
   columns,
   filterComponentProps,
   filterComponent: FilterComponent,
   icons,
   iconsLinks,
-  iconsTooltip
+  iconsTooltip,
+  getFunction,
+  pageCounter,
+  currentPage
 }) => {
   return (
     <Box mt={2}>
@@ -63,7 +65,27 @@ const ListComponent = ({
                   </Box>
                 </Grid>
               ))
-            )}
+              )}
+              {currentPage && pageCounter>1 ?
+                <Pagination 
+                className="pagination"
+                count={pageCounter} 
+                variant="outlined" 
+                color="primary"
+                onChange={(event, value) => getFunction(value)}
+                shape="rounded"
+                page={currentPage}
+                />
+                : pageCounter>1 ?
+                <Pagination
+                className="pagination"
+                count={pageCounter}
+                variant="outlined"
+                color="primary"
+                onChange={(event, value) => getFunction(value)}
+                shape="rounded"
+                />
+                : null}
           </Grid>
         </Box>
       </Paper>
