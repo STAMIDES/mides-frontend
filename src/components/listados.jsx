@@ -19,7 +19,7 @@ const ListComponent = ({
       <Paper elevation={2} style={{ padding: "16px" }}>
         <Box mt={2}>
           {FilterComponent && <FilterComponent {...filterComponentProps} />}
-          <Grid container spacing={0.1}>
+          <Grid container spacing={0.1}  display="flex" justifyContent="center" alignItems="center">
             <Grid item xs={12}>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 {columns.map((column, colIndex) => (
@@ -68,7 +68,6 @@ const ListComponent = ({
               )}
               {currentPage && pageCounter>1 ?
                 <Pagination 
-                className="pagination"
                 count={pageCounter} 
                 variant="outlined" 
                 color="primary"
@@ -78,7 +77,6 @@ const ListComponent = ({
                 />
                 : pageCounter>1 ?
                 <Pagination
-                className="pagination"
                 count={pageCounter}
                 variant="outlined"
                 color="primary"

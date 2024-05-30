@@ -25,9 +25,3 @@
 .grid-item .dataText {
   padding: 8px 0;
 }
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 16px;
-}
