@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Autocomplete, Container, Grid, Paper } from '@mui/material';
-import api from '../network/axios';
+import useApi from '../network/axios';
 
 const CrearPedido = () => {
   const [formData, setFormData] = useState({
       nombre: '',
       apellido: '',
-      documento: '',
+      cliente_documento: '',
       direccion_origen: '',
       ventana_origen_inicio: '',
       ventana_origen_fin: '',
@@ -22,6 +22,7 @@ const CrearPedido = () => {
   const [documentOptions, setDocumentOptions] = useState([]);
   const [nameOptions, setNameOptions] = useState([]);
   const [apellidoOptions, setSurnameOptions] = useState([]);
+  const api = useApi();
 
   const handleChange = (e, value, reason) => {
     if (reason === 'selectOption') {
@@ -35,7 +36,7 @@ const CrearPedido = () => {
   const castDocuments = (clients) => {
     return clients.map((client) => ({
       ...client,
-      documento: `${client.documento.toString()}`,
+      cliente_documento: `${client.documento.toString()}`,
     }));
   }
   const fetchDocuments = async (input) => {
@@ -86,7 +87,7 @@ const CrearPedido = () => {
 
     const dataToSubmit = {
       ...formData,
-      documento: parseInt(formData.documento, 10),
+      documento: parseInt(formData.cliente_documento, 10),
     };
 
     try {
@@ -98,7 +99,7 @@ const CrearPedido = () => {
   }
 
   const handleInputDocumentChange = (event, value) => {
-    setFormData({ ...formData, 'documento': value });
+    setFormData({ ...formData, 'cliente_documento': value });
     fetchDocuments(value);
   };
 
@@ -173,16 +174,16 @@ const CrearPedido = () => {
                 getOptionLabel={(option) => option.documento && option.documento.toString()}
                 onInputChange={handleInputDocumentChange}
                 onChange={(event, value) => handleChange(event, value, 'selectOption')}
-                inputValue={formData.documento}
+                inputValue={formData.cliente_documento}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    name="documento"
+                    name="cliente_documento"
                     label="Documento"
                     fullWidth
                     required
-                    error={!!errors.documento}
-                    helperText={errors.documento}
+                    error={!!errors.cliente_documento}
+                    helperText={errors.cliente_documento}
                   />
                 )}
               />

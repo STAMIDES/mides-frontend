@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container } from "@mui/material";
 import Header from "../components/headerList";
 import ListComponent from "../components/listados";
-import api from "../network/axios"; // Ensure this path matches your actual API file path
+import useApi from "../network/axios"; // Ensure this path matches your actual API file path
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
@@ -18,6 +18,7 @@ const ClienteListado = () => {
   const [clients, setClients] = useState([]);
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
+  const api = useApi();
 
   const obtenerClientes = async (page=1) => {
     try {

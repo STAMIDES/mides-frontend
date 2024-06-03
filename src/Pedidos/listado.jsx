@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container } from "@mui/material";
 import Header from "../components/headerList";
 import ListComponent from "../components/listados";
-import api from "../network/axios"; // Ensure this path matches your actual API file path
+import useApi from "../network/axios";
 import DateFilter from "../components/dateFilter";
 import DeleteIcon from '@mui/icons-material/Delete';
 import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
@@ -25,6 +25,7 @@ const PedidoListado = () => {
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setPage] = useState(1);
+  const api = useApi();
 
   moment.locale('en', {
     longDateFormat: {

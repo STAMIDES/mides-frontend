@@ -1,29 +1,39 @@
 import React from 'react';
-import LoginComponent from './account/Login';
-import {Box} from "@mui/material";
+import { Box } from "@mui/material";
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import SideNavBar from './components/sideNavBar';
-import { Route, Routes } from 'react-router-dom';
 import PedidosRutas from './Pedidos';
 import ClientesRutas from './Clientes';
+import LoginComponent from './account/Login';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import PrivateRoute from './components/privateRoute';
 
 function App() {
-  let loggedIn = true;
+  const { token } = useAuth();
+
   return (
     <div className="app">
-      {!loggedIn ? <LoginComponent />
-      :<Box display="flex" height="100vh">
-      <SideNavBar />
-      <Box flex={1}>
+      <Box display="flex" height="100vh">
+        {token && <SideNavBar />}
+        <Box flex={1}>
           <Routes>
-            <Route path="/account*" element={<LoginComponent />} />
-            <Route path="/pedidos*" element={<PedidosRutas />} />
-            <Route path="/clientes*" element={<ClientesRutas />} />
-            <Route path="/" element={<PedidosRutas />} />
+            <Route path="/login" element={<LoginComponent />} />
+            <Route path="/pedidos/*" element={
+              <PrivateRoute>
+                <PedidosRutas />
+              </PrivateRoute>
+            } />
+            <Route path="/clientes/*" element={
+              <PrivateRoute>
+                <ClientesRutas />
+              </PrivateRoute>
+            } />
+            <Route path="/" element={<Navigate to="/pedidos" />} />
           </Routes>
+        </Box>
       </Box>
-    </Box>}
     </div>
   );
 }
 
-export default App
+export default App;
