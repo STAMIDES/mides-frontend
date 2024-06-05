@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
-import ClienteListado from './listado';
+import ClienteListado from './Listado';
 import ClienteCrear from './crear';
 
 const ClientesRutas = () => {

@@ -23,16 +23,16 @@ const SideNavBar = () => {
       display="flex"
       flexDirection="column"
       justifyContent="space-between"
-      alignItems="flex-start"
+      alignItems="center"
       bgcolor="grey.900"
       p={2}
       height="100vh"
     >
-      <Box>
+      <Box display="flex" flexDirection="column" alignItems="center">
         <Avatar
           src="src/imgs/logo_mides.png"
           alt="Logo"
-          sx={{ width: 56, height: 56, cursor: "pointer", mb: 4, alignSelf: "center"}}
+          sx={{ width: 56, height: 56, cursor: "pointer", mb: 4 }}
           onClick={handleLogoClick}
         />
         {menuItems.map((item) => (
