@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, Select, MenuItem, Container, Grid, Paper, FormControl, InputLabel } from '@mui/material';
-import api from '../network/axios';
+import useApi from '../network/axios';
 
 const TipoCliente = {
   particular: 'Usuario particular',
@@ -21,6 +21,7 @@ const CrearCliente = ({ cliente = {} }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const api = useApi();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
