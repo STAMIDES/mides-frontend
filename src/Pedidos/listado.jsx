@@ -67,7 +67,7 @@ const PedidoListado = () => {
   };
   
   return (
-    <Container>
+    <div style={{marginLeft:'3rem', marginRight:'3rem' }}>
       <Header createLink="/pedidos/crear" />
       {error && <p>{error}</p>}
       <ListComponent 
@@ -85,7 +85,7 @@ const PedidoListado = () => {
         currentPage={currentPage}
         pageCounter={Math.round(pedidos.length/pageSize+1)}
       />
-    </Container>
+    </div>
   );
 };
 

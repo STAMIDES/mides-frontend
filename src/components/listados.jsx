@@ -15,7 +15,7 @@ const ListComponent = ({
   currentPage
 }) => {
   return (
-    <Box mt={2}>
+    <Box style={{width:"100%"}} >
       <Paper elevation={2} style={{ padding: "16px" }}>
         <Box mt={2}>
           {FilterComponent && <FilterComponent {...filterComponentProps} />}
