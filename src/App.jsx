@@ -14,7 +14,7 @@ function App() {
   return (
     <div className="app">
       <Box display="flex" height="100vh">
-        {token && <SideNavBar />}
+        {token && window.location.pathname !== '/login' && <SideNavBar />}
         <Box flex={1}>
           <Routes>
             <Route path="/login" element={<LoginComponent />} />
