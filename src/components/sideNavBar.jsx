@@ -40,11 +40,13 @@ const SideNavBar = () => {
       justifyContent="space-between"
       alignItems="center"
       bgcolor="grey.900"
-      p={2}
+      width="12rem"
       height="100vh"
-      width="200px" // Ajustar el ancho del menú
+      position="fixed"
+      top='0'
+      left='0'
     >
-      <Box display="flex" flexDirection="column" alignItems="center" width="100%">
+      <Box display="flex" flexDirection="column" alignItems="center" style={{ marginTop: '2rem'}}>
         <Avatar
           src="src/imgs/logo_mides.png"
           alt="Logo"
@@ -117,6 +119,8 @@ const SideNavBar = () => {
         color="secondary"
         onClick={logout}
         sx={{ mt: 2 }}
+        style={{    padding: '0.5rem',
+          marginBottom: '2rem'}}
       >
         Cerrar Sesión
       </Button>

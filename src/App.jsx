@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box } from "@mui/material";
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import SideNavBar from './components/sideNavBar';
 import PedidosRutas from './Pedidos';
 import ClientesRutas from './Clientes';
@@ -10,12 +10,12 @@ import PrivateRoute from './components/privateRoute';
 
 function App() {
   const { token } = useAuth();
-
+  const location = useLocation();
   return (
     <div className="app">
-      <Box display="flex" height="100vh">
-        {token && window.location.pathname !== '/login' && <SideNavBar />}
-        <Box flex={1}>
+      <Box display="flex" >
+        {token && location.pathname !== '/login' && <SideNavBar/>}
+        <Box style={{marginLeft:"12rem", width: '100%'}}>
           <Routes>
             <Route path="/login" element={<LoginComponent />} />
             <Route path="/pedidos/*" element={
