@@ -14,12 +14,14 @@ function App() {
   return (
     <div className="app">
       <Box display="flex" >
-        <SideNavBar/>
+        {token && window.location.pathname !== '/login' && <SideNavBar/>}
         <Box style={{marginLeft:"12rem", width: '100%'}}>
           <Routes>
             <Route path="/login" element={<LoginComponent />} />
             <Route path="/pedidos/*" element={
+              <PrivateRoute>
                 <PedidosRutas />
+              </PrivateRoute>
             } />
             <Route path="/clientes/*" element={
               <PrivateRoute>
