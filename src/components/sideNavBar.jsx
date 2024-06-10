@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Typography, Avatar, Button, Collapse, List, ListItem, ListItemText } from "@mui/material";
+import { Box, Typography, Avatar, Button, List, ListItem, ListItemText, Popper } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
 
@@ -7,16 +7,29 @@ const SideNavBar = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isMouseOverSubmenu, setIsMouseOverSubmenu] = useState(false);
 
   const handleLogoClick = () => {
     navigate("/");
   };
 
-  const handleAdminMouseEnter = () => {
+  const handleAdminMouseEnter = (event) => {
+    setAnchorEl(event.currentTarget);
     setAdminMenuOpen(true);
   };
 
   const handleAdminMouseLeave = () => {
+    if (!isMouseOverSubmenu) {
+      setAdminMenuOpen(false);
+    }
+  };
+  const handleSubmenuMouseEnter = () => {
+    setIsMouseOverSubmenu(true);
+  };
+  
+  const handleSubmenuMouseLeave = () => {
+    setIsMouseOverSubmenu(false);
     setAdminMenuOpen(false);
   };
 
@@ -101,17 +114,26 @@ const SideNavBar = () => {
           >
             <Typography variant="h6">Administración</Typography>
           </Box>
-          <Collapse in={adminMenuOpen} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding>
-              {adminSubItems.map((subItem) => (
-                <Link key={subItem} to={subItem.toLowerCase().replace(' ', '-')} style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
-                  <ListItem button sx={{ pl: 4 }}>
-                    <ListItemText primary={subItem} />
-                  </ListItem>
-                </Link>
-              ))}
-            </List>
-          </Collapse>
+          <Popper 
+            open={adminMenuOpen} 
+            anchorEl={anchorEl} 
+            placement="right-start"
+            onMouseEnter={handleSubmenuMouseEnter} 
+            onMouseLeave={handleSubmenuMouseLeave}
+            style={{ zIndex: 1300 }}
+          >
+            <Box bgcolor="grey.800" color="white" borderRadius={1} p={1} boxShadow={5}>
+              <List component="nav">
+                {adminSubItems.map((subItem) => (
+                  <Link key={subItem} to={subItem.toLowerCase().replace(' ', '-')} style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+                    <ListItem button>
+                      <ListItemText primary={subItem} />
+                    </ListItem>
+                  </Link>
+                ))}
+              </List>
+            </Box>
+          </Popper>
         </Box>
       </Box>
       <Button
@@ -120,7 +142,7 @@ const SideNavBar = () => {
         onClick={logout}
         sx={{ mt: 2 }}
         style={{    padding: '0.5rem',
-          marginBottom: '2rem'}}
+        marginBottom: '2rem'}}
       >
         Cerrar Sesión
       </Button>
