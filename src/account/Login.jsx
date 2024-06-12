@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import { Card, CardContent, Typography, TextField, Button, Link } from '@mui/material';
-import './Login.css';
+import './css.css';
 import useApi from '../network/axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -42,7 +42,7 @@ function LoginComponent() {
   return (
     <Card className="login-card">
       <CardContent className='login-card-content'>
-        <img src="src/imgs/logo_mides.png" alt="Mides Logo" className="logo" />
+        <img src="/src/imgs/logo_mides.png" alt="Mides Logo" className="logo" />
         <form noValidate onSubmit={handleSubmit}>
           <TextField
             id="username"
@@ -69,7 +69,6 @@ function LoginComponent() {
         </form>
         <Typography variant="body2" display="flex" justifyContent="space-between">
           <Link href="#" className="link">¿Olvidaste la contraseña?</Link>
-          <Link href="#" className="link">Crear cuenta</Link>
         </Typography>
       </CardContent>
     </Card>
