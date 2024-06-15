@@ -17,6 +17,13 @@ function LoginComponent() {
     const username = event.target.username.value;
     const password = event.target.password.value;
     
+    if (!username || !password) {
+      setError('Por favor, complete todos los campos');
+      return;
+    }else if (password.length < 7) {
+      setError('El usuario y la contraseña deben tener al menos 7 caracteres');
+      return;
+    }
     try {
       const response = await api.post('/usuarios/login', {
         username,
