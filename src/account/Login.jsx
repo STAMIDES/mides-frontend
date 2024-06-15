@@ -31,8 +31,9 @@ function LoginComponent() {
       });
       
       const token = response.data.token;
-      if (token) {
-          login(token);
+      const refresh_token = response.data.refresh_token;
+      if (token && refresh_token) {
+          login(token, refresh_token);
           navigate('/pedidos');
       } else {
           setError('Usuario o contraseña incorrectos');
