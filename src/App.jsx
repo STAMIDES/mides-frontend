@@ -16,7 +16,7 @@ function App() {
   return (
     <div className="app">
       <Box display="flex" >
-        {token && location.pathname !== '/cuenta/*' && <SideNavBar/>}
+        {token && !pathCuenta && <SideNavBar/>}
         <Box style={pathCuenta ? { width: '100%' } : { marginLeft: '12rem', width: '100%' }}> 
           <Routes>
             <Route path="/cuenta/*" element={<CuentaRouter />} />
