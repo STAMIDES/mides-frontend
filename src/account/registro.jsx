@@ -3,28 +3,32 @@ import { Card, CardContent, Typography, TextField, Button, Link } from '@mui/mat
 import useApi from '../network/axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import './css.css';
+
 function RegisterComponent() {
   const [email, setEmail] = useState(null);
   const [rol, setRole] = useState(null);
-  const [nombre, setNombre] = useState('');
+  const [nombre, setNombre] = useState(null);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
   const [isHashValid, setIsHashValid] = useState(true);
   const { hash } = useParams();
   const navigate = useNavigate();
   const api = useApi();
-
+  const path = `/usuarios/registro/${hash}`;
   useEffect(() => {
     const fetchInvitationDetails = async () => {
       try {
-        const response = await api.get(`/usuarios/registro/${hash}`);
-        const { email, rol } = response.data;
+        const response = await api.get(path);
+        const { email, rol, nombre } = response.data;
         setEmail(email);
         setRole(rol);
+        setNombre(nombre);
       } catch (error) {
         setIsHashValid(false);
-        setError('Enlace de invitación inválido');
+        console.log(JSON.stringify(error));
+        setError(error.response.data.detail);
       }
     };
 
@@ -36,17 +40,20 @@ function RegisterComponent() {
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
+    } else if (password.length < 7) {
+      setError('La contraseña debe tener al menos 7 caracteres');
+      return;
     }
 
     try {
-      await api.post(`/usuario/registro/${hash}`, {
-        email,
-        rol,
+      await api.post(path, {
+        nombre,
         password,
       });
-      navigate(`/cuenta/login?email=${email}`);
+      setSuccess(true);
+      setError(null);
     } catch (error) {
-      setError('Ocurrió un error durante el registro');
+      setError('Ocurrió un error durante el registro, intenta nuevamente');
     }
   };
 
@@ -54,7 +61,7 @@ function RegisterComponent() {
     return (
       <Card className="register-card">
         <CardContent className="register-card-content">
-          <Typography variant="h5" color="error">
+          <Typography variant="h5" color="error" marginBottom="1rem">
             {error}
           </Typography>
           <Link href="/cuenta/login" variant="body2">
@@ -64,7 +71,22 @@ function RegisterComponent() {
       </Card>
     );
   }
-  console.log(email)
+
+  if (success) {
+    return (
+      <Card className="register-card">
+        <CardContent className="register-card-content">
+          <Typography variant="h5" color="primary" marginBottom="1rem">
+            Cuenta creada exitosamente.
+          </Typography>
+          <Link href="/cuenta/login" variant="body2">
+            Ir a la página de inicio de sesión
+          </Link>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="login-card">
       <CardContent className="register-card-content">
@@ -89,7 +111,7 @@ function RegisterComponent() {
             disabled
           />
           <TextField
-            id="nombre_usuario"
+            id="nombre"
             label="Nombre de usuario"
             type="text"
             value={nombre || ''}

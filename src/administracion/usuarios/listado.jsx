@@ -9,9 +9,8 @@ import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 
 const columns = [
   { label: "Nombre", key: "nombre" },
-  { label: "Apellidos", key: "apellido" },
-  { label: "Cedula", key: "documento" },
-  { label: "Tipo", key: "tipo" },
+  { label: "Corre electronico", key: "email" },
+  { label: "Rol", key: "rol" }
 ];
 
 const UsuarioListado = () => {
@@ -40,7 +39,7 @@ const UsuarioListado = () => {
 
   return (
     <Container>
-      <Header createLink="/usuarios/crear" />
+      <Header createLink="/usuarios/invitar" createMessage="Invitar Usuario via Email" />
       {error && <p>{error}</p>}
       <ListComponent 
         title="Usuarios" 
