@@ -4,20 +4,22 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import SideNavBar from './components/sideNavBar';
 import PedidosRutas from './Pedidos';
 import ClientesRutas from './Clientes';
-import LoginComponent from './account/Login';
+import UsuariosRutas from './administracion/usuarios';
+import CuentaRouter from './account';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import PrivateRoute from './components/privateRoute';
 
 function App() {
   const { token } = useAuth();
   const location = useLocation();
+  const pathCuenta = location.pathname.includes('/cuenta');
   return (
     <div className="app">
       <Box display="flex" >
-        {token && location.pathname !== '/login' && <SideNavBar/>}
-        <Box style={{marginLeft:"12rem", width: '100%'}}>
+        {token && location.pathname !== '/cuenta/*' && <SideNavBar/>}
+        <Box style={pathCuenta ? { width: '100%' } : { marginLeft: '12rem', width: '100%' }}> 
           <Routes>
-            <Route path="/login" element={<LoginComponent />} />
+            <Route path="/cuenta/*" element={<CuentaRouter />} />
             <Route path="/pedidos/*" element={
               <PrivateRoute>
                 <PedidosRutas />
@@ -26,6 +28,11 @@ function App() {
             <Route path="/clientes/*" element={
               <PrivateRoute>
                 <ClientesRutas />
+              </PrivateRoute>
+            } />
+            <Route path="/usuarios/*" element={
+              <PrivateRoute>
+                <UsuariosRutas/>
               </PrivateRoute>
             } />
             <Route path="/" element={<Navigate to="/pedidos" />} />
