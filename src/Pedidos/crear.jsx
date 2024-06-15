@@ -19,6 +19,7 @@ const CrearPedido = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState(null);
   const [documentOptions, setDocumentOptions] = useState([]);
   const [nameOptions, setNameOptions] = useState([]);
   const [apellidoOptions, setSurnameOptions] = useState([]);
@@ -92,9 +93,13 @@ const CrearPedido = () => {
 
     try {
       const response = await api.post('pedidos', dataToSubmit);
-      console.log('Nuevo pedido agregado:', response.data);
+      setMessage({ type: 'success', text: 'Nuevo pedido agregado exitosamente' });
     } catch (error) {
-      console.error('Error al agregar pedido:', error);
+      if (error.response && error.response.status >= 400 && error.response.status < 500) {
+        setMessage({ type: 'error', text: error.response.data.detail });
+      } else {
+        setMessage({ type: 'error', text: 'Error al agregar pedido:' });
+      }
     }
   }
 
@@ -139,9 +144,9 @@ const CrearPedido = () => {
                     label="Nombre"
                     fullWidth
                     required
-                  />
-                )}
-              />
+                    />
+                    )}
+                    />
             </Grid>
             <Grid item xs={12} sm={6}>
               <Autocomplete
@@ -290,6 +295,11 @@ const CrearPedido = () => {
             </Grid>
           </Grid>
         </form>
+        {message && (
+          <Alert severity={message.type} sx={{ mb: 3 , mt: 3}}>
+            {message.text}
+          </Alert>
+        )}
       </Paper>
     </Container>
   );

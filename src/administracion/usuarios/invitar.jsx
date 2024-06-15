@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, Select, MenuItem, Container, Grid, Paper, FormControl, InputLabel } from '@mui/material';
+import { Box, TextField, Button, Typography, Select, MenuItem, Container, Grid, Paper, FormControl, InputLabel, Alert } from '@mui/material';
 import useApi from '../../network/axios';
 
 const Roles = { 
@@ -14,7 +14,7 @@ const UsuarioInvitar = ({ usuario = {} }) => {
     rol: '',
     ...usuario
   });
-
+  const [message, setMessage] = useState(null); 
   const api = useApi();
 
   const handleChange = (e) => {
@@ -26,11 +26,15 @@ const UsuarioInvitar = ({ usuario = {} }) => {
     e.preventDefault();
     try {
       const response = await api.post('usuarios/invitar', formData);
-      console.log('Se ha invitado a ' + nombre, response.data);
+      setMessage({ type: 'success', text: 'Usuario invitado correctamente' });
       // Opcionalmente redirigir a otra página tras enviar el formulario correctamente
       // history.push('/usuarios'); // Suponiendo que tienes acceso al objeto history
     } catch (error) {
-      console.error('Error invitando al usuario:', error);
+      if (error.response && error.response.status >= 400 && error.response.status < 500) {
+        setMessage({ type: 'error', text: error.response.data.detail });
+      } else {
+        setMessage({ type: 'error', text: 'Error invitando al usuario '+ nombre });
+      }
     }
   };
 
@@ -92,6 +96,11 @@ const UsuarioInvitar = ({ usuario = {} }) => {
             </Grid>
           </Grid>
         </form>
+        {message && (
+          <Alert severity={message.type} sx={{  mt: 3}}>
+            {message.text}
+          </Alert>
+        )}
       </Paper>
     </Container>
   );
