@@ -1,10 +1,12 @@
 import React from "react";
 import { Box, Grid, Typography, IconButton, Paper, Pagination } from "@mui/material";
 import "./css/listado.css";
+import { Link } from "react-router-dom";
 
 const ListComponent = ({
   data,
   columns,
+  detailLink="",
   filterComponentProps,
   filterComponent: FilterComponent,
   icons,
@@ -50,9 +52,11 @@ const ListComponent = ({
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     {columns.map((column, colIndex) => (
                       <Box key={colIndex} flexBasis={`${100 / columns.length}%`}>
+                        <Link to={`${detailLink}${item["id"]}`} className="link-hover-outline">
                         <Typography variant="body2" color="textSecondary" className="dataText">
                           {item[column.key]}
                         </Typography>
+                        </Link>
                       </Box>
                     ))}
                     <Box flexBasis={`${100 / columns.length}%`} display="flex" justifyContent="center">

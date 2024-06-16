@@ -25,3 +25,10 @@
 .grid-item .dataText {
   padding: 8px 0;
 }
+.link-hover-outline {
+  text-decoration: none;
+}
+
+.link-hover-outline:hover {
+  text-decoration: underline;
+}
