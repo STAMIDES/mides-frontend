@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Autocomplete, Container, Grid, Paper } from '@mui/material';
+import { TextField, Button, Typography, FormControlLabel, Checkbox, Autocomplete, Container, Grid, Paper } from '@mui/material';
 import useApi from '../network/axios';
+import { useParams, useLocation  } from 'react-router-dom';
 
 const CrearPedido = () => {
   const [formData, setFormData] = useState({
@@ -17,13 +18,30 @@ const CrearPedido = () => {
       acompañante: false,
       observaciones: '',
   });
-
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const clienteId = queryParams.get('clienteId');
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState(null);
   const [documentOptions, setDocumentOptions] = useState([]);
   const [nameOptions, setNameOptions] = useState([]);
   const [apellidoOptions, setSurnameOptions] = useState([]);
   const api = useApi();
+
+  useEffect(() => {
+  if (clienteId) {
+    console.log("Fetching client data...")
+    api.get(`clientes/${clienteId}`)
+    .then(response => {
+      const cliente = response.data.cliente;
+      console.log("Client data fetched:", cliente);
+      setFormData({ ...formData, nombre:cliente.nombre, apellido:cliente.apellido, 
+        cliente_documento: cliente.documento.toString()});
+    })
+      .catch(error => {
+        console.error("There was an error fetching the client data!", error);
+      });
+  }}, [clienteId]);
 
   const handleChange = (e, value, reason) => {
     if (reason === 'selectOption') {
@@ -117,7 +135,6 @@ const CrearPedido = () => {
     setFormData({ ...formData, 'apellido': value });
     fetchNames(value);
   };
-
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Paper elevation={7} sx={{ p: 4 }}>
@@ -144,6 +161,7 @@ const CrearPedido = () => {
                     label="Nombre"
                     fullWidth
                     required
+                    disabled={!!clienteId}
                     />
                     )}
                     />
@@ -168,6 +186,7 @@ const CrearPedido = () => {
                     label="Apellido"
                     fullWidth
                     required
+                    disabled={!!clienteId}
                   />
                 )}
               />
@@ -189,6 +208,7 @@ const CrearPedido = () => {
                     required
                     error={!!errors.cliente_documento}
                     helperText={errors.cliente_documento}
+                    disabled={!!clienteId}
                   />
                 )}
               />

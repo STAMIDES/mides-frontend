@@ -76,7 +76,6 @@ const PedidoListado = () => {
         filterComponentProps={{ date: date, handleDateChange: handleDateChange }}
         data={pedidos} 
         columns={columns} 
-        createLink="/pedidos/crear" 
         showMultiLine={true}
         icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
         iconsLinks={[ "/pedidos/editar",  "/pedidos/eliminar"]} 

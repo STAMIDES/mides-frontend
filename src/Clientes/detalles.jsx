@@ -9,7 +9,7 @@ const ClienteDetalles = () => {
   const api = useApi();
   useEffect(() => {
     console.log("Fetching client data...")
-    api.get(`clientes/${id}`)
+    api.get(`clientes/${id}?completo=true`) 
       .then(response => {
         setCliente(response.data.cliente);
       })

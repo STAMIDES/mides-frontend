@@ -52,7 +52,7 @@ const ListComponent = ({
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     {columns.map((column, colIndex) => (
                       <Box key={colIndex} flexBasis={`${100 / columns.length}%`}>
-                        <Link to={`${detailLink}${item["id"]}`} className="link-hover-outline">
+                        <Link to={`${detailLink}${item.id}`} className="link-hover-outline">
                         <Typography variant="body2" color="textSecondary" className="dataText">
                           {item[column.key]}
                         </Typography>
@@ -61,7 +61,7 @@ const ListComponent = ({
                     ))}
                     <Box flexBasis={`${100 / columns.length}%`} display="flex" justifyContent="center">
                       {icons.map((icon, iconIndex) => (
-                        <IconButton size="small" href={iconsLinks[iconIndex]} key={iconIndex} title={iconsTooltip[iconIndex]}>
+                        <IconButton size="small" href={iconsLinks[iconIndex] + item.id } key={iconIndex} title={iconsTooltip[iconIndex]}>
                           {icon}
                         </IconButton>
                       ))}
