@@ -18,6 +18,7 @@ const ClienteListado = () => {
   const [clients, setClients] = useState([]);
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
+  const [cantidadClientes, setCantidadClientes] = useState(0);
   const api = useApi();
 
   const obtenerClientes = async (page=1) => {
@@ -25,6 +26,7 @@ const ClienteListado = () => {
       const offset = page * 10 - pageSize;
       const response = await api.get(`/clientes?offset=${offset}&limit=${pageSize}`);
       setClients(response.data.clientes);
+      setCantidadClientes(response.data.cantidad);
     } catch (error) {
       if (error.response) {
         setError(error.response.statusText);
@@ -51,7 +53,7 @@ const ClienteListado = () => {
         iconsLinks={["/pedidos/crear?clienteId=", "/clientes/editar?clienteId=",  "/clientes/eliminar?clienteId="]}
         iconsTooltip={["Agregar Pedido", "Editar Cliente", "Eliminar Cliente"]}
         getFunction={obtenerClientes}
-        pageCounter={Math.round(clients.length/pageSize+1)}
+        pageCounter={Math.round(cantidadClientes/pageSize+1)}
       />
     </Container>
   );

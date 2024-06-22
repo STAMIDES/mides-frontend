@@ -17,6 +17,7 @@ const UsuarioListado = () => {
   const [clients, setClients] = useState([]);
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
+  const [cantidadUsuarios, setCantidadUsuarios] = useState(0); // [1
   const api = useApi();
 
   const obtenerUsuarios = async (page=1) => {
@@ -24,6 +25,7 @@ const UsuarioListado = () => {
       const offset = page * 10 - pageSize;
       const response = await api.get(`/usuarios?offset=${offset}&limit=${pageSize}`);
       setClients(response.data.usuarios);
+      setCantidadUsuarios(response.data.cantidad);
     } catch (error) {
       if (error.response) {
         setError(error.response.statusText);
@@ -50,7 +52,7 @@ const UsuarioListado = () => {
         iconsLinks={["/pedidos/crear?usuario_id=", "/usuarios/editar?usuario_id=",  "/usuarios/eliminar?usuario_id="]}
         iconsTooltip={["Agregar Pedido", "Editar Usuario", "Eliminar Usuario"]}
         getFunction={obtenerUsuarios}
-        pageCounter={Math.round(clients.length/pageSize+1)}
+        pageCounter={Math.round(cantidadUsuarios/pageSize+1)}
       />
     </Container>
   );
