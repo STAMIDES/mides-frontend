@@ -33,7 +33,7 @@ const CrearPedido = () => {
     console.log("Fetching client data...")
     api.get(`clientes/${clienteId}`)
     .then(response => {
-      const cliente = response.data.cliente;
+      const cliente = response.data;
       console.log("Client data fetched:", cliente);
       setFormData({ ...formData, nombre:cliente.nombre, apellido:cliente.apellido, 
         cliente_documento: cliente.documento.toString()});

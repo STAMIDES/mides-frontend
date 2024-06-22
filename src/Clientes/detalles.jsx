@@ -11,7 +11,7 @@ const ClienteDetalles = () => {
     console.log("Fetching client data...")
     api.get(`clientes/${id}?completo=true`) 
       .then(response => {
-        setCliente(response.data.cliente);
+        setCliente(response.data);
       })
       .catch(error => {
         console.error("There was an error fetching the client data!", error);
