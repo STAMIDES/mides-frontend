@@ -4,14 +4,14 @@ import { Search as SearchIcon } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 
 const Header = (
-  { createLink }
+  { createLink, createMessage = "Crear Nuevo"}
 ) => {
   return (
     <AppBar position="static" color="default">
       <Toolbar>
         <Link to={createLink}>
         <Button variant="contained" size="small">
-          Crear Nuevo
+          {createMessage}
         </Button>
         </Link>
         <Box flex={1} display="flex" justifyContent="flex-end">

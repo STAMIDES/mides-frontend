@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { TextField, Button, Typography, Select, MenuItem, Container, FormLabel, FormGroup, FormControlLabel, 
+import React, { useState, useEffect } from 'react';
+import { Box, TextField, Button, Typography, Select, MenuItem, Container, FormLabel, FormGroup, FormControlLabel, Alert,
   Checkbox, Grid, Paper, FormControl, InputLabel } from '@mui/material';
-import api from '../network/axios';
+import useApi from '../network/axios';
 
 const TipoCliente = {
   particular: 'Usuario particular',
@@ -16,21 +16,36 @@ const CrearCliente = ({ cliente = {} }) => {
     apellido: '',
     telefono: '',
     email: '',
-    caracteristicasCliente: [],
+    caracteristicas: [],
     observaciones: '',
     tipo: '',
     ...cliente
   });
 
   const [errors, setErrors] = useState({});
-  const [caracteristicasTodas, setCaracteristicasTodas] = useState(['ciego', 'silla de ruedas', 'muletas', 'bastón', 'audífono', 'perro guía', 'acompañante']); 
-  //fixme hacer el get de las caracteristicas y el index para el checkeo y agregado a caracteristicasCliente pasa a ser el id de la base de datos
-  const [caracteristicasCliente, setCaracteristicasCliente] = useState([]);
+  const [caracteristicasTodas, setCaracteristicasTodas] = useState([]); 
+  const [caracteristicas, setCaracteristicasCliente] = useState([]);
+  const [message, setMessage] = useState(null);
+  const api = useApi();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+
+  const obtenerCaracteristicas = async () => {
+    try {
+      const response = await api.get('caracteristicas');
+      setCaracteristicasTodas(response.data);
+    } catch (error) {
+      console.error('Error al obtener las caracteristicas:', error);
+    }
+  };
+
+  useEffect(() => {
+    obtenerCaracteristicas();
+  }, []);
+
 
   const validarDoc = () => {
     let tempErrors = {};
@@ -61,17 +76,18 @@ const CrearCliente = ({ cliente = {} }) => {
     const dataToSubmit = {
       ...formData,
       documento: parseInt(formData.documento, 10),
-      telefono: parseInt(formData.telefono, 10),
-      caracteristicasCliente: caracteristicasCliente
+      caracteristicas: caracteristicas
     };
 
     try {
       const response = await api.post('clientes', dataToSubmit);
-      console.log('Nuevo cliente agregado:', response.data);
-      // Opcionalmente redirigir a otra página tras enviar el formulario correctamente
-      // history.push('/clientes'); // Suponiendo que tienes acceso al objeto history
+      setMessage({ type: 'success', text: 'Nuevo cliente agregado exitosamente' });
     } catch (error) {
-      console.error('Error al agregar cliente:', error);
+      if (error.response && error.response.status >= 400 && error.response.status < 500) {
+        setMessage({ type: 'error', text: error.response.data.detail });
+      } else {
+        setMessage({ type: 'error', text: 'Error al agregar cliente. Inténtalo de nuevo más tarde.' });
+      }
     }
   };
 
@@ -84,10 +100,10 @@ const CrearCliente = ({ cliente = {} }) => {
       }
     });
   };
-
+  console.log(caracteristicasTodas[0])
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}> 
         <Typography variant="h4" gutterBottom>Agregar Nuevo Cliente</Typography>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
@@ -158,14 +174,14 @@ const CrearCliente = ({ cliente = {} }) => {
                 <FormGroup row>
                   {caracteristicasTodas.map((value, index) => (
                     <FormControlLabel
-                      key={index}
+                      key={value.id}
                       control={
                         <Checkbox
-                          checked={caracteristicasCliente.includes(index)}
-                          onChange={() => handleCheckboxChange(index)}
+                          checked={caracteristicas.includes(value.id)}
+                          onChange={() => handleCheckboxChange(value.id)}
                         />
                       }
-                      label={value}
+                      label={value.nombre}
                     />
                   ))}
                 </FormGroup>
@@ -207,6 +223,11 @@ const CrearCliente = ({ cliente = {} }) => {
             </Grid>
           </Grid>
         </form>
+        {message && (
+          <Alert severity={message.type} sx={{ mb: 3 , mt: 3}}>
+            {message.text}
+          </Alert>
+        )}
       </Paper>
     </Container>
   );
