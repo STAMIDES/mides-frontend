@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, Select, MenuItem, Container, Grid, Paper, FormControl, InputLabel, Alert } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, TextField, Button, Typography, Select, MenuItem, Container, FormLabel, FormGroup, FormControlLabel, Alert,
+  Checkbox, Grid, Paper, FormControl, InputLabel } from '@mui/material';
 import useApi from '../network/axios';
 
 const TipoCliente = {
@@ -15,12 +16,15 @@ const CrearCliente = ({ cliente = {} }) => {
     apellido: '',
     telefono: '',
     email: '',
+    caracteristicas: [],
     observaciones: '',
     tipo: '',
     ...cliente
   });
 
   const [errors, setErrors] = useState({});
+  const [caracteristicasTodas, setCaracteristicasTodas] = useState([]); 
+  const [caracteristicas, setCaracteristicasCliente] = useState([]);
   const [message, setMessage] = useState(null);
   const api = useApi();
 
@@ -29,12 +33,26 @@ const CrearCliente = ({ cliente = {} }) => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const obtenerCaracteristicas = async () => {
+    try {
+      const response = await api.get('caracteristicas');
+      setCaracteristicasTodas(response.data);
+    } catch (error) {
+      console.error('Error al obtener las caracteristicas:', error);
+    }
+  };
+
+  useEffect(() => {
+    obtenerCaracteristicas();
+  }, []);
+
+
   const validarDoc = () => {
     let tempErrors = {};
     if (!formData.documento) {
       tempErrors.documento = 'Documento es requerido';
     } else if (isNaN(formData.documento)) {
-      tempErrors.documento = 'Documento debe ser un número, No debe contener puntos, guiones ni digito verificador';
+      tempErrors.documento = 'Documento debe ser un número, No debe contener puntos, guiones ni dígito verificador';
     }
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
@@ -43,7 +61,7 @@ const CrearCliente = ({ cliente = {} }) => {
   const validarTel = () => {
     let tempErrors = {};
     if (isNaN(formData.telefono)) {
-      tempErrors.telefono = 'Telefono debe ser un número';
+      tempErrors.telefono = 'Teléfono debe ser un número';
     }
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
@@ -57,7 +75,8 @@ const CrearCliente = ({ cliente = {} }) => {
 
     const dataToSubmit = {
       ...formData,
-      documento: parseInt(formData.documento, 10)
+      documento: parseInt(formData.documento, 10),
+      caracteristicas: caracteristicas
     };
 
     try {
@@ -72,6 +91,16 @@ const CrearCliente = ({ cliente = {} }) => {
     }
   };
 
+  const handleCheckboxChange = (value) => {
+    setCaracteristicasCliente((prev) => {
+      if (prev.includes(value)) {
+        return prev.filter((item) => item !== value);
+      } else {
+        return [...prev, value];
+      }
+    });
+  };
+  console.log(caracteristicasTodas[0])
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}> 
@@ -113,7 +142,7 @@ const CrearCliente = ({ cliente = {} }) => {
             <Grid item xs={12}>
               <TextField
                 name="direccion"
-                label="Direccion"
+                label="Dirección"
                 value={formData.direccion}
                 onChange={handleChange}
                 fullWidth
@@ -140,6 +169,25 @@ const CrearCliente = ({ cliente = {} }) => {
               />
             </Grid>
             <Grid item xs={12}>
+              <FormControl component="fieldset">
+                <FormLabel component="legend">Caracteristicas</FormLabel>
+                <FormGroup row>
+                  {caracteristicasTodas.map((value, index) => (
+                    <FormControlLabel
+                      key={value.id}
+                      control={
+                        <Checkbox
+                          checked={caracteristicas.includes(value.id)}
+                          onChange={() => handleCheckboxChange(value.id)}
+                        />
+                      }
+                      label={value.nombre}
+                    />
+                  ))}
+                </FormGroup>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
               <TextField
                 name="observaciones"
                 label="Observaciones"
@@ -160,7 +208,6 @@ const CrearCliente = ({ cliente = {} }) => {
                   onChange={handleChange}
                   displayEmpty
                 >
-
                   {Object.entries(TipoCliente).map(([key, value]) => (
                     <MenuItem key={key} value={key}>
                       {value}
