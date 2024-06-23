@@ -35,6 +35,14 @@ const ClienteListado = () => {
       }
     }
   };
+  const handleDelete = async (id) => {
+    try {
+      const response = await api.delete(`/clientes/${id}`);
+      obtenerClientes();
+    } catch (error) {
+      console.error('Error borrando cliente:', error);
+    }
+  };
 
   useEffect(() => {
     obtenerClientes();
@@ -50,10 +58,11 @@ const ClienteListado = () => {
         columns={columns} 
         createLink="/clientes/crear" 
         icons={[<AddCircleIcon />, <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={["/pedidos/crear?clienteId=", "/clientes/editar?clienteId=",  "/clientes/eliminar?clienteId="]}
+        iconsLinks={["/pedidos/crear?clienteId=", "/clientes/editar?clienteId=",  ""]}
         iconsTooltip={["Agregar Pedido", "Editar Cliente", "Eliminar Cliente"]}
         getFunction={obtenerClientes}
         pageCounter={Math.round(cantidadClientes/pageSize+1)}
+        onDelete={handleDelete}
       />
     </Container>
   );

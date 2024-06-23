@@ -32,3 +32,10 @@
 .link-hover-outline:hover {
   text-decoration: underline;
 }
+
+.delete-container {
+  margin-top: 8px;
+  border: 1px solid #ccc;
+  border-collapse: collapse;
+  background-color: #eee;
+}
