@@ -1,38 +1,55 @@
 import {useState} from 'react';
 import { Card, CardContent, Typography, TextField, Button, Link } from '@mui/material';
-import './Login.css';
-import api from '../network/axios';
+import './css.css';
+import useApi from '../network/axios';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 
 function LoginComponent() {
-    const [error, setError] = useState(null);
+  const [error, setError] = useState(null);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const api = useApi();
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        const username = event.target.username.value;
-        console.log(username);
-        const password = event.target.password.value;
-        try {
-            const response = await api.post('/usuarios/login', {
-                username,
-                password,
-            });
-            // Handle successful login response
-            console.log(response.data);
-        // Redirect to dashboard or other protected route
-        } catch (error) {
-            if (error.response) {
-              setError(error.response.statusText);
-            } else {
-              setError('An unexpected error occurred');
-            }
-          }
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const username = event.target.username.value;
+    const password = event.target.password.value;
+    
+    if (!username || !password) {
+      setError('Por favor, complete todos los campos');
+      return;
+    }else if (password.length < 7) {
+      setError('El usuario y la contraseña deben tener al menos 7 caracteres');
+      return;
+    }
+    try {
+      const response = await api.post('/usuarios/login', {
+        username,
+        password,
+      });
+      
+      const token = response.data.token;
+      if (token) {
+          login(token);
+          navigate('/pedidos');
+      } else {
+          setError('Usuario o contraseña incorrectos');
+      }
+    } catch (error) {
+        if (error.response) {
+          setError(error.response.statusText);
+        } else {
+          setError('An unexpected error occurred');
+        }
+    }
   };
 
   return (
     <Card className="login-card">
       <CardContent className='login-card-content'>
-        <img src="src/imgs/logo_mides.png" alt="Mides Logo" className="logo" />
+        <img src="/src/imgs/logo_mides.png" alt="Mides Logo" className="logo" />
         <form noValidate onSubmit={handleSubmit}>
           <TextField
             id="username"
@@ -46,7 +63,6 @@ function LoginComponent() {
             label="Contraseña"
             type="password"
             margin="normal"
-            value='123'
             fullWidth
           />
           <Button variant="contained" color="primary" type="submit" fullWidth>
@@ -59,8 +75,7 @@ function LoginComponent() {
           )}
         </form>
         <Typography variant="body2" display="flex" justifyContent="space-between">
-          <Link href="#" className="link">Olvidaste la contraseña?</Link>
-          <Link href="#" className="link">Crear cuenta</Link>
+          <Link href="#" className="link">¿Olvidaste la contraseña?</Link>
         </Typography>
       </CardContent>
     </Card>

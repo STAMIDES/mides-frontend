@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Autocomplete, Container, Grid, Paper, FormControl, RadioGroup, FormLabel, Radio, IconButton } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import api from '../network/axios';
+import useApi from '../network/axios';
+import { useParams, useLocation  } from 'react-router-dom';
 
 const CrearPedido = () => {
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
-    documento: '',
+    cliente_documento: '',
     direccion_origen: '',
     ventana_origen_inicio: '',
     ventana_origen_fin: '',
@@ -22,12 +23,31 @@ const CrearPedido = () => {
     acompañante: false,
     observaciones: '',
   });
-
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const clienteId = queryParams.get('clienteId');
   const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState(null);
   const [documentOptions, setDocumentOptions] = useState([]);
   const [nameOptions, setNameOptions] = useState([]);
   const [apellidoOptions, setSurnameOptions] = useState([]);
   const [tipoViaje, setTipoViaje] = useState("1");
+  const api = useApi();
+
+  useEffect(() => {
+  if (clienteId) {
+    console.log("Fetching client data...")
+    api.get(`clientes/${clienteId}`)
+    .then(response => {
+      const cliente = response.data;
+      console.log("Client data fetched:", cliente);
+      setFormData({ ...formData, nombre:cliente.nombre, apellido:cliente.apellido, 
+        cliente_documento: cliente.documento.toString()});
+    })
+      .catch(error => {
+        console.error("There was an error fetching the client data!", error);
+      });
+  }}, [clienteId]);
 
   const handleChange = (e) => {
     const { name, value, checked } = e.target;
@@ -51,7 +71,7 @@ const CrearPedido = () => {
 
   const castDocuments = (clients) => clients.map(client => ({
     ...client,
-    documento: `${client.documento.toString()}`,
+    cliente_documento: `${client.documento.toString()}`,
   }));
 
   const fetchDocuments = async (input) => {
@@ -102,19 +122,23 @@ const CrearPedido = () => {
 
     const dataToSubmit = {
       ...formData,
-      documento: parseInt(formData.documento, 10),
+      documento: parseInt(formData.cliente_documento, 10),
     };
 
     try {
       const response = await api.post('pedidos', dataToSubmit);
-      console.log('Nuevo pedido agregado:', response.data);
+      setMessage({ type: 'success', text: 'Nuevo pedido agregado exitosamente' });
     } catch (error) {
-      console.error('Error al agregar pedido:', error);
+      if (error.response && error.response.status >= 400 && error.response.status < 500) {
+        setMessage({ type: 'error', text: error.response.data.detail });
+      } else {
+        setMessage({ type: 'error', text: 'Error al agregar pedido:' });
+      }
     }
   }
 
   const handleInputDocumentChange = (event, value) => {
-    setFormData({ ...formData, 'documento': value });
+    setFormData({ ...formData, 'cliente_documento': value });
     fetchDocuments(value);
   };
 
@@ -154,9 +178,10 @@ const CrearPedido = () => {
                     label="Nombre"
                     fullWidth
                     required
-                  />
-                )}
-              />
+                    disabled={!!clienteId}
+                    />
+                    )}
+                    />
             </Grid>
             <Grid item xs={12} sm={6}>
               <Autocomplete
@@ -178,6 +203,7 @@ const CrearPedido = () => {
                     label="Apellido"
                     fullWidth
                     required
+                    disabled={!!clienteId}
                   />
                 )}
               />
@@ -189,16 +215,17 @@ const CrearPedido = () => {
                 getOptionLabel={(option) => option.documento && option.documento.toString()}
                 onInputChange={handleInputDocumentChange}
                 onChange={(event, value) => handleChange(event, value, 'selectOption')}
-                inputValue={formData.documento}
+                inputValue={formData.cliente_documento}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    name="documento"
+                    name="cliente_documento"
                     label="Documento"
                     fullWidth
                     required
-                    error={!!errors.documento}
-                    helperText={errors.documento}
+                    error={!!errors.cliente_documento}
+                    helperText={errors.cliente_documento}
+                    disabled={!!clienteId}
                   />
                 )}
               />
@@ -247,7 +274,7 @@ const CrearPedido = () => {
               </Grid>
             </Grid>
             {formData.destinos.map((destino, index) => (
-              <Grid container spacing={3} key={index} sx={{ mt: 3 }}>
+              <Grid container spacing={3} key={index} sx={{ mt: 3 }} style={{ visibility: index !== 0 && tipoViaje !== "1" ? "hidden" : "visible" }}>
                 <Grid item xs={12} sm={4}>
                   <TextField
                     name="direccion_destino"
@@ -269,7 +296,7 @@ const CrearPedido = () => {
                     InputLabelProps={{
                       shrink: true,
                     }}
-                    style={{visibility: tipoViaje === "3" ? "hidden" : "visible"}}
+                    style={{visibility: tipoViaje !== "3" ? "visible" : "hidden"}}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -283,7 +310,7 @@ const CrearPedido = () => {
                     InputLabelProps={{
                       shrink: true,
                     }}
-                    style={{visibility: tipoViaje === "1" ? "visible" : "hidden"}}
+                    style={{visibility: tipoViaje === "1"   ? "visible" : "hidden"}}
                   />
                 </Grid>
               </Grid>
@@ -337,6 +364,11 @@ const CrearPedido = () => {
             </Grid>
           </Grid>
         </form>
+        {message && (
+          <Alert severity={message.type} sx={{ mb: 3 , mt: 3}}>
+            {message.text}
+          </Alert>
+        )}
       </Paper>
     </Container>
   );

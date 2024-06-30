@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Container } from "@mui/material";
 import Header from "../components/headerList";
 import ListComponent from "../components/listados";
-import api from "../network/axios"; // Ensure this path matches your actual API file path
+import useApi from "../network/axios";
 import DateFilter from "../components/dateFilter";
 import DeleteIcon from '@mui/icons-material/Delete';
 import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
@@ -24,7 +24,9 @@ const PedidoListado = () => {
   const [date, setDate] = useState(moment(defaultValue, "YYYY-MM-DD"));
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
+  const [cantidadPedidos, setCantidadPedidos] = useState(0);
   const [currentPage, setPage] = useState(1);
+  const api = useApi();
 
   moment.locale('en', {
     longDateFormat: {
@@ -50,6 +52,7 @@ const PedidoListado = () => {
         nombre_y_apellido: `${pedido.cliente_nombre} \n ${pedido.cliente_apellido}`,
       }));
       setPedidos(pedidosProcesados);
+      setCantidadPedidos(response.data.cantidad);
     } catch (error) {
       if (error.response) {
         setError(error.response.statusText);
@@ -75,14 +78,13 @@ const PedidoListado = () => {
         filterComponentProps={{ date: date, handleDateChange: handleDateChange }}
         data={pedidos} 
         columns={columns} 
-        createLink="/pedidos/crear" 
         showMultiLine={true}
         icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
         iconsLinks={[ "/pedidos/editar",  "/pedidos/eliminar"]} 
         iconsTooltip={[ "Editar Pedido", "Eliminar Pedido"]}
         getFunction={obtenerPedidos}
         currentPage={currentPage}
-        pageCounter={Math.round(pedidos.length/pageSize+1)}
+        pageCounter={Math.round(cantidadPedidos/pageSize+1)}
       />
     </Container>
   );

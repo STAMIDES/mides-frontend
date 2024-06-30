@@ -25,3 +25,17 @@
 .grid-item .dataText {
   padding: 8px 0;
 }
+.link-hover-outline {
+  text-decoration: none;
+}
+
+.link-hover-outline:hover {
+  text-decoration: underline;
+}
+
+.delete-container {
+  margin-top: 8px;
+  border: 1px solid #ccc;
+  border-collapse: collapse;
+  background-color: #eee;
+}

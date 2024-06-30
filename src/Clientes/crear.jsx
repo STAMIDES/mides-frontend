@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, Select, MenuItem, Container, Grid, Paper, FormControl, InputLabel } from '@mui/material';
-import api from '../network/axios';
+import { Box, TextField, Button, Typography, Select, MenuItem, Container, Grid, Paper, FormControl, InputLabel, Alert } from '@mui/material';
+import useApi from '../network/axios';
 
 const TipoCliente = {
   particular: 'Usuario particular',
@@ -21,6 +21,8 @@ const CrearCliente = ({ cliente = {} }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState(null);
+  const api = useApi();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -55,23 +57,24 @@ const CrearCliente = ({ cliente = {} }) => {
 
     const dataToSubmit = {
       ...formData,
-      documento: parseInt(formData.documento, 10),
-      telefono: parseInt(formData.telefono, 10),
+      documento: parseInt(formData.documento, 10)
     };
 
     try {
       const response = await api.post('clientes', dataToSubmit);
-      console.log('Nuevo cliente agregado:', response.data);
-      // Opcionalmente redirigir a otra página tras enviar el formulario correctamente
-      // history.push('/clientes'); // Suponiendo que tienes acceso al objeto history
+      setMessage({ type: 'success', text: 'Nuevo cliente agregado exitosamente' });
     } catch (error) {
-      console.error('Error al agregar cliente:', error);
+      if (error.response && error.response.status >= 400 && error.response.status < 500) {
+        setMessage({ type: 'error', text: error.response.data.detail });
+      } else {
+        setMessage({ type: 'error', text: 'Error al agregar cliente. Inténtalo de nuevo más tarde.' });
+      }
     }
   };
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}> 
         <Typography variant="h4" gutterBottom>Agregar Nuevo Cliente</Typography>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
@@ -173,6 +176,11 @@ const CrearCliente = ({ cliente = {} }) => {
             </Grid>
           </Grid>
         </form>
+        {message && (
+          <Alert severity={message.type} sx={{ mb: 3 , mt: 3}}>
+            {message.text}
+          </Alert>
+        )}
       </Paper>
     </Container>
   );
