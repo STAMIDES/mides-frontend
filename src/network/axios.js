@@ -1,17 +1,28 @@
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
+const HOST = 'http://localhost:8000';
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: HOST,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-const setupInterceptors = (token, refreshToken, logout) => {
+const setupInterceptors = (token, refreshToken, removeAuthContext, isTokenExpired) => {
   api.interceptors.request.use(
-    (config) => {
-      if (token) {
+    async (config) => {
+      if (token && isTokenExpired(token)) {
+        console.log("Token expiredo")
+        const newToken = await refreshToken();
+        if (newToken) {
+          console.log("nuevo token")
+          config.headers.Authorization = `Bearer ${newToken}`;
+        } else {
+          removeAuthContext();
+        }
+      } else if (token) {
+        console.log("Token valido")
         config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
@@ -25,8 +36,7 @@ const setupInterceptors = (token, refreshToken, logout) => {
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
-
-      if (error.response.status === 401 && !originalRequest._retry) {
+      if (error.response.status === 403 && !originalRequest._retry) {
         originalRequest._retry = true;
         const newToken = await refreshToken();
 
@@ -34,7 +44,7 @@ const setupInterceptors = (token, refreshToken, logout) => {
           api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
           return api(originalRequest);
         } else {
-          logout();
+          removeAuthContext();
         }
       }
       
@@ -44,24 +54,25 @@ const setupInterceptors = (token, refreshToken, logout) => {
 };
 
 const useApi = () => {
-  const { token, login, logout } = useAuth();
+  const { token, login, removeAuthContext, isTokenExpired } = useAuth();
   
   const refreshToken = async () => {
     try {
-      const response = await axios.post('auth/refresh', {
-        token: localStorage.getItem('refresh_token'),
+      console.log("Refrescando token")
+      const response = await axios.post(HOST+ '/usuarios/refresh', {
+        refresh_token: localStorage.getItem('refresh_token'),
       });
 
-      const { accessToken } = response.data;
-      login(accessToken);  // Update the context with the new token
-      return accessToken;
+      const { access_token } = response.data.access_token;
+      console.log("Nuevo token: ", response.data)
+      login(access_token);  // Update the context with the new token
+      return access_token;
     } catch (error) {
-      logout();
+      removeAuthContext();
       return null;
     }
   };
-
-  setupInterceptors(token, refreshToken, logout);
+  setupInterceptors(token, refreshToken, removeAuthContext, isTokenExpired);
   return api;
 };
 

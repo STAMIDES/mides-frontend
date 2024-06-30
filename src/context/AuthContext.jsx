@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import {jwtDecode} from 'jwt-decode';
 
 const isTokenExpired = (token) => {
@@ -18,26 +18,54 @@ export const AuthProvider = ({ children }) => {
     return isTokenExpired(token) ? null : token;
   });
 
-  const [refreshToken, setRefreshToken] = useState(() => {
+  const [refresh_token, setRefreshToken] = useState(() => {
     return localStorage.getItem('refresh_token');
   });
+  const [email, setUser] = useState(null);
+  const callbackRef = useRef(null);
 
-  const login = (newToken, newRefreshToken) => {
+  useEffect(() => {
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUser({ email: decoded.sub }); 
+      } catch (error) {
+        console.error('Error decoding user info from token:', error);
+        setUser(null);
+      }
+    } else {
+      setUser(null);
+    }
+  }, [token]);
+
+  const login = (newToken, refresh_token=null, callback=null) => {
     setToken(newToken);
-    setRefreshToken(newRefreshToken);
     localStorage.setItem('token', newToken);
-    localStorage.setItem('refresh_token', newRefreshToken);
+    if (refresh_token) {
+      setRefreshToken(refresh_token);
+      localStorage.setItem('refresh_token', refresh_token);
+    }
+    if (callback) {
+      callbackRef.current = callback;
+    }
   };
+  useEffect(() => {
+    if (token && (refresh_token || !refresh_token) && callbackRef.current) {
+      callbackRef.current();
+      callbackRef.current = null; // Clear the callback after invocation
+    }
+  }, [token, refresh_token]);
 
-  const logout = () => {
-    setToken(null);
-    setRefreshToken(null);
-    localStorage.removeItem('token'); 
-    localStorage.removeItem('refresh_token');
+  const removeAuthContext = async () => {
+      setToken(null);
+      setRefreshToken(null);
+      setUser(null);
+      localStorage.removeItem('token'); 
+      localStorage.removeItem('refresh_token');
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
+    <AuthContext.Provider value={{ email, token, refresh_token, isTokenExpired, login, removeAuthContext }}>
       {children}
     </AuthContext.Provider>
   );
