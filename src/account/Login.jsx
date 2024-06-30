@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState, useEffect} from 'react'
 import { Card, CardContent, Typography, TextField, Button, Link } from '@mui/material';
 import './css.css';
 import useApi from '../network/axios';
@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 function LoginComponent() {
   const [error, setError] = useState(null);
-  const { login } = useAuth();
+  const { token, refresh_token, setAuthContext } = useAuth();
   const navigate = useNavigate();
   const api = useApi();
 
@@ -30,11 +30,9 @@ function LoginComponent() {
         password,
       });
       
-      const token = response.data.token;
-      const refresh_token = response.data.refresh_token;
-      if (token && refresh_token) {
-          login(token, refresh_token);
-          navigate('/pedidos');
+      const { access_token, refresh_token } = response.data;
+      if (access_token && refresh_token) {
+          setAuthContext(access_token, refresh_token, username);
       } else {
           setError('Usuario o contraseña incorrectos');
       }
@@ -46,6 +44,12 @@ function LoginComponent() {
         }
     }
   };
+  useEffect(() => {
+    if (token && refresh_token){
+      console.log('Token:', token, 'Refresh Token:', refresh_token)
+      navigate('/clientes'); 
+    }
+  }, [ token, refresh_token]);
 
   return (
     <Card className="login-card">

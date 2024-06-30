@@ -2,18 +2,33 @@ import React, { useState } from "react";
 import { Box, Typography, Avatar, Button, List, ListItem, ListItemText, Popper } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
+import useApi from '../network/axios';
 
 const SideNavBar = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { refresh_token, email, removeAuthContext } = useAuth();
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [isMouseOverSubmenu, setIsMouseOverSubmenu] = useState(false);
-
+  const api = useApi();
   const handleLogoClick = () => {
     navigate("/");
   };
-
+  const logout = async () => {
+    try {
+      if (email && refresh_token) {
+        await api.post('usuarios/logout', { 
+          email: email, 
+          refresh_token: refresh_token 
+        });
+        removeAuthContext();
+      }else{
+        removeAuthContext();
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } }
+  
   const handleAdminMouseEnter = (event) => {
     setAnchorEl(event.currentTarget);
     setAdminMenuOpen(true);

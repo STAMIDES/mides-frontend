@@ -1,33 +1,53 @@
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
-const HOST = 'http://localhost:8000';
 const api = axios.create({
-  baseURL: HOST,
+  baseURL: 'http://localhost:8000',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-const setupInterceptors = (token, refreshToken, removeAuthContext, isTokenExpired) => {
+const publicRoutes = [
+  '/usuarios/login',
+  '/usuarios/registro'
+];
+
+const isPublicRoute = (url) => {
+  return publicRoutes.some(route => url.includes(route));
+};
+
+const setupInterceptors = (getToken, refreshAccessToken, removeAuthContext) => {
   api.interceptors.request.use(
     async (config) => {
-      if (token && isTokenExpired(token)) {
-        console.log("Token expiredo")
-        const newToken = await refreshToken();
-        if (newToken) {
-          console.log("nuevo token")
-          config.headers.Authorization = `Bearer ${newToken}`;
+      console.log('Request:', config.url)
+      if (isPublicRoute(config.url)) {
+        console.log('Public route, skipping token check');
+        return config;
+      }
+      try {
+        const token = await getToken();
+        console.log('Token retrieved:', token ? 'Valid token' : 'No token');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
         } else {
-          removeAuthContext();
+          console.log('No token available after getToken');
         }
-      } else if (token) {
-        console.log("Token valido")
-        config.headers.Authorization = `Bearer ${token}`;
+      } catch (error) {
+        console.log("No valid token, attempting to refresh");
+        try {
+          const newToken = await refreshAccessToken();
+          config.headers.Authorization = `Bearer ${newToken}`;
+        } catch (refreshError) {
+          console.error("Failed to refresh token:", refreshError);
+          removeAuthContext();
+          throw refreshError;
+        }
       }
       return config;
     },
     (error) => {
+      console.error("Error in request interceptor:", error);
       return Promise.reject(error);
     }
   );
@@ -36,43 +56,31 @@ const setupInterceptors = (token, refreshToken, removeAuthContext, isTokenExpire
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
-      if (error.response.status === 403 && !originalRequest._retry) {
+      if (error.response?.status === 403 && !originalRequest._retry) {
         originalRequest._retry = true;
-        const newToken = await refreshToken();
-
-        if (newToken) {
-          api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+        try {
+          const newToken = await refreshAccessToken();
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return api(originalRequest);
-        } else {
+        } catch (refreshError) {
+          console.error("Error in response interceptor:", refreshError);
           removeAuthContext();
+          throw refreshError;
         }
       }
-      
       return Promise.reject(error);
     }
   );
 };
 
 const useApi = () => {
-  const { token, login, removeAuthContext, isTokenExpired } = useAuth();
-  
-  const refreshToken = async () => {
-    try {
-      console.log("Refrescando token")
-      const response = await axios.post(HOST+ '/usuarios/refresh', {
-        refresh_token: localStorage.getItem('refresh_token'),
-      });
+  const { getToken, refreshAccessToken, removeAuthContext } = useAuth();
 
-      const { access_token } = response.data.access_token;
-      console.log("Nuevo token: ", response.data)
-      login(access_token);  // Update the context with the new token
-      return access_token;
-    } catch (error) {
-      removeAuthContext();
-      return null;
-    }
-  };
-  setupInterceptors(token, refreshToken, removeAuthContext, isTokenExpired);
+  if (!api.interceptors.request.handlers.length && !api.interceptors.response.handlers.length) {
+    console.log('Setting up interceptors')
+    setupInterceptors(getToken, refreshAccessToken, removeAuthContext);
+  }
+  
   return api;
 };
 
