@@ -1,5 +1,5 @@
 import React, { useState, useEffect  } from 'react';
-import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Autocomplete, Container, Grid, Paper, FormControl, RadioGroup, FormLabel, Radio, IconButton } from '@mui/material';
+import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Autocomplete, Container, Grid, Paper, FormControl, RadioGroup, FormLabel, Radio, IconButton, breadcrumbsClasses } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import useApi from '../network/axios';
 import { useParams, useLocation  } from 'react-router-dom';
@@ -10,13 +10,14 @@ const CrearPedido = () => {
     apellido: '',
     cliente_documento: '',
     direccion_origen: '',
-    ventana_origen_inicio: '',
-    ventana_origen_fin: '',
-    destinos: [
+    direccion_final: '',
+    ventana_horaria_inicio: '',
+    fecha_programado: '',
+    paradas: [
       {
         direccion_destino: '',
-        ventana_destino_inicio: '',
-        ventana_destino_fin: '',
+        ventana_horaria_inicio: '',
+        ventana_horaria_fin: '',
       },
     ],
     prioridad: false,
@@ -31,7 +32,11 @@ const CrearPedido = () => {
   const [documentOptions, setDocumentOptions] = useState([]);
   const [nameOptions, setNameOptions] = useState([]);
   const [apellidoOptions, setSurnameOptions] = useState([]);
-  const [tipoViaje, setTipoViaje] = useState("1");
+  const [tipoViaje, setTipoViaje] = useState(0);
+  
+  const tiposViaje = [
+    "Ida y vuelta" , "Solo ida" , "Solo vuelta" 
+  ];
   const api = useApi();
 
   useEffect(() => {
@@ -54,18 +59,18 @@ const CrearPedido = () => {
     setFormData({ ...formData, [name]: name === 'acompañante' || name === 'prioridad' ? checked : value });
   };
 
-  const handleDestinoChange = (index, e) => {
+  const handleParadaChange = (index, e) => {
     const { name, value } = e.target;
-    const updatedDestinos = formData.destinos.map((destino, i) => (
+    const updatedParadas = formData.paradas.map((destino, i) => (
       i === index ? { ...destino, [name]: value } : destino
     ));
-    setFormData({ ...formData, destinos: updatedDestinos });
+    setFormData({ ...formData, paradas: updatedParadas });
   };
 
-  const addDestino = () => {
+  const addParada = () => {
     setFormData({
       ...formData,
-      destinos: [...formData.destinos, { direccion_destino: '', ventana_destino_inicio: '', ventana_destino_fin: '' }],
+      paradas: [...formData.paradas, { direccion_destino: '', ventana_horaria_inicio: '', ventana_horaria_fin: '' }],
     });
   };
 
@@ -105,25 +110,58 @@ const CrearPedido = () => {
 
   const validarDoc = () => {
     let tempErrors = {};
-    if (!formData.documento) {
-      tempErrors.documento = 'Documento es requerido';
-    } else if (isNaN(formData.documento)) {
-      tempErrors.documento = 'Documento debe ser un número';
+    if (!formData.cliente_documento) {
+      tempErrors.cliente_documento = 'Documento es requerido';
+    } else if (isNaN(formData.cliente_documento)) {
+      tempErrors.cliente_documento = 'Documento debe ser un número';
     }
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
-
+  const filterParadas = () => {
+    let retParadas = [{direccion: formData.direccion_origen, 
+      ventana_horaria_inicio: formData.ventana_horaria_inicio? formData.ventana_horaria_inicio: null,
+      posicion_en_pedido: 0}];
+    let counter = 0;
+    for (const parada of formData.paradas){
+      counter = counter + 1;
+      debugger
+      if (tipoViaje===0){
+        retParadas.push({direccion: parada.direccion_destino,
+           ventana_horaria_inicio: parada.ventana_horaria_inicio,
+           ventana_horaria_fin: parada.ventana_horaria_fin,
+           posicion_en_pedido: counter});
+      }else if (tipoViaje===1){
+        retParadas.push({direccion: parada.direccion_destino, 
+          ventana_horaria_inicio: parada.ventana_horaria_inicio,
+          posicion_en_pedido: counter});
+        break;
+      }else {
+          retParadas.push({direccion: parada.direccion_destino, posicion_en_pedido: counter});
+          break;
+      }
+    }
+    if (tipoViaje===0){retParadas.push({direccion: formData.direccion_final, posicion_en_pedido: counter+1});}
+    return retParadas;
+  }
+  const getTipoVviaje = () => {
+    return tiposViaje[parseInt(tipoViaje, 10)];
+  }
   const handleSubmit = async (e) => {
+    console.log("formData", formData) 
     e.preventDefault();
     if (!validarDoc()) {
       return;
     }
 
-    const dataToSubmit = {
+    let dataToSubmit = {
       ...formData,
       documento: parseInt(formData.cliente_documento, 10),
+      paradas: filterParadas(),
+      tipo: getTipoVviaje(),
     };
+    const { direccion_origen, direccion_final, ventana_horaria_inicio, ...remainingData } = dataToSubmit;
+    dataToSubmit = remainingData;
 
     try {
       const response = await api.post('pedidos', dataToSubmit);
@@ -152,6 +190,8 @@ const CrearPedido = () => {
     fetchNames(value);
   };
   console.log("tipoViaje", tipoViaje)
+  console.log(typeof(tipoViaje))
+
   return (
     <Container maxWidth="md" sx={{ mt: 1 }}>
       <Paper elevation={7} sx={{ p: 4 }}>
@@ -230,22 +270,41 @@ const CrearPedido = () => {
                 )}
               />
             </Grid>
-          </Grid>
-          <Paper elevation={7} sx={{ p: 4, mt: 3 }}>
+              <Grid item xs={12}>
+                <TextField
+                  name="fecha_programado"
+                  label="Fecha"
+                  type="date"
+                  value={formData.fecha_programado}
+                  onChange={handleChange}
+                  fullWidth
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  required
+                />
+                </Grid>
+              </Grid>
+            <Paper elevation={7} sx={{ p: 4, mt: 3 }}>
               <FormControl component="fieldset" >
                 <FormLabel component="legend">Tipo de Viaje</FormLabel>
                 <RadioGroup
                   row
                   name="tipoViaje"
                   value={tipoViaje}
-                  onChange={(e) => setTipoViaje(e.target.value)}
+                  onChange={(e) => setTipoViaje(parseInt(e.target.value, 10))}
                 >
-                  <FormControlLabel value="1" control={<Radio />} label="Ida y vuelta" />
-                  <FormControlLabel value="2" control={<Radio />} label="Solo ida" />
-                  <FormControlLabel value="3" control={<Radio />} label="Solo vuelta" />
+                  {tiposViaje.map((tipo, index) => (
+                      <FormControlLabel
+                        key={index}
+                        value={index}
+                        control={<Radio />}
+                        label={tipo}
+                      />
+                    ))}
                 </RadioGroup>
               </FormControl>
-            <Grid container spacing={3}>
+              <Grid container spacing={3}>
               <Grid item xs={12} sm={4}>
                 <TextField
                   name="direccion_origen"
@@ -258,65 +317,65 @@ const CrearPedido = () => {
               </Grid>
               <Grid item xs={12} sm={4}>
                 <TextField
-                  name="ventana_origen_inicio"
+                  name="ventana_horaria_inicio"
                   label="Hora de partida del origen"
                   type="time"
-                  value={formData.ventana_origen_inicio}
+                  value={formData.ventana_horaria_inicio}
                   onChange={handleChange}
                   fullWidth
                   InputLabelProps={{
                     shrink: true,
                   }}
-                  style={{visibility: tipoViaje === "3" ? "visible" : "hidden"}}
+                  style={{visibility: tipoViaje === 2 ? "visible" : "hidden"}}
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
               </Grid>
             </Grid>
-            {formData.destinos.map((destino, index) => (
-              <Grid container spacing={3} key={index} sx={{ mt: 3 }} style={{ visibility: index !== 0 && tipoViaje !== "1" ? "hidden" : "visible" }}>
+            {formData.paradas.map((destino, index) => (
+              <Grid container spacing={3} key={index} sx={{ mt: 3 }} style={{ display: index !== 0 && tipoViaje !== 0 ? "none" : "flex" }}>
                 <Grid item xs={12} sm={4}>
                   <TextField
                     name="direccion_destino"
                     label="Dirección de Destino"
                     value={destino.direccion_destino}
-                    onChange={(e) => handleDestinoChange(index, e)}
+                    onChange={(e) => handleParadaChange(index, e)}
                     fullWidth
                     required
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <TextField
-                    name="ventana_destino_inicio"
+                    name="ventana_horaria_inicio"
                     label="Hora de llegada al destino"
                     type="time"
-                    value={destino.ventana_destino_inicio}
-                    onChange={(e) => handleDestinoChange(index, e)}
+                    value={destino.ventana_horaria_inicio}
+                    onChange={(e) => handleParadaChange(index, e)}
                     fullWidth
                     InputLabelProps={{
                       shrink: true,
                     }}
-                    style={{visibility: tipoViaje !== "3" ? "visible" : "hidden"}}
+                    style={{visibility: tipoViaje !== 2 ? "visible" : "hidden"}}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <TextField
-                    name="ventana_destino_fin"
+                    name="ventana_horaria_fin"
                     label="Hora de partida del destino"
                     type="time"
-                    value={destino.ventana_destino_fin}
-                    onChange={(e) => handleDestinoChange(index, e)}
+                    value={destino.ventana_horaria_fin}
+                    onChange={(e) => handleParadaChange(index, e)}
                     fullWidth
                     InputLabelProps={{
                       shrink: true,
                     }}
-                    style={{visibility: tipoViaje === "1"   ? "visible" : "hidden"}}
+                    style={{visibility: tipoViaje === 0   ? "visible" : "hidden"}}
                   />
                 </Grid>
               </Grid>
             ))}
-            <Box display="flex" justifyContent="center" sx={{ mt: 3, visibility: tipoViaje === "1" ? "visible" : "hidden" }}>
-              <IconButton color="primary" onClick={addDestino}>
+            <Box display="flex" justifyContent="center" sx={{ mt: 3, visibility: tipoViaje === 0 ? "visible" : "hidden" }}>
+              <IconButton color="primary" onClick={addParada}>
                 <AddIcon />
               </IconButton>
             </Box>
@@ -328,7 +387,9 @@ const CrearPedido = () => {
                   value={formData.direccion_final}
                   onChange={handleChange}
                   fullWidth
-                  required
+                  style={{ display: tipoViaje === 0 ? "flex" : "none" }}
+                  required={tipoViaje === 0} 
+                  disabled={tipoViaje !== 0}
                 />
               </Grid>
             </Grid>
@@ -361,7 +422,7 @@ const CrearPedido = () => {
               <Button type="submit" variant="contained" color="primary" fullWidth>
                 Agregar Pedido
               </Button>
-            </Grid>
+          </Grid>
           </Grid>
         </form>
         {message && (
