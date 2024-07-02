@@ -18,6 +18,7 @@ const ClienteListado = () => {
   const [clients, setClients] = useState([]);
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
+  const [cantidadClientes, setCantidadClientes] = useState(0);
   const api = useApi();
 
   const obtenerClientes = async (page=1) => {
@@ -25,12 +26,21 @@ const ClienteListado = () => {
       const offset = page * 10 - pageSize;
       const response = await api.get(`/clientes?offset=${offset}&limit=${pageSize}`);
       setClients(response.data.clientes);
+      setCantidadClientes(response.data.cantidad);
     } catch (error) {
       if (error.response) {
         setError(error.response.statusText);
       } else {
         setError('An unexpected error occurred');
       }
+    }
+  };
+  const handleDelete = async (id) => {
+    try {
+      const response = await api.delete(`/clientes/${id}`);
+      obtenerClientes();
+    } catch (error) {
+      console.error('Error borrando cliente:', error);
     }
   };
 
@@ -48,10 +58,11 @@ const ClienteListado = () => {
         columns={columns} 
         createLink="/clientes/crear" 
         icons={[<AddCircleIcon />, <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={["/pedidos/crear?cliente_id=", "/clientes/editar?cliente_id=",  "/clientes/eliminar?cliente_id="]}
+        iconsLinks={["/pedidos/crear?clienteId=", "/clientes/editar?clienteId=",  ""]}
         iconsTooltip={["Agregar Pedido", "Editar Cliente", "Eliminar Cliente"]}
         getFunction={obtenerClientes}
-        pageCounter={Math.round(clients.length/pageSize+1)}
+        pageCounter={Math.round(cantidadClientes/pageSize+1)}
+        onDelete={handleDelete}
       />
     </Container>
   );
