@@ -31,21 +31,6 @@ export const AuthProvider = ({ children }) => {
   const [email, setUser] = useState(null);
   const tokenPromiseRef = useRef(null);
 
-  // useEffect(() => {
-  //   if (token) {
-  //     try {
-  //       const decoded = jwtDecode(token);
-  //       console.log('Decoded token:', decoded);
-  //       setUser(decoded.sub);
-  //     } catch (error) {
-  //       console.error('Error decoding user info from token:', error);
-  //       setUser(null);
-  //     }
-  //   } 
-  // }, [token]);
-
-  console.log("Token:", token)
-
   useEffect(() => {
     const initializeToken = async () => {
       const storageToken = await getStorageToken('token');
@@ -54,6 +39,9 @@ export const AuthProvider = ({ children }) => {
       const storageRefreshToken = await getStorageToken('refresh_token');
       console.log('Token from storage2:', storageToken);
       setRefreshToken(storageRefreshToken);
+      const user = localStorage.getItem('user');
+      console.log('User from storage:', user);
+      setUser(user);
     };
     initializeToken();
   }, []);
@@ -78,6 +66,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
   };
 
   const getToken = async () => {
