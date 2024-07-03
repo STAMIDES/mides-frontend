@@ -48,9 +48,9 @@ const UsuarioListado = () => {
         data={clients} 
         columns={columns} 
         createLink="/usuarios/crear" 
-        icons={[<AddCircleIcon />, <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={["/pedidos/crear?usuario_id=", "/usuarios/editar?usuario_id=",  "/usuarios/eliminar?usuario_id="]}
-        iconsTooltip={["Agregar Pedido", "Editar Usuario", "Eliminar Usuario"]}
+        icons={[ <ModeEditOutlineIcon />, <DeleteIcon />]}
+        iconsLinks={[ "/usuarios/editar?usuario_id=",  "/usuarios/eliminar?usuario_id="]}
+        iconsTooltip={["Editar Usuario", "Eliminar Usuario"]}
         getFunction={obtenerUsuarios}
         pageCounter={Math.round(cantidadUsuarios/pageSize+1)}
       />
