@@ -49,6 +49,9 @@ export const AuthProvider = ({ children }) => {
       }
       if (storageRefreshToken) {
         setRefreshToken(storageRefreshToken);
+        if (!storageToken) {
+          await refreshAccessToken();
+        }
       }
       if (user) {
         setUser(user);
@@ -122,31 +125,14 @@ export const AuthProvider = ({ children }) => {
     });
 
     return tokenPromiseRef.current;
-  }, [token, refresh_token, email, setAuthContext, removeAuthContext]);
+  }, [refresh_token, email, setAuthContext, removeAuthContext]);
 
-  const isUserLogged = useCallback(async () => {
-    try {
-      const token = await getToken();
-      if (token && !isTokenExpired(token)) {
-        setIsAuthenticated(true);
-        return true;
-      }
-      const newToken = await refreshAccessToken();
-      setIsAuthenticated(!!newToken);
-      return !!newToken;
-    } catch (error) {
-      console.error('Error in isUserLogged:', error);
-      setIsAuthenticated(false);
-      return false;
-    }
-  }, [getToken, refreshAccessToken]);
 
   return (
     <AuthContext.Provider value={{ 
       email, 
       token, 
       refresh_token, 
-      isUserLogged, 
       setUser, 
       setAuthContext, 
       removeAuthContext, 
