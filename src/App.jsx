@@ -10,26 +10,9 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import PrivateRoute from './components/privateRoute';
 
 function App() {
-  const {  isUserLogged } = useAuth();
+  const {  isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   const pathCuenta = location.pathname.includes('/cuenta');
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(true);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        await isUserLogged();
-        setIsAuthenticated(true);
-      } catch (error) {
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkAuth();
-  }, [isUserLogged]);
   console.log('logged:', isAuthenticated, 'pathCuenta:', pathCuenta)
   return (
     <div className="app">

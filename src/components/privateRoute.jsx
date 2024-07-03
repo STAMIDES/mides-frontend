@@ -1,27 +1,14 @@
-import React, {useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const PrivateRoute = ({ children }) => {
-  const { isUserLogged } = useAuth();
-  
-  let  isAuthenticated = false;
+  const { isAuthenticated, isLoading } = useAuth();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        console.log('[PrivateRoute] Checking auth')
-        await isUserLogged();
-        isAuthenticated = true;
-      } catch (error) {
-        isAuthenticated = false;
-      } 
-    };
-    
-    checkAuth();
-  }, [isUserLogged]);
+  if (isLoading) {
+    return <div>Loading...</div>; 
+  }
 
-  console.log('[PrivateRoute] isAuthenticated:', isAuthenticated)
   return isAuthenticated ? children : <Navigate to="/cuenta/login" />;
 };
 
