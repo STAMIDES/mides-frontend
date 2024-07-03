@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback  } from "react";
 import { Container } from "@mui/material";
 import Header from "../../components/headerList";
 import ListComponent from "../../components/listados";
@@ -6,7 +6,6 @@ import useApi from "../../network/axios"; // Ensure this path matches your actua
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
-
 const columns = [
   { label: "Nombre", key: "nombre" },
   { label: "Corre electronico", key: "email" },
@@ -20,10 +19,10 @@ const UsuarioListado = () => {
   const [cantidadUsuarios, setCantidadUsuarios] = useState(0); // [1
   const api = useApi();
 
-  const obtenerUsuarios = async (page=1) => {
+  const obtenerUsuarios = async (page=1, search='') => {
     try {
       const offset = page * 10 - pageSize;
-      const response = await api.get(`/usuarios?offset=${offset}&limit=${pageSize}`);
+      const response = await api.get(`/usuarios?offset=${offset}&limit=${pageSize}&search=${search}`);
       setClients(response.data.usuarios);
       setCantidadUsuarios(response.data.cantidad);
     } catch (error) {
@@ -39,9 +38,13 @@ const UsuarioListado = () => {
     obtenerUsuarios();
   }, []);
 
+  const handleSearch = (searchTerm) => {
+    obtenerUsuarios(1, searchTerm);
+  };
+
   return (
     <Container>
-      <Header createLink="/usuarios/invitar" createMessage="Invitar Usuario via Email" />
+      <Header createLink="/usuarios/invitar" createMessage="Invitar Usuario via Email" onSearch={handleSearch}/>
       {error && <p>{error}</p>}
       <ListComponent 
         title="Usuarios" 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Container } from "@mui/material";
 import Header from "../components/headerList";
 import ListComponent from "../components/listados";
@@ -21,10 +21,10 @@ const ClienteListado = () => {
   const [cantidadClientes, setCantidadClientes] = useState(0);
   const api = useApi();
 
-  const obtenerClientes = async (page=1) => {
+  const obtenerClientes = async (page=1, search = '') => {
     try {
       const offset = page * 10 - pageSize;
-      const response = await api.get(`/clientes?offset=${offset}&limit=${pageSize}`);
+      const response = await api.get(`/clientes?offset=${offset}&limit=${pageSize}&search=${search}`);
       setClients(response.data.clientes);
       setCantidadClientes(response.data.cantidad);
     } catch (error) {
@@ -48,9 +48,12 @@ const ClienteListado = () => {
     obtenerClientes();
   }, []);
 
+  const handleSearch = (searchTerm) => {
+    obtenerClientes(1, searchTerm);
+  };
   return (
     <Container>
-      <Header createLink="/clientes/crear" />
+      <Header createLink="/clientes/crear" onSearch={handleSearch}/>
       {error && <p>{error}</p>}
       <ListComponent 
         title="Clientes" 

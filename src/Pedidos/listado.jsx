@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Container } from "@mui/material";
 import Header from "../components/headerList";
 import ListComponent from "../components/listados";
@@ -18,9 +18,7 @@ const columns = [
 const PedidoListado = () => {
   const [pedidos, setPedidos] = useState([]); 
   const today = new Date();
-  const twoDaysLater = new Date(today);
-  twoDaysLater.setDate(twoDaysLater.getDate() + 2);
-  const defaultValue = twoDaysLater.toISOString().slice(0, 10);
+  const defaultValue = today.toISOString().slice(0, 10);
   const [date, setDate] = useState(moment(defaultValue, "YYYY-MM-DD"));
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
@@ -38,11 +36,11 @@ const PedidoListado = () => {
     obtenerPedidos(currentPage, date);
   }, [date, currentPage]);
 
-  const obtenerPedidos = async (page=1, selectedDate) => {
+  const obtenerPedidos = async (page=1, selectedDate, search = '') => {
     try {
       const offset = (page - 1) * pageSize;
       setPage(page);
-      const response = await api.get(`/pedidos/fecha/${selectedDate.format("YYYY-MM-DD")}?offset=${offset}&limit=${pageSize}`);
+      const response = await api.get(`/pedidos/fecha/${selectedDate.format("YYYY-MM-DD")}?offset=${offset}&limit=${pageSize}&search=${search}`);
       const pedidos = response.data.pedidos;
       console.log(JSON.stringify(pedidos));
       const pedidosProcesados = pedidos.map(pedido => ({
@@ -67,10 +65,13 @@ const PedidoListado = () => {
       setDate(moment(newDate, "YYYY-MM-DD"));
     }
   };
-  
+  const handleSearch = (searchTerm) => {
+    obtenerPedidos(1, date, searchTerm);
+  };
+
   return (
     <Container>
-      <Header createLink="/pedidos/crear" />
+      <Header createLink="/pedidos/crear"  onSearch={handleSearch}/>
       {error && <p>{error}</p>}
       <ListComponent 
         title="Pedidos" 
