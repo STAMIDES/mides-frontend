@@ -8,7 +8,7 @@ const DateFilter = ({ date, handleDateChange, getElementosFiltrados }) => {
   return (
     <LocalizationProvider dateAdapter={AdapterMoment}>
       <Grid container spacing={2}>
-        <Grid item xs={5}>
+        <Grid item xs={5} mb={2} justifyContent="right">
           <DesktopDatePicker
             label="Date desktop"
             inputFormat="DD-MM-YYYY"
