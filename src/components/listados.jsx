@@ -38,50 +38,51 @@ const ListComponent = ({
   };
 
   return (
-    <Box style={{width:"100%", marginTop:"10px"}} >
-      <Paper elevation={2} style={{ padding: "16px" }}>
-        <Box mt={2}>
+    <Box className="list-wrapper">
+      <Paper elevation={2} className="list-paper">
+        <Box className="list-content">
           {FilterComponent && <FilterComponent {...filterComponentProps} />}
-          <Grid container spacing={0.1}  display="flex" justifyContent="center" alignItems="center">
-            <Grid item xs={12}>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                {columns.map((column, colIndex) => (
-                  <Box key={colIndex} flexBasis={`${100 / columns.length}%`}>
-                    <Typography variant="body1" fontWeight="bold" className="headerText">
-                      {column.label}
+          <div className="table-responsive">
+            <table className="list-table">
+              <thead>
+                <tr>
+                  {columns.map((column, colIndex) => (
+                    <th key={colIndex} className="header-cell">
+                      <Typography variant="body1" className="headerText">
+                        {column.label}
+                      </Typography>
+                    </th>
+                  ))}
+                  <th className="header-cell">
+                    <Typography variant="body1" className="headerText">
+                      Acciones
                     </Typography>
-                  </Box>
-                ))}
-                <Box flexBasis={`${100 / columns.length}%`}>
-                  <Typography variant="body1" fontWeight="bold" className="headerText">
-                    Acciones
-                  </Typography>
-                </Box>
-              </Box>
-            </Grid>
-            {data.length === 0 ? (
-              <Grid item xs={12}>
-                <Box display="flex" justifyContent="center" alignItems="center">
-                  <Typography variant="body1" color="textSecondary">
-                    No se encontraron resultados
-                  </Typography>
-                </Box>
-              </Grid>
-            ) : (
-              data.map((item, index) => (
-                <Grid item xs={12} key={index} className="grid-item">
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    {columns.map((column, colIndex) => (
-                      <Box key={colIndex} flexBasis={`${100 / columns.length}%`}>
-                        <Link to={`${detailLink}${item.id}`} className="link-hover-outline">
-                        <Typography variant="body2" color="textSecondary" className="dataText">
-                          {item[column.key]}
-                        </Typography>
-                        </Link>
-                      </Box>
-                    ))}
-                    <Box flexBasis={`${100 / columns.length}%`} display="flex" justifyContent="center">
-                    {icons.map((icon, iconIndex) => (
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.length === 0 ? (
+                  <tr>
+                    <td colSpan={columns.length + 1} className="no-results">
+                      <Typography variant="body1" color="textSecondary">
+                        No se encontraron resultados
+                      </Typography>
+                    </td>
+                  </tr>
+                ) : (
+                  data.map((item, index) => (
+                    <tr key={index} className="grid-item">
+                      {columns.map((column, colIndex) => (
+                        <td key={colIndex} className="data-cell">
+                          <Link to={`${detailLink}${item.id}`} className="link-hover-outline">
+                            <Typography variant="body2" color="textSecondary" className="dataText">
+                              {item[column.key]}
+                            </Typography>
+                          </Link>
+                        </td>
+                      ))}
+                      <td className="data-cell actions-cell">
+                        {icons.map((icon, iconIndex) => (
                           <IconButton
                             size="small"
                             key={iconIndex}
@@ -97,69 +98,68 @@ const ListComponent = ({
                             {icon}
                           </IconButton>
                         ))}
-                    </Box>
-                  </Box>
-                </Grid>
-              ))
-              )}
-              {currentPage && pageCounter>1 ?
-                <Pagination 
-                count={pageCounter} 
-                style={{'marginTop':'2rem'}}
-                variant="outlined" 
-                color="primary"
-                onChange={(event, value) => getFunction(value)}
-                shape="rounded"
-                page={currentPage}
-                />
-                : pageCounter>1 ?
-                <Pagination
-                style={{'marginTop':'2rem'}}
-                count={pageCounter}
-                variant="outlined"
-                color="primary"
-                onChange={(event, value) => getFunction(value)}
-                shape="rounded"
-                />
-                : null}
-          </Grid>
-          <Box>
-            <Dialog
-                open={deleteConfirmOpen}
-                onClose={handleDeleteCancel}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-            <DialogTitle id="alert-dialog-title">Confirmar Borrado</DialogTitle>
-            <DialogContent>
-              <DialogContentText id="alert-dialog-description">
-                ¿Estás seguro que deseas eliminar este {title.substr(0, title.length - 1).toLowerCase()}?
-              </DialogContentText>
-              {itemToDelete && (
-                <Box  className="delete-container">
-                  {columns.map((column, colIndex) => (
-                    <Box key={colIndex} display="flex" alignItems="center" mb={1}>
-                      <Typography variant="body2" fontWeight="bold" mr={1}>
-                        {column.label}:
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        {itemToDelete[column.key]}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={handleDeleteCancel}>Cancelar</Button>
-                <Button  color="error" onClick={handleDeleteConfirm} autoFocus>
-                    Confirmar
-                </Button>
-            </DialogActions>
-            </Dialog>
-          </Box>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          {currentPage && pageCounter > 1 ? (
+            <Pagination 
+              count={pageCounter}
+              className="pagination"
+              variant="outlined" 
+              color="primary"
+              onChange={(event, value) => getFunction(value)}
+              shape="rounded"
+              page={currentPage}
+            />
+          ) : pageCounter > 1 ? (
+            <Pagination
+              className="pagination"
+              count={pageCounter}
+              variant="outlined"
+              color="primary"
+              onChange={(event, value) => getFunction(value)}
+              shape="rounded"
+            />
+          ) : null}
         </Box>
       </Paper>
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">Confirmar Borrado</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            ¿Estás seguro que deseas eliminar este {title.substr(0, title.length - 1).toLowerCase()}?
+          </DialogContentText>
+          {itemToDelete && (
+            <Box className="delete-container">
+              {columns.map((column, colIndex) => (
+                <Box key={colIndex} display="flex" alignItems="center" mb={1}>
+                  <Typography variant="body2" fontWeight="bold" mr={1}>
+                    {column.label}:
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    {itemToDelete[column.key]}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel}>Cancelar</Button>
+          <Button color="error" onClick={handleDeleteConfirm} autoFocus>
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

@@ -1,32 +1,80 @@
+.list-wrapper {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.list-paper {
+  padding: 16px;
+}
+
+.list-content {
+  margin-top: 16px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.list-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.header-cell {
+  background-color: #f5f5f5;
+  border-bottom: 2px solid #e0e0e0;
+  border-right: 1px solid #e0e0e0;
+  padding: 12px 8px;
+  text-align: left;
+}
+
+.header-cell:last-child {
+  border-right: none;
+}
+
+.headerText {
+  font-weight: bold;
+  color: #333;
+}
+
 .grid-item:nth-of-type(odd) {
-    background-color: rgba(0, 0, 0, 0.04);
+  background-color: #ffffff;
 }
   
 .grid-item:nth-of-type(even) {
-  background-color: #fff;
+  background-color: #f9f9f9;
 }
 
-.grid-item {
-  padding: 8px;
+.data-cell {
+  border-bottom: 1px solid #e0e0e0;
+  border-right: 1px solid #e0e0e0;
+  padding: 12px 8px;
+  vertical-align: middle;
 }
 
-.dataText{
-    white-space: pre-wrap;
-    display: flex;
-    justify-content: center;
+.data-cell:last-child {
+  border-right: none;
 }
 
-.headerText, .dataText {
-  display: block;
-  text-align: center; 
-  margin-right: 8px;
+.grid-item:last-child .data-cell {
+  border-bottom: none;
 }
 
-.grid-item .dataText {
-  padding: 8px 0;
+.dataText {
+  white-space: normal;
+  word-break: break-word;
 }
+
+.actions-cell {
+  white-space: nowrap;
+}
+
 .link-hover-outline {
   text-decoration: none;
+  color: inherit;
 }
 
 .link-hover-outline:hover {
@@ -36,6 +84,40 @@
 .delete-container {
   margin-top: 8px;
   border: 1px solid #ccc;
-  border-collapse: collapse;
-  background-color: #eee;
+  border-radius: 4px;
+  padding: 8px;
+  background-color: #f5f5f5;
+}
+
+.no-results {
+  padding: 16px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+.pagination {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+@media screen and (max-width: 768px) {
+  .list-table {
+    font-size: 14px;
+  }
+
+  .header-cell, .data-cell {
+    padding: 8px 4px;
+  }
+
+  .actions-cell {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .actions-cell .MuiIconButton-root {
+    padding: 6px;
+  }
 }
