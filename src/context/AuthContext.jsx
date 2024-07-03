@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
+import React, { createContext, useState, useEffect, useContext, useRef, useCallback  } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 
@@ -21,10 +21,14 @@ const refreshAxios = axios.create({
 });
 
 export const AuthProvider = ({ children }) => {
-  const getStorageToken = async (tokenKey) => {
-    const token = localStorage.getItem(tokenKey);
-    console.log('Token from storage:', token);
-    return isTokenExpired(token) ? null : token;
+  const getStorageToken = (tokenKey) => {
+    const value = localStorage.getItem(tokenKey);
+    console.log('Token from storage:', value);
+    if (value && !isTokenExpired(value)){
+      return value;
+    }else{
+      return null;
+    }
   };
   const [token, setToken] = useState(null);
   const [refresh_token, setRefreshToken] = useState(null);
@@ -32,18 +36,29 @@ export const AuthProvider = ({ children }) => {
   const tokenPromiseRef = useRef(null);
 
   useEffect(() => {
+    let isMounted = true;
+    console.log("Initializing auth context")
     const initializeToken = async () => {
-      const storageToken = await getStorageToken('token');
+      const storageToken = getStorageToken('token');
       console.log('Token from storage1:', storageToken);
-      setToken(storageToken);
-      const storageRefreshToken = await getStorageToken('refresh_token');
+      if (isMounted && storageToken) {
+        setToken(storageToken);
+      }
+      const storageRefreshToken = getStorageToken('refresh_token');
       console.log('Token from storage2:', storageToken);
+      if (isMounted && storageRefreshToken) {
       setRefreshToken(storageRefreshToken);
+      }
       const user = localStorage.getItem('user');
       console.log('User from storage:', user);
-      setUser(user);
+      if (isMounted && user) {
+        setUser(user);
+      }
     };
     initializeToken();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const setAuthContext = (newToken, newRefreshToken = null, user = null) => {
@@ -69,69 +84,38 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
   };
 
-  const getToken = async () => {
-    console.log('Token:', token, 'Refresh Token:', refresh_token, 'Email:', email)
+  const getToken = useCallback(async () => {
+    console.log('Token:', token, 'Refresh Token:', refresh_token, 'Email:', email);
     if (tokenPromiseRef.current) {
       return tokenPromiseRef.current;
     }
-    if (!token) {
-    const storageToken = await getStorageToken('token');
-    if (storageToken) {
-      setToken(storageToken);
-      return storageToken;
-    }
-      return Promise.reject(new Error('No valid token available'));
-    }
-    if (!isTokenExpired(token)) {
-      return Promise.resolve(token);
-    } else {
-      return Promise.reject(new Error('No valid token available'));
-    }
-  };
-  const refreshAccessToken = async () => {
+    return token || getStorageToken('token');
+  }, [token, refresh_token, email]);
+
+  const refreshAccessToken = useCallback(async () => {
     if (tokenPromiseRef.current) {
       return tokenPromiseRef.current;
     }
 
     tokenPromiseRef.current = new Promise(async (resolve, reject) => {
       try {
-        console.log('Token:', token, 'Refresh Token:', refresh_token, 'Email:', email)
-        if (!refresh_token) {
-          const refreshStorageToken = await getStorageToken('refresh_token');
-          const emailStorage = localStorage.getItem('user');
-          if (refreshStorageToken) {  
-            setRefreshToken(refreshStorageToken);
-            const response = await refreshAxios.post('/usuarios/refresh', {
-              refresh_token: refreshStorageToken,
-              email: emailStorage
-            });
-            const { access_token } = response.data;
-          
-            setAuthContext(access_token);
-            resolve(access_token);
-          }else{
-            removeAuthContext();
-            reject(new Error('No refresh token available'));
-            return;
-          }
-        }else{
-          let emailStorage= '';
-          if (!email) {
-            let emailStorage = localStorage.getItem('user');
-            setUser(emailStorage);
-          }
-          const response = await refreshAxios.post('/usuarios/refresh', {
-            refresh_token: refresh_token,
-            email: email? email : emailStorage
-          });
-          
-          const { access_token } = response.data;
-          
-          setAuthContext(access_token);
-          resolve(access_token);
+        console.log('Token:', token, 'Refresh Token:', refresh_token, 'Email:', email);
+        const refreshStorageToken = refresh_token || localStorage.getItem('refresh_token');
+        const emailStorage = email || localStorage.getItem('user');
+
+        if (!refreshStorageToken || !emailStorage) {
+          throw new Error('No refresh token available');
         }
+
+        const response = await refreshAxios.post('/usuarios/refresh', {
+          refresh_token: refreshStorageToken,
+          email: emailStorage
+        });
+        const { access_token } = response.data;
+        setAuthContext(access_token);
+        resolve(access_token);
       } catch (error) {
-        console.error('Error refreshing token:', error);
+        console.log('Error refreshing token:', error);
         removeAuthContext();
         reject(error);
       } finally {
@@ -140,10 +124,23 @@ export const AuthProvider = ({ children }) => {
     });
 
     return tokenPromiseRef.current;
-  };
+  }, [token, refresh_token, email]);
+
+  const isUserLogged = useCallback(async () => {
+    try {
+      debugger
+      const token = await getToken();
+      console.log("[isUserLogged] token:", token)
+      if (token) return;
+      return await refreshAccessToken();
+    } catch (error) {
+      console.error('Error in isUserLogged:', error);
+      throw error;
+    }
+  }, [token, refresh_token, email]);
 
   return (
-    <AuthContext.Provider value={{ email, token, refresh_token, setUser, setAuthContext, removeAuthContext, getToken, refreshAccessToken }}>
+    <AuthContext.Provider value={{ email, token, refresh_token, isUserLogged, setUser, setAuthContext, removeAuthContext, getToken, refreshAccessToken }}>
       {children}
     </AuthContext.Provider>
   );

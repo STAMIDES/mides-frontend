@@ -27,7 +27,7 @@ const setupInterceptors = (getToken, refreshAccessToken, removeAuthContext) => {
       }
       try {
         const token = await getToken();
-        console.log('Token retrieved:', token ? 'Valid token' : 'No token');
+        console.log('[axios] Token:', token)
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         } else {
@@ -54,7 +54,7 @@ const setupInterceptors = (getToken, refreshAccessToken, removeAuthContext) => {
 
   api.interceptors.response.use(
     (response) => response,
-    async (error) => {
+    async (error) => {  
       const originalRequest = error.config;
       if (error.response?.status === 403 && !originalRequest._retry) {
         originalRequest._retry = true;

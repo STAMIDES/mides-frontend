@@ -105,6 +105,7 @@ const ListComponent = ({
               {currentPage && pageCounter>1 ?
                 <Pagination 
                 count={pageCounter} 
+                style={{'marginTop':'2rem'}}
                 variant="outlined" 
                 color="primary"
                 onChange={(event, value) => getFunction(value)}
@@ -113,6 +114,7 @@ const ListComponent = ({
                 />
                 : pageCounter>1 ?
                 <Pagination
+                style={{'marginTop':'2rem'}}
                 count={pageCounter}
                 variant="outlined"
                 color="primary"
