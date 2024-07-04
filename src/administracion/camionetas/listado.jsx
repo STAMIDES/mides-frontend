@@ -12,19 +12,19 @@ const columns = [
   { label: "Rol", key: "rol" }
 ];
 
-const UsuarioListado = () => {
-  const [usuarios, setUsuarios] = useState([]);
+const ComionetasListado = () => {
+  const [camionetas, setCamionetas] = useState([]);
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
-  const [cantidadUsuarios, setCantidadUsuarios] = useState(0); // [1
+  const [cantidadCamionetas, setCantidadCamionetas] = useState(0); // [1
   const api = useApi();
 
-  const obtenerUsuarios = async (page=1, search='') => {
+  const obtenerCamionetas = async (page=1, search='') => {
     try {
       const offset = page * 10 - pageSize;
-      const response = await api.get(`/usuarios?offset=${offset}&limit=${pageSize}&search=${search}`);
-      setUsuarios(response.data.usuarios);
-      setCantidadUsuarios(response.data.cantidad);
+      const response = await api.get(`/camionetas?offset=${offset}&limit=${pageSize}&search=${search}`);
+      setCamionetas(response.data.camionetas);
+      setCantidadCamionetas(response.data.cantidad);
     } catch (error) {
       if (error.response) {
         setError(error.response.statusText);
@@ -35,30 +35,30 @@ const UsuarioListado = () => {
   };
 
   useEffect(() => {
-    obtenerUsuarios();
+    obtenerCamionetas();
   }, []);
 
   const handleSearch = (searchTerm) => {
-    obtenerUsuarios(1, searchTerm);
+    obtenerCamionetas(1, searchTerm);
   };
 
   return (
     <Container>
-      <Header createLink="./invitar" createMessage="Invitar Usuario via Email" onSearch={handleSearch}/>
+      <Header createLink="./crear" createMessage="Crear" onSearch={handleSearch}/>
       {error && <p>{error}</p>}
       <ListComponent 
-        title="Usuarios" 
-        data={usuarios} 
+        title="Camionetas" 
+        data={camionetas} 
         columns={columns} 
-        createLink="/usuarios/crear" 
+        createLink="/camionetas/crear" 
         icons={[ <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={[ "/usuarios/editar?usuario_id=",  "/usuarios/eliminar?usuario_id="]}
-        iconsTooltip={["Editar Usuario", "Eliminar Usuario"]}
-        getFunction={obtenerUsuarios}
-        pageCounter={Math.round(cantidadUsuarios/pageSize+1)}
+        iconsLinks={[ "/camionetas/editar?camioneta_id=",  "/camionetas/eliminar?camioneta_id="]}
+        iconsTooltip={["Editar Camioneta", "Eliminar Camioneta"]}
+        getFunction={obtenerCamionetas}
+        pageCounter={Math.round(cantidadCamionetas/pageSize+1)}
       />
     </Container>
   );
 };
 
-export default UsuarioListado;
+export default ComionetasListado;

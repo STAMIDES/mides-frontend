@@ -140,7 +140,7 @@ const SideNavBar = () => {
             <Box bgcolor="grey.800" color="white" borderRadius={1} p={1} boxShadow={5}>
               <List component="nav">
                 {adminSubItems.map((subItem) => (
-                  <Link key={subItem} to={subItem.toLowerCase().replace(' ', '-')} style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+                  <Link key={subItem} to={"administracion/"+subItem.toLowerCase().replace(' ', '_')} style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
                     <ListItem button>
                       <ListItemText primary={subItem} />
                     </ListItem>

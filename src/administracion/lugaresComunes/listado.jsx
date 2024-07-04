@@ -12,19 +12,19 @@ const columns = [
   { label: "Rol", key: "rol" }
 ];
 
-const UsuarioListado = () => {
-  const [usuarios, setUsuarios] = useState([]);
+const LugaresComunesListado = () => {
+  const [lugares, setLugares] = useState([]);
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
-  const [cantidadUsuarios, setCantidadUsuarios] = useState(0); // [1
+  const [cantidadLugaresComunes, setCantidadLugaresComunes] = useState(0); // [1
   const api = useApi();
 
-  const obtenerUsuarios = async (page=1, search='') => {
+  const obtenerLugaresComunes = async (page=1, search='') => {
     try {
       const offset = page * 10 - pageSize;
-      const response = await api.get(`/usuarios?offset=${offset}&limit=${pageSize}&search=${search}`);
-      setUsuarios(response.data.usuarios);
-      setCantidadUsuarios(response.data.cantidad);
+      const response = await api.get(`/lugares_comunes?offset=${offset}&limit=${pageSize}&search=${search}`);
+      setLugares(response.data.lugares);
+      setCantidadLugaresComunes(response.data.cantidad);
     } catch (error) {
       if (error.response) {
         setError(error.response.statusText);
@@ -35,30 +35,30 @@ const UsuarioListado = () => {
   };
 
   useEffect(() => {
-    obtenerUsuarios();
+    obtenerLugaresComunes();
   }, []);
 
   const handleSearch = (searchTerm) => {
-    obtenerUsuarios(1, searchTerm);
+    obtenerLugaresComunes(1, searchTerm);
   };
 
   return (
     <Container>
-      <Header createLink="./invitar" createMessage="Invitar Usuario via Email" onSearch={handleSearch}/>
+      <Header createLink="./crear" createMessage="Crear" onSearch={handleSearch}/>
       {error && <p>{error}</p>}
       <ListComponent 
-        title="Usuarios" 
-        data={usuarios} 
+        title="Lugares Comunes" 
+        data={lugares} 
         columns={columns} 
-        createLink="/usuarios/crear" 
+        createLink="/lugares_comunes/crear" 
         icons={[ <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={[ "/usuarios/editar?usuario_id=",  "/usuarios/eliminar?usuario_id="]}
-        iconsTooltip={["Editar Usuario", "Eliminar Usuario"]}
-        getFunction={obtenerUsuarios}
-        pageCounter={Math.round(cantidadUsuarios/pageSize+1)}
+        iconsLinks={[ "/lugares_comunes/editar?lugar_comun_id=",  "/lugares_comunes/eliminar?lugar_comun_id="]}
+        iconsTooltip={["Editar Lugar Comun", "Eliminar Lugar Comun"]}
+        getFunction={obtenerLugaresComunes}
+        pageCounter={Math.round(cantidadLugaresComunes/pageSize+1)}
       />
     </Container>
   );
 };
 
-export default UsuarioListado;
+export default LugaresComunesListado;

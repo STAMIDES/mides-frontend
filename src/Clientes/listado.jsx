@@ -53,7 +53,7 @@ const ClienteListado = () => {
   };
   return (
     <Container>
-      <Header createLink="/clientes/crear" onSearch={handleSearch}/>
+      <Header createLink="./crear" onSearch={handleSearch}/>
       {error && <p>{error}</p>}
       <ListComponent 
         title="Clientes" 

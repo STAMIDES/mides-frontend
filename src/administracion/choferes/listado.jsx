@@ -13,18 +13,18 @@ const columns = [
 ];
 
 const UsuarioListado = () => {
-  const [usuarios, setUsuarios] = useState([]);
+  const [choferes, setChoferes] = useState([]);
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
-  const [cantidadUsuarios, setCantidadUsuarios] = useState(0); // [1
+  const [cantidadChoferes, setCantidadChoferes] = useState(0); // [1
   const api = useApi();
 
-  const obtenerUsuarios = async (page=1, search='') => {
+  const obtenerChoferes = async (page=1, search='') => {
     try {
       const offset = page * 10 - pageSize;
-      const response = await api.get(`/usuarios?offset=${offset}&limit=${pageSize}&search=${search}`);
-      setUsuarios(response.data.usuarios);
-      setCantidadUsuarios(response.data.cantidad);
+      const response = await api.get(`/choferes?offset=${offset}&limit=${pageSize}&search=${search}`);
+      setChoferes(response.data.choferes);
+      setCantidadChoferes(response.data.cantidad);
     } catch (error) {
       if (error.response) {
         setError(error.response.statusText);
@@ -35,27 +35,27 @@ const UsuarioListado = () => {
   };
 
   useEffect(() => {
-    obtenerUsuarios();
+    obtenerChoferes();
   }, []);
 
   const handleSearch = (searchTerm) => {
-    obtenerUsuarios(1, searchTerm);
+    obtenerChoferes(1, searchTerm);
   };
 
   return (
     <Container>
-      <Header createLink="./invitar" createMessage="Invitar Usuario via Email" onSearch={handleSearch}/>
+      <Header createLink="./crear" createMessage="Crear" onSearch={handleSearch}/>
       {error && <p>{error}</p>}
       <ListComponent 
-        title="Usuarios" 
-        data={usuarios} 
+        title="Choferes" 
+        data={choferes} 
         columns={columns} 
-        createLink="/usuarios/crear" 
+        createLink="/choferes/crear" 
         icons={[ <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={[ "/usuarios/editar?usuario_id=",  "/usuarios/eliminar?usuario_id="]}
-        iconsTooltip={["Editar Usuario", "Eliminar Usuario"]}
-        getFunction={obtenerUsuarios}
-        pageCounter={Math.round(cantidadUsuarios/pageSize+1)}
+        iconsLinks={[ "/choferes/editar?chofer_id=",  "/choferes/eliminar?chofer_id="]}
+        iconsTooltip={["Editar Chofer", "Eliminar Chofer"]}
+        getFunction={obtenerChoferes}
+        pageCounter={Math.round(cantidadChoferes/pageSize+1)}
       />
     </Container>
   );

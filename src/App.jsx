@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import SideNavBar from './components/sideNavBar';
 import PedidosRutas from './Pedidos';
 import ClientesRutas from './Clientes';
-import UsuariosRutas from './administracion/usuarios';
+import AdministracionRutas from './administracion';
 import CuentaRouter from './account';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import PrivateRoute from './components/privateRoute';
@@ -31,9 +31,9 @@ function App() {
                 <ClientesRutas />
               </PrivateRoute>
             } />
-            <Route path="/usuarios/*" element={
+            <Route path="/administracion/*" element={
               <PrivateRoute>
-                <UsuariosRutas/>
+                <AdministracionRutas/>
               </PrivateRoute>
             } />
             <Route path="/" element={<Navigate to="/pedidos" />} />

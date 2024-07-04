@@ -71,7 +71,7 @@ const PedidoListado = () => {
 
   return (
     <Container>
-      <Header createLink="/pedidos/crear"  onSearch={handleSearch}/>
+      <Header createLink="./crear"  onSearch={handleSearch}/>
       {error && <p>{error}</p>}
       <ListComponent 
         title="Pedidos" 

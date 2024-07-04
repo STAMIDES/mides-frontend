@@ -7,12 +7,12 @@ const Roles = {
   chofer: 'Chofer'
 };
 
-const UsuarioInvitar = ({ usuario = {} }) => {
+const CamionetasCrear = ({ camioneta = {} }) => {
   const [formData, setFormData] = useState({
     email: '',
     nombre: '',
     rol: '',
-    ...usuario
+    ...camioneta
   });
   const [message, setMessage] = useState(null); 
   const api = useApi();
@@ -25,13 +25,13 @@ const UsuarioInvitar = ({ usuario = {} }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post('usuarios/invitar', formData);
-      setMessage({ type: 'success', text: 'Usuario invitado correctamente' });
+      const response = await api.post('camionetas', formData);
+      setMessage({ type: 'success', text: 'Camioneta creada correctamente' });
     } catch (error) {
       if (error.response && error.response.status >= 400 && error.response.status < 500) {
         setMessage({ type: 'error', text: error.response.data.detail });
       } else {
-        setMessage({ type: 'error', text: 'Error invitando al usuario '+ nombre });
+        setMessage({ type: 'error', text: 'Error creando la caminoeta' });
       }
     }
   };
@@ -39,8 +39,7 @@ const UsuarioInvitar = ({ usuario = {} }) => {
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom>Invitación de usuario</Typography>
-        <Typography variant="body1" gutterBottom sx={{ mb: 3 }}>Al confirmar, se enviará un correo electrónico con un enlace al usuario</Typography>
+        <Typography variant="h4" gutterBottom>Crear</Typography>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
@@ -65,7 +64,7 @@ const UsuarioInvitar = ({ usuario = {} }) => {
             </Grid>
             <Grid item xs={12}>
               <FormControl fullWidth required>
-                <InputLabel id="rol-label">Tipo de Usuario</InputLabel>
+                <InputLabel id="rol-label">Tipo de Camioneta</InputLabel>
                 <Select
                   labelId="rol-label"
                   name="rol"
@@ -89,7 +88,7 @@ const UsuarioInvitar = ({ usuario = {} }) => {
                 fullWidth 
                 sx={{ mt: 3, py: 1.5, backgroundColor: '#1976d2', '&:hover': { backgroundColor: '#115293' } }}
               >
-                Invitar
+                Crear
               </Button>
             </Grid>
           </Grid>
@@ -104,4 +103,4 @@ const UsuarioInvitar = ({ usuario = {} }) => {
   );
 };
 
-export default UsuarioInvitar;
+export default CamionetasCrear;
