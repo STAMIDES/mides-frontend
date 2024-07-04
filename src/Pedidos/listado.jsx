@@ -36,20 +36,39 @@ const PedidoListado = () => {
     obtenerPedidos(currentPage, date);
   }, [date, currentPage]);
 
+  const procesarPedidos = (pedidosSinProcesar) => {
+    const nuevoListado = [];
+    pedidosSinProcesar.forEach(pedido => {
+        const nombreYApellido = `${pedido.cliente.nombre}\n${pedido.cliente.apellido}`;
+        const usuario_documento = pedido.cliente.documento;
+        const paradas = pedido.paradas;
+        
+        for (let i = 0; i + 1 < paradas.length; i += 1) {
+            const origen = paradas[i];
+            const destino = paradas[i + 1];
+            
+            const direccionOrigenYHorario = `${origen.direccion} - ${origen.ventana_horaria_inicio || 'Sin horario'}`;
+            const direccionDestinoYHorario = `${destino.direccion} - ${destino.ventana_horaria_inicio || 'Sin horario'}`;
+            
+            nuevoListado.push({
+                nombre_y_apellido: nombreYApellido,
+                usuario_documento: usuario_documento,
+                direccion_origen_y_horario: direccionOrigenYHorario,
+                direccion_destino_y_horario: direccionDestinoYHorario
+            });
+        }
+    });
+    
+    return nuevoListado;
+  }
+
+
   const obtenerPedidos = async (page=1, selectedDate, search = '') => {
     try {
       const offset = (page - 1) * pageSize;
       setPage(page);
       const response = await api.get(`/pedidos/fecha/${selectedDate.format("YYYY-MM-DD")}?offset=${offset}&limit=${pageSize}&search=${search}`);
-      const pedidos = response.data.pedidos;
-      console.log(JSON.stringify(pedidos));
-      const pedidosProcesados = pedidos.map(pedido => ({
-        ...pedido,
-        direccion_origen_y_horario: `${pedido.direccion_origen}  \n ${pedido.ventana_origen_fin}`,
-        direccion_destino_y_horario: `${pedido.direccion_destino} \n ${pedido.ventana_destino_fin}`,
-        nombre_y_apellido: `${pedido.cliente_nombre} \n ${pedido.cliente_apellido}`,
-      }));
-      setPedidos(pedidosProcesados);
+      setPedidos(procesarPedidos(response.data.pedidos));
       setCantidadPedidos(response.data.cantidad);
     } catch (error) {
       if (error.response) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect  } from 'react';
-import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Autocomplete, Container, Grid, Paper, FormControl, RadioGroup, FormLabel, Radio, IconButton, breadcrumbsClasses } from '@mui/material';
+import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Autocomplete, Container, Grid, Paper, FormControl, RadioGroup, FormLabel, Radio, IconButton, Alert } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import useApi from '../network/axios';
 import { useParams, useLocation  } from 'react-router-dom';
@@ -125,7 +125,6 @@ const CrearPedido = () => {
     let counter = 0;
     for (const parada of formData.paradas){
       counter = counter + 1;
-      debugger
       if (tipoViaje===0){
         retParadas.push({direccion: parada.direccion_destino,
            ventana_horaria_inicio: parada.ventana_horaria_inicio,
