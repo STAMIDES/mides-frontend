@@ -7,8 +7,8 @@ import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 const DateFilter = ({ date, handleDateChange, getElementosFiltrados }) => {
   return (
     <LocalizationProvider dateAdapter={AdapterMoment}>
-      <Grid container spacing={2}>
-        <Grid item xs={5} mb={2} justifyContent="right">
+      <Grid container spacing={2} justifyContent="right">
+        <Grid item xs={5} mb={2} >
           <DesktopDatePicker
             label="Date desktop"
             inputFormat="DD-MM-YYYY"
