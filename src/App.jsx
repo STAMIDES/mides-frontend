@@ -5,7 +5,8 @@ import SideNavBar from './components/sideNavBar';
 import PedidosRutas from './Pedidos';
 import ClientesRutas from './Clientes';
 import AdministracionRutas from './administracion';
-import CuentaRouter from './account';
+import CuentaRutas from './account';
+import PlanificacionesRutas from './planificaciones';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import PrivateRoute from './components/privateRoute';
 
@@ -20,15 +21,20 @@ function App() {
         {isAuthenticated && !pathCuenta && <SideNavBar/>}
         <Box style={pathCuenta ? { width: '100%' } : { marginLeft: '12rem', width: '100%' }}> 
           <Routes>
-            <Route path="/cuenta/*" element={<CuentaRouter />} />
+            <Route path="/cuenta/*" element={<CuentaRutas />} />
+            <Route path="/clientes/*" element={
+              <PrivateRoute>
+                <ClientesRutas />
+              </PrivateRoute>
+            } />
             <Route path="/pedidos/*" element={
               <PrivateRoute>
                 <PedidosRutas />
               </PrivateRoute>
             } />
-            <Route path="/clientes/*" element={
+            <Route path="/planificaciones/*" element={
               <PrivateRoute>
-                <ClientesRutas />
+                <PlanificacionesRutas />
               </PrivateRoute>
             } />
             <Route path="/administracion/*" element={
