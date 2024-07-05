@@ -14,41 +14,42 @@ const columnsPedidos = [
   { label: "Fecha ingresada al sistema", key: "fecha_ingresado" }
 ]
 
-const procesarPedidos = (pedidosSinProcesar) => {
-  const nuevoListado = [];
-  pedidosSinProcesar.sort((a, b) => new Date(a.fecha_programado) - new Date(b.fecha_programado));
-  let cantidad = 0;
-  pedidosSinProcesar.forEach(pedido => {
-      const paradas = pedido.paradas;
-      paradas.sort((a, b) => a.posicion_en_pedido - b.posicion_en_pedido);
-      for (let i = 0; i + 1 < paradas.length; i += 1) {
-          const origen = paradas[i];
-          const destino = paradas[i + 1];
-          
-          const direccionOrigenYHorario = `${origen.direccion} - ${origen.ventana_horaria_inicio || 'Sin horario'}`;
-          const direccionDestinoYHorario = `${destino.direccion} - ${destino.ventana_horaria_inicio || 'Sin horario'}`;
-          
-          const fechaIngresado = pedido.fecha_ingresado.split('T')[0];
-          const fechaProgramado = pedido.fecha_programado.split('T')[0];
-          nuevoListado.push({
-            fecha_programado: fechaProgramado,
-            direccion_origen_y_horario: direccionOrigenYHorario,
-            direccion_destino_y_horario: direccionDestinoYHorario,
-            fecha_ingresado: fechaIngresado
-          });
-          cantidad += 1;
-      }
-  });
-  setCantidadPedidos(cantidad);
-  return nuevoListado;
-}
-
 const ClienteDetalles = () => {
   const { id } = useParams();
   const [cliente, setCliente] = useState(null);
   const [pedidosCliente, setPedidosCliente] = useState([]);
   const [cantidadPedidos, setCantidadPedidos] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+
+
+  const procesarPedidos = (pedidosSinProcesar) => {
+    const nuevoListado = [];
+    pedidosSinProcesar.sort((a, b) => new Date(a.fecha_programado) - new Date(b.fecha_programado));
+    let cantidad = 0;
+    pedidosSinProcesar.forEach(pedido => {
+        const paradas = pedido.paradas;
+        paradas.sort((a, b) => a.posicion_en_pedido - b.posicion_en_pedido);
+        for (let i = 0; i + 1 < paradas.length; i += 1) {
+            const origen = paradas[i];
+            const destino = paradas[i + 1];
+            
+            const direccionOrigenYHorario = `${origen.direccion} - ${origen.ventana_horaria_inicio || 'Sin horario'}`;
+            const direccionDestinoYHorario = `${destino.direccion} - ${destino.ventana_horaria_inicio || 'Sin horario'}`;
+            
+            const fechaIngresado = pedido.fecha_ingresado.split('T')[0];
+            const fechaProgramado = pedido.fecha_programado.split('T')[0];
+            nuevoListado.push({
+              fecha_programado: fechaProgramado,
+              direccion_origen_y_horario: direccionOrigenYHorario,
+              direccion_destino_y_horario: direccionDestinoYHorario,
+              fecha_ingresado: fechaIngresado
+            });
+            cantidad += 1;
+        }
+    });
+    setCantidadPedidos(cantidad);
+    return nuevoListado;
+  }
 
   const api = useApi();
   useEffect(() => {
