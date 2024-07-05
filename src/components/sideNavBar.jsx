@@ -76,7 +76,7 @@ const SideNavBar = () => {
     >
       <Box display="flex" flexDirection="column" alignItems="center" style={{ marginTop: '2rem'}}>
         <Avatar
-          src="src/imgs/logo_mides.png"
+          src="/src/imgs/logo_mides.png"
           alt="Logo"
           sx={{ width: 56, height: 56, cursor: "pointer", mb: 4 }}
           onClick={handleLogoClick}
