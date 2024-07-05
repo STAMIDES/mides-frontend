@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Box, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Grid, Typography, IconButton, Paper, Pagination } from "@mui/material";
 import "./css/listado.css";
 import { Link } from "react-router-dom";
-
+import { useNavigate } from 'react-router-dom';
 const ListComponent = ({
   title,
   data,
@@ -20,7 +20,7 @@ const ListComponent = ({
 }) => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
-  
+  const navigate = useNavigate();
   const handleDeleteClick = (item) => {
     setItemToDelete(item);
     setDeleteConfirmOpen(true);
@@ -31,6 +31,9 @@ const ListComponent = ({
       onDelete(itemToDelete.id);
     }
     setDeleteConfirmOpen(false);
+  };
+  const handleNavigation = (id) => {
+    navigate(`${detailLink}${id}`);
   };
 
   const handleDeleteCancel = () => {
@@ -74,11 +77,11 @@ const ListComponent = ({
                     <tr key={index} className="grid-item">
                       {columns.map((column, colIndex) => (
                         <td key={colIndex} className="data-cell">
-                          <Link to={`${detailLink}${item.id}`} className="link-hover-outline">
+                          <div className="link-hover-outline" onClick={()=>handleNavigation(item.id)} style={{ cursor: 'pointer' }}>
                             <Typography variant="body2" color="textSecondary" className="dataText">
                               {item[column.key]}
                             </Typography>
-                          </Link>
+                          </div>
                         </td>
                       ))}
                       <td className="data-cell actions-cell">
@@ -91,7 +94,7 @@ const ListComponent = ({
                               if (icon.type.type.render.displayName === 'DeleteIcon') {
                                 handleDeleteClick(item);
                               } else {
-                                window.location.href = iconsLinks[iconIndex] + item.id;
+                                navigate(`${iconsLinks[iconIndex]}${item.id}`);
                               }
                             }}
                           >
