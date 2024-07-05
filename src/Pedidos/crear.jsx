@@ -286,7 +286,6 @@ const CrearPedido = () => {
               </Grid>
             <Paper elevation={7} sx={{ p: 4, mt: 3 }}>
               <FormControl component="fieldset" >
-                <FormLabel component="legend">Tipo de Viaje</FormLabel>
                 <RadioGroup
                   row
                   name="tipoViaje"
@@ -303,7 +302,7 @@ const CrearPedido = () => {
                     ))}
                 </RadioGroup>
               </FormControl>
-              <Grid container spacing={3}>
+              <Grid container spacing={3} mt={1}>
               <Grid item xs={12} sm={4}>
                 <TextField
                   name="direccion_origen"
@@ -373,7 +372,7 @@ const CrearPedido = () => {
                 </Grid>
               </Grid>
             ))}
-            <Box display="flex" justifyContent="center" sx={{ mt: 3, visibility: tipoViaje === 0 ? "visible" : "hidden" }}>
+            <Box display="flex" justifyContent="center" sx={{ mt: 3, display: tipoViaje === 0 ? "flex" : "none" }}>
               <IconButton color="primary" onClick={addParada}>
                 <AddIcon />
               </IconButton>
