@@ -16,8 +16,8 @@ const columnsPedidos = [
 
 const procesarPedidos = (pedidosSinProcesar) => {
   const nuevoListado = [];
-  debugger
   pedidosSinProcesar.sort((a, b) => new Date(a.fecha_programado) - new Date(b.fecha_programado));
+  let cantidad = 0;
   pedidosSinProcesar.forEach(pedido => {
       const paradas = pedido.paradas;
       paradas.sort((a, b) => a.posicion_en_pedido - b.posicion_en_pedido);
@@ -36,9 +36,10 @@ const procesarPedidos = (pedidosSinProcesar) => {
             direccion_destino_y_horario: direccionDestinoYHorario,
             fecha_ingresado: fechaIngresado
           });
+          cantidad += 1;
       }
   });
-  
+  setCantidadPedidos(cantidad);
   return nuevoListado;
 }
 
@@ -56,12 +57,27 @@ const ClienteDetalles = () => {
       .then(response => {
         setCliente(response.data);
         setPedidosCliente(procesarPedidos(response.data.pedidos));
-        setCantidadPedidos(10);
       })
       .catch(error => {
         console.error("There was an error fetching the client data!", error);
       });
   }, [id]);
+
+  const obtenerPedidosCliente = async (page=1) => {
+    try {
+      const offset = page * 10 - pageSize;
+      const response = await api.get(`/pedidos/cliente/${cliente.documento}?offset=${offset}&limit=${pageSize}`);
+      setPedidosCliente(procesarPedidos(response.data.pedidos));
+      setCantidadPedidos(response.data.cantidad);
+    } catch (error) {
+      console.error('Error fetching client orders:', error);
+      if (error.response) {
+        setError(error.response.statusText);
+      } else {
+        setError('An unexpected error occurred');
+      }
+    }
+  };
 
   if (!cliente) {
     return <Typography>Loading...</Typography>;
@@ -141,8 +157,7 @@ const ClienteDetalles = () => {
               icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
               iconsLinks={[ "/pedidos/editar",  "/pedidos/eliminar"]} 
               iconsTooltip={[ "Editar Pedido", "Eliminar Pedido"]}
-              getFunction={()=>{}}
-              currentPage={1}
+              getFunction={obtenerPedidosCliente}
               pageCounter={Math.round(cantidadPedidos/pageSize+1)}
             />
         </Paper>
