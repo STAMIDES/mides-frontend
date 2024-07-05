@@ -38,10 +38,12 @@ const PedidoListado = () => {
 
   const procesarPedidos = (pedidosSinProcesar) => {
     const nuevoListado = [];
+    pedidosSinProcesar.sort((a, b) => new Date(a.fecha_programado) - new Date(b.fecha_programado));
     pedidosSinProcesar.forEach(pedido => {
         const nombreYApellido = `${pedido.cliente.nombre}\n${pedido.cliente.apellido}`;
         const usuario_documento = pedido.cliente.documento;
         const paradas = pedido.paradas;
+        paradas.sort((a, b) => a.posicion_en_pedido - b.posicion_en_pedido);
         
         for (let i = 0; i + 1 < paradas.length; i += 1) {
             const origen = paradas[i];

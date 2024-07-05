@@ -2,16 +2,61 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Paper, Typography, Button, Grid } from '@mui/material';
 import useApi from '../network/axios';
+import ListComponent from "../components/listados";
+import DeleteIcon from '@mui/icons-material/Delete';
+import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 import './css/detalles.css';
+
+const columnsPedidos = [
+  { label: "Fecha pedido", key: "fecha_programado" },
+  { label: "Origen", key: "direccion_origen_y_horario"},
+  { label: "Destino", key: "direccion_destino_y_horario" },
+  { label: "Fecha ingresada al sistema", key: "fecha_ingresado" }
+]
+
+const procesarPedidos = (pedidosSinProcesar) => {
+  const nuevoListado = [];
+  debugger
+  pedidosSinProcesar.sort((a, b) => new Date(a.fecha_programado) - new Date(b.fecha_programado));
+  pedidosSinProcesar.forEach(pedido => {
+      const paradas = pedido.paradas;
+      paradas.sort((a, b) => a.posicion_en_pedido - b.posicion_en_pedido);
+      for (let i = 0; i + 1 < paradas.length; i += 1) {
+          const origen = paradas[i];
+          const destino = paradas[i + 1];
+          
+          const direccionOrigenYHorario = `${origen.direccion} - ${origen.ventana_horaria_inicio || 'Sin horario'}`;
+          const direccionDestinoYHorario = `${destino.direccion} - ${destino.ventana_horaria_inicio || 'Sin horario'}`;
+          
+          const fechaIngresado = pedido.fecha_ingresado.split('T')[0];
+          const fechaProgramado = pedido.fecha_programado.split('T')[0];
+          nuevoListado.push({
+            fecha_programado: fechaProgramado,
+            direccion_origen_y_horario: direccionOrigenYHorario,
+            direccion_destino_y_horario: direccionDestinoYHorario,
+            fecha_ingresado: fechaIngresado
+          });
+      }
+  });
+  
+  return nuevoListado;
+}
+
 const ClienteDetalles = () => {
   const { id } = useParams();
   const [cliente, setCliente] = useState(null);
+  const [pedidosCliente, setPedidosCliente] = useState([]);
+  const [cantidadPedidos, setCantidadPedidos] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+
   const api = useApi();
   useEffect(() => {
     console.log("Fetching client data...")
     api.get(`clientes/${id}?completo=true`) 
       .then(response => {
         setCliente(response.data);
+        setPedidosCliente(procesarPedidos(response.data.pedidos));
+        setCantidadPedidos(10);
       })
       .catch(error => {
         console.error("There was an error fetching the client data!", error);
@@ -39,6 +84,17 @@ const ClienteDetalles = () => {
             <Typography variant="h4" gutterBottom>
             Detalles del Cliente
             </Typography>
+            <Grid item xs={12} mt={2}>
+                    <Button variant="contained" color="primary" onClick={handleCreateOrder}>
+                    Crear Pedido
+                    </Button>
+                    <Button variant="contained" color="secondary" onClick={handleEdit} style={{ marginLeft: '10px' }}>
+                    Editar
+                    </Button>
+                    <Button variant="contained" color="error" onClick={handleDelete} style={{ marginLeft: '10px' }}>
+                    Borrar
+                    </Button>
+                </Grid>
                 <Grid container spacing={3}  mt={2} className='details-container' marginLeft={0} width="100%">
                     <Grid item xs={12} sm={4}>
                         <Typography variant="h6">Nombre:</Typography>
@@ -73,17 +129,22 @@ const ClienteDetalles = () => {
                         <Typography>{cliente.observaciones || 'No disponible'}</Typography>
                     </Grid>
                 </Grid>
-                <Grid item xs={12} mt={2}>
-                    <Button variant="contained" color="primary" onClick={handleCreateOrder}>
-                    Crear Pedido
-                    </Button>
-                    <Button variant="contained" color="secondary" onClick={handleEdit} style={{ marginLeft: '10px' }}>
-                    Editar
-                    </Button>
-                    <Button variant="contained" color="error" onClick={handleDelete} style={{ marginLeft: '10px' }}>
-                    Borrar
-                    </Button>
-                </Grid>
+                
+            <Typography variant="h4" gutterBottom mt={4}>
+             Historial de pedidos
+            </Typography>
+            <ListComponent 
+              title="Pedidos" 
+              data={pedidosCliente} 
+              columns={columnsPedidos} 
+              showMultiLine={true}
+              icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
+              iconsLinks={[ "/pedidos/editar",  "/pedidos/eliminar"]} 
+              iconsTooltip={[ "Editar Pedido", "Eliminar Pedido"]}
+              getFunction={()=>{}}
+              currentPage={1}
+              pageCounter={Math.round(cantidadPedidos/pageSize+1)}
+            />
         </Paper>
     </Container>
   );

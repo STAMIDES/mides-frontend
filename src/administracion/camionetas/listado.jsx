@@ -22,8 +22,8 @@ const ComionetasListado = () => {
   const obtenerCamionetas = async (page=1, search='') => {
     try {
       const offset = page * 10 - pageSize;
-      const response = await api.get(`/camionetas?offset=${offset}&limit=${pageSize}&search=${search}`);
-      setCamionetas(response.data.camionetas);
+      const response = await api.get(`/vehiculos?offset=${offset}&limit=${pageSize}&search=${search}`);
+      setCamionetas(response.data.vehiculos);
       setCantidadCamionetas(response.data.cantidad);
     } catch (error) {
       if (error.response) {
