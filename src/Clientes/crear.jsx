@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, TextField, Button, Typography, Select, MenuItem, Container, FormLabel, FormGroup, FormControlLabel, Alert,
   Checkbox, Grid, Paper, FormControl, InputLabel } from '@mui/material';
 import useApi from '../network/axios';
+import { useNavigate } from 'react-router-dom';
 
 const TipoCliente = {
   particular: 'Usuario particular',
@@ -26,7 +27,10 @@ const CrearCliente = ({ cliente = {} }) => {
   const [caracteristicasTodas, setCaracteristicasTodas] = useState([]); 
   const [caracteristicas, setCaracteristicasCliente] = useState([]);
   const [message, setMessage] = useState(null);
+  let crearPedido = false;
+
   const api = useApi();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,6 +51,10 @@ const CrearCliente = ({ cliente = {} }) => {
   }, []);
 
 
+  const handleNavigation = (id) => {
+    navigate(`/pedidos/crear?clienteId=${id}`);
+  };
+
   const validarDoc = () => {
     let tempErrors = {};
     if (!formData.documento) {
@@ -66,7 +74,7 @@ const CrearCliente = ({ cliente = {} }) => {
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validarDoc() || !validarTel()) {
@@ -81,6 +89,9 @@ const CrearCliente = ({ cliente = {} }) => {
 
     try {
       const response = await api.post('clientes', dataToSubmit);
+      if (crearPedido) {
+        handleNavigation(response.data.cliente.id);
+      }
       setMessage({ type: 'success', text: 'Nuevo cliente agregado exitosamente' });
     } catch (error) {
       if (error.response && error.response.status >= 400 && error.response.status < 500) {
@@ -216,9 +227,14 @@ const CrearCliente = ({ cliente = {} }) => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={6}>
               <Button type="submit" variant="contained" color="primary" fullWidth>
                 Agregar Cliente
+              </Button>
+            </Grid>
+            <Grid item xs={6}>
+              <Button type="submit" variant="contained" color="secondary" fullWidth onClick={()=> crearPedido=true} >
+                Agregar Cliente y Crear Pedido
               </Button>
             </Grid>
           </Grid>
