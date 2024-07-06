@@ -49,8 +49,8 @@ const PedidoListado = () => {
             const origen = paradas[i];
             const destino = paradas[i + 1];
             
-            const direccionOrigenYHorario = `${origen.direccion} - ${origen.ventana_horaria_inicio || 'Sin horario'}`;
-            const direccionDestinoYHorario = `${destino.direccion} - ${destino.ventana_horaria_inicio || 'Sin horario'}`;
+            const direccionOrigenYHorario = `${origen.direccion} \n ${origen.ventana_horaria_inicio  || 'Sin horario'}`;
+            const direccionDestinoYHorario = `${destino.direccion} \n ${destino.ventana_horaria_inicio || 'Sin horario'}`;
             
             nuevoListado.push({
                 nombre_y_apellido: nombreYApellido,
@@ -100,7 +100,6 @@ const PedidoListado = () => {
         filterComponentProps={{ date: date, handleDateChange: handleDateChange }}
         data={pedidos} 
         columns={columns} 
-        showMultiLine={true}
         icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
         iconsLinks={[ "/pedidos/editar",  "/pedidos/eliminar"]} 
         iconsTooltip={[ "Editar Pedido", "Eliminar Pedido"]}

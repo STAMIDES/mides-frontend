@@ -154,7 +154,6 @@ const ClienteDetalles = () => {
               title="Pedidos" 
               data={pedidosCliente} 
               columns={columnsPedidos} 
-              showMultiLine={true}
               icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
               iconsLinks={[ "/pedidos/editar",  "/pedidos/eliminar"]} 
               iconsTooltip={[ "Editar Pedido", "Eliminar Pedido"]}

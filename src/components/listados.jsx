@@ -78,7 +78,7 @@ const ListComponent = ({
                       {columns.map((column, colIndex) => (
                         <td key={colIndex} className="data-cell">
                           <div className="link-hover-outline" onClick={()=>handleNavigation(item.id)} style={{ cursor: 'pointer' }}>
-                            <Typography variant="body2" color="textSecondary" className="dataText">
+                            <Typography variant="body2" color="textSecondary" className="dataText" >
                               {item[column.key]}
                             </Typography>
                           </div>

@@ -79,7 +79,6 @@ const PlanificacionListado = () => {
         filterComponentProps={{ date: date, handleDateChange: handleDateChange }}
         data={planificaciones} 
         columns={columns} 
-        showMultiLine={true}
         icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
         iconsLinks={[ "/planificaciones/editar",  "/planificaciones/eliminar"]} 
         iconsTooltip={[ "Editar Planificación", "Eliminar Planificación"]}
