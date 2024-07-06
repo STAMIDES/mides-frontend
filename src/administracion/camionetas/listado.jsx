@@ -7,9 +7,10 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 const columns = [
-  { label: "Nombre", key: "nombre" },
-  { label: "Corre electronico", key: "email" },
-  { label: "Rol", key: "rol" }
+  { label: "Matricula", key: "matricula" },
+  { label: "Capacidad", key: "capacidad_convencional" },
+  { label: "Capacidad silla de ruedas", key: "capacidad_silla_de_ruedas" },
+  { label: "Descripcion", key: "descripcion" }
 ];
 
 const ComionetasListado = () => {

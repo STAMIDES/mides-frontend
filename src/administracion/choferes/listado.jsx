@@ -8,8 +8,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 const columns = [
   { label: "Nombre", key: "nombre" },
-  { label: "Corre electronico", key: "email" },
-  { label: "Rol", key: "rol" }
+  { label: "Apellidos", key: "apellido" },
+  { label: "Cedula", key: "documento" },
+  { label: "Telefono", key: "telefono" }
 ];
 
 const UsuarioListado = () => {
