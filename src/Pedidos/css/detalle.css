@@ -1,0 +1,10 @@
+.details-container {
+    border: 1px solid #ccc;
+    border-collapse: collapse;
+    background-color: #eee;
+    justify-self: center;
+}
+.header-container {
+    display: flex;
+    justify-content: space-between;
+}

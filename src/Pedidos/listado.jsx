@@ -53,6 +53,7 @@ const PedidoListado = () => {
             const direccionDestinoYHorario = `${destino.direccion} \n ${destino.ventana_horaria_inicio || 'Sin horario'}`;
             
             nuevoListado.push({
+                id: pedido.id,
                 nombre_y_apellido: nombreYApellido,
                 usuario_documento: usuario_documento,
                 direccion_origen_y_horario: direccionOrigenYHorario,
