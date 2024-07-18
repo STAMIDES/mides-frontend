@@ -84,7 +84,7 @@ const PlanificacionListado = () => {
         iconsTooltip={[ "Editar Planificación", "Eliminar Planificación"]}
         getFunction={obtenerPlanificaciones}
         currentPage={currentPage}
-        pageCounter={Math.round(cantidadPlanificaciones/pageSize+1)}
+        pageCounter={Math.round(cantidadPlanificaciones/pageSize)+1}
       />
     </Container>
   );

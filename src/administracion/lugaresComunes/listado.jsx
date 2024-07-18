@@ -55,7 +55,7 @@ const LugaresComunesListado = () => {
         iconsLinks={[ "/lugares_comunes/editar?lugar_comun_id=",  "/lugares_comunes/eliminar?lugar_comun_id="]}
         iconsTooltip={["Editar Lugar Comun", "Eliminar Lugar Comun"]}
         getFunction={obtenerLugaresComunes}
-        pageCounter={Math.round(cantidadLugaresComunes/pageSize+1)}
+        pageCounter={Math.round(cantidadLugaresComunes/pageSize)+1}
       />
     </Container>
   );

@@ -55,7 +55,7 @@ const UsuarioListado = () => {
         iconsLinks={[ "/usuarios/editar?usuario_id=",  "/usuarios/eliminar?usuario_id="]}
         iconsTooltip={["Editar Usuario", "Eliminar Usuario"]}
         getFunction={obtenerUsuarios}
-        pageCounter={Math.round(cantidadUsuarios/pageSize+1)}
+        pageCounter={Math.round(cantidadUsuarios/pageSize)+1}
       />
     </Container>
   );
