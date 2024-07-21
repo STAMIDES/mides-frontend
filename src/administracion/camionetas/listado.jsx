@@ -56,7 +56,7 @@ const ComionetasListado = () => {
         iconsLinks={[ "/camionetas/editar?camioneta_id=",  "/camionetas/eliminar?camioneta_id="]}
         iconsTooltip={["Editar Camioneta", "Eliminar Camioneta"]}
         getFunction={obtenerCamionetas}
-        pageCounter={Math.round(cantidadCamionetas/pageSize)+1}
+        pageCounter={Math.floor(cantidadCamionetas/pageSize)+1}
       />
     </Container>
   );

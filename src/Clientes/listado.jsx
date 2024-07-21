@@ -64,7 +64,7 @@ const ClienteListado = () => {
         iconsLinks={["/pedidos/crear?clienteId=", "/clientes/editar?clienteId=",  ""]}
         iconsTooltip={["Agregar Pedido", "Editar Cliente", "Eliminar Cliente"]}
         getFunction={obtenerClientes}
-        pageCounter={Math.round(cantidadClientes/pageSize)+1}
+        pageCounter={Math.floor(cantidadClientes/pageSize)+1}
         onDelete={handleDelete}
       />
     </Container>
