@@ -38,7 +38,7 @@ const PedidoDetalles = () => {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column'}}>
         <div className='header-container' style={{ width: '100%' }}>
           <Typography variant="h4" gutterBottom>
             Detalles del Pedido
@@ -73,14 +73,17 @@ const PedidoDetalles = () => {
             <Typography variant="h6">Acompañante:</Typography>
             <Typography>{pedido.acompañante ? 'Sí' : 'No'}</Typography>
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={12} mb={2}>  
             <Typography variant="h6">Observaciones:</Typography>
             <Typography>{pedido.observaciones}</Typography>
           </Grid>
+        </Grid>
           
-          <Grid item xs={12}>
+          <Grid mt={2}>
             <Typography variant="h5" gutterBottom>Información del Cliente</Typography>
           </Grid>
+        
+        <Grid container spacing={3} mt={2} className='details-container' style={{ width: '100%', margin: '0' }}>
           <Grid item xs={12} sm={6}>
             <Typography variant="h6">Nombre:</Typography>
             <Typography>{`${pedido.cliente.nombre} ${pedido.cliente.apellido}`}</Typography>
@@ -89,14 +92,16 @@ const PedidoDetalles = () => {
             <Typography variant="h6">Documento:</Typography>
             <Typography>{pedido.cliente.documento}</Typography>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} mb={2}>
             <Typography variant="h6">Teléfono:</Typography>
             <Typography>{pedido.cliente.telefono}</Typography>
           </Grid>
+        </Grid>
           
-          <Grid item xs={12}>
+          <Grid item xs={12} mt={2}>
             <Typography variant="h5" gutterBottom>Paradas</Typography>
           </Grid>
+        <Grid container spacing={3} mt={2} className='details-container' style={{ width: '100%', margin: '0' }}>
           {pedido.paradas.map((parada, index) => (
             <Grid item xs={11.5} key={parada.id}>
               <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
