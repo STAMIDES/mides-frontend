@@ -2,16 +2,12 @@ import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, Select, MenuItem, Container, Grid, Paper, FormControl, InputLabel, Alert } from '@mui/material';
 import useApi from '../../network/axios';
 
-const Roles = { 
-  operador: 'Administrador',
-  chofer: 'Chofer'
-};
-
 const ChoferesCrear = ({ chofer = {} }) => {
   const [formData, setFormData] = useState({
-    email: '',
     nombre: '',
-    rol: '',
+    apellido: '',
+    documento: '',
+    telefono: '',
     ...chofer
   });
   const [message, setMessage] = useState(null); 
@@ -39,20 +35,10 @@ const ChoferesCrear = ({ chofer = {} }) => {
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom>Crear</Typography>
+        <Typography variant="h4" gutterBottom>Crear Chofer</Typography>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                name="email"
-                label="Correo Electrónico"
-                value={formData.email}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <TextField
                 name="nombre"
                 label="Nombre"
@@ -63,22 +49,34 @@ const ChoferesCrear = ({ chofer = {} }) => {
               />
             </Grid>
             <Grid item xs={12}>
-              <FormControl fullWidth required>
-                <InputLabel id="rol-label">Tipo de Chofer</InputLabel>
-                <Select
-                  labelId="rol-label"
-                  name="rol"
-                  value={formData.rol}
-                  onChange={handleChange}
-                  displayEmpty
-                >
-                  {Object.entries(Roles).map(([key, value]) => (
-                    <MenuItem key={key} value={key}>
-                      {value}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <TextField
+                name="apellido"
+                label="Apellido"
+                value={formData.apellido}
+                onChange={handleChange}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="documento"
+                label="Documento"
+                value={formData.documento}
+                onChange={handleChange}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="telefono"
+                label="Telefono"
+                value={formData.telefono}
+                onChange={handleChange}
+                fullWidth
+                required
+              />
             </Grid>
             <Grid item xs={12}>
               <Button 
