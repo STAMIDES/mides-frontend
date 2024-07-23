@@ -52,7 +52,7 @@ const PedidoDetalles = () => {
             </Button>
           </div>
         </div>
-        <Grid container spacing={3} mt={2} className='details-container' style={{ width: '100%', margin: '0' }}>
+        <Grid container spacing={3}  className='details-container' style={{ width: '100%', margin: '0' }}>
           <Grid item xs={12} sm={6}>
             <Typography variant="h6">Prioridad:</Typography>
             <Typography>{pedido.prioridad}</Typography>
