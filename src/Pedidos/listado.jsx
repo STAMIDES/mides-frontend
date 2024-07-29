@@ -93,7 +93,7 @@ const PedidoListado = () => {
 
   return (
     <Container>
-      <Header createLink="./crear"  onSearch={handleSearch}/>
+      <Header onSearch={handleSearch}/>
       {error && <p>{error}</p>}
       <ListComponent 
         title="Pedidos" 

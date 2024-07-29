@@ -79,35 +79,6 @@ const CrearPedido = () => {
     cliente_documento: `${client.documento.toString()}`,
   }));
 
-  const fetchDocuments = async (input) => {
-    if (input.length > 2) {
-      try {
-        const response = await api.get(`clientes/doc/${input}`);
-        const clients = castDocuments(response.data.clientes);
-        setDocumentOptions(clients);
-      } catch (error) {
-        console.error('Error fetching documents:', error);
-      }
-    } else {
-      setDocumentOptions([]);
-    }
-  };
-
-  const fetchNames = async (input) => {
-    if (input.length > 2) {
-      try {
-        const response = await api.get(`clientes/nombre/${input}`);
-        const clients = castDocuments(response.data.clientes);
-        setNameOptions(clients);
-        setSurnameOptions(clients);
-      } catch (error) {
-        console.error('Error fetching names:', error);
-      }
-    } else {
-      setNameOptions([]);
-    }
-  };
-
   const validarDoc = () => {
     let tempErrors = {};
     if (!formData.cliente_documento) {
@@ -174,23 +145,6 @@ const CrearPedido = () => {
     }
   }
 
-  const handleInputDocumentChange = (event, value) => {
-    setFormData({ ...formData, 'cliente_documento': value });
-    fetchDocuments(value);
-  };
-
-  const handleInputNameChange = (event, value) => {
-    setFormData({ ...formData, 'nombre': value });
-    fetchNames(value);
-  };
-
-  const handleInputSurnameChange = (event, value) => {
-    setFormData({ ...formData, 'apellido': value });
-    fetchNames(value);
-  };
-  console.log("tipoViaje", tipoViaje)
-  console.log(typeof(tipoViaje))
-
   return (
     <Container maxWidth="md" sx={{ mt: 1 }}>
       <Paper elevation={7} sx={{ p: 4 }}>
@@ -198,75 +152,35 @@ const CrearPedido = () => {
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
-              <Autocomplete
-                freeSolo
-                options={nameOptions}
-                getOptionLabel={(option) => option.nombre}
-                onInputChange={handleInputNameChange}
-                onChange={(event, value) => handleChange(event, value, 'selectOption')}
-                inputValue={formData.nombre}
-                renderOption={(props, option) => (
-                  <li {...props} key={option.documento}>
-                    {option.nombre}
-                  </li>
-                )}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    name="nombre"
-                    label="Nombre"
-                    fullWidth
-                    required
-                    disabled={!!clienteId}
-                    />
-                    )}
-                    />
+              <TextField
+                name="nombre"
+                label="Nombre"
+                fullWidth
+                value={formData.nombre}
+                required
+                disabled={!!clienteId}
+                />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <Autocomplete
-                freeSolo
-                options={apellidoOptions}
-                getOptionLabel={(option) => option.apellido}
-                onInputChange={handleInputSurnameChange}
-                onChange={(event, value) => handleChange(event, value, 'selectOption')}
-                inputValue={formData.apellido}
-                renderOption={(props, option) => (
-                  <li {...props} key={option.documento}>
-                    {option.apellido}
-                  </li>
-                )}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    name="apellido"
-                    label="Apellido"
-                    fullWidth
-                    required
-                    disabled={!!clienteId}
-                  />
-                )}
+              <TextField
+                name="apellido"
+                label="Apellido"
+                value={formData.apellido}
+                fullWidth
+                required
+                disabled={!!clienteId}
               />
             </Grid>
             <Grid item xs={12}>
-              <Autocomplete
-                freeSolo
-                options={documentOptions}
-                getOptionLabel={(option) => option.documento && option.documento.toString()}
-                onInputChange={handleInputDocumentChange}
-                onChange={(event, value) => handleChange(event, value, 'selectOption')}
-                inputValue={formData.cliente_documento}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    name="cliente_documento"
-                    label="Documento"
-                    fullWidth
-                    required
-                    error={!!errors.cliente_documento}
-                    helperText={errors.cliente_documento}
-                    disabled={!!clienteId}
-                  />
-                )}
+              <TextField
+                name="cliente_documento"
+                label="Documento"
+                fullWidth
+                value={formData.cliente_documento}
+                required
+                error={!!errors.cliente_documento}
+                helperText={errors.cliente_documento}
+                disabled={!!clienteId}
               />
             </Grid>
               <Grid item xs={12}>
