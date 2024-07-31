@@ -26,12 +26,9 @@ const CrearPedido = () => {
   });
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const clienteId = queryParams.get('clienteId');
+  const clienteId = queryParams.get('usuarioId');
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState(null);
-  const [documentOptions, setDocumentOptions] = useState([]);
-  const [nameOptions, setNameOptions] = useState([]);
-  const [apellidoOptions, setSurnameOptions] = useState([]);
   const [tipoViaje, setTipoViaje] = useState(0);
   
   const tiposViaje = [
@@ -74,11 +71,6 @@ const CrearPedido = () => {
     });
   };
 
-  const castDocuments = (clients) => clients.map(client => ({
-    ...client,
-    cliente_documento: `${client.documento.toString()}`,
-  }));
-
   const validarDoc = () => {
     let tempErrors = {};
     if (!formData.cliente_documento) {
@@ -90,7 +82,7 @@ const CrearPedido = () => {
     return Object.keys(tempErrors).length === 0;
   };
   const filterParadas = () => {
-    let retParadas = [{direccion: formData.direccion_origen, 
+    let retParadas = [{direccion: formData.direccion_origen, tipo:  {nombre:"ss"},
       ventana_horaria_inicio: formData.ventana_horaria_inicio? formData.ventana_horaria_inicio: null,
       posicion_en_pedido: 0}];
     let counter = 0;
@@ -100,14 +92,16 @@ const CrearPedido = () => {
         retParadas.push({direccion: parada.direccion_destino,
            ventana_horaria_inicio: parada.ventana_horaria_inicio,
            ventana_horaria_fin: parada.ventana_horaria_fin,
+           tipo: {nombre:"ss"},
            posicion_en_pedido: counter});
       }else if (tipoViaje===1){
         retParadas.push({direccion: parada.direccion_destino, 
           ventana_horaria_inicio: parada.ventana_horaria_inicio,
+          tipo:  {nombre:"ss"},
           posicion_en_pedido: counter});
         break;
       }else {
-          retParadas.push({direccion: parada.direccion_destino, posicion_en_pedido: counter});
+          retParadas.push({direccion: parada.direccion_destino, tipo:  {nombre:"ss"}, posicion_en_pedido: counter});
           break;
       }
     }
@@ -135,12 +129,12 @@ const CrearPedido = () => {
 
     try {
       const response = await api.post('pedidos', dataToSubmit);
-      setMessage({ type: 'success', text: 'Nuevo pedido agregado exitosamente' });
+      setMessage({ type: 'success', text: 'Nueva solicitud agregada exitosamente' });
     } catch (error) {
       if (error.response && error.response.status >= 400 && error.response.status < 500) {
         setMessage({ type: 'error', text: error.response.data.detail });
       } else {
-        setMessage({ type: 'error', text: 'Error al agregar pedido:' });
+        setMessage({ type: 'error', text: 'Error al agregar la solicitud' });
       }
     }
   }
@@ -148,7 +142,7 @@ const CrearPedido = () => {
   return (
     <Container maxWidth="md" sx={{ mt: 1 }}>
       <Paper elevation={7} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom>Agregar Nuevo Pedido</Typography>
+        <Typography variant="h4" gutterBottom>Agregar Nueva Solicitud</Typography>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
@@ -332,7 +326,7 @@ const CrearPedido = () => {
             </Grid>
             <Grid item xs={12}>
               <Button type="submit" variant="contained" color="primary" fullWidth>
-                Agregar Pedido
+                Agregar Solicitud
               </Button>
           </Grid>
           </Grid>

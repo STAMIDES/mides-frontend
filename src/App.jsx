@@ -2,8 +2,8 @@ import React, {useEffect} from 'react';
 import { Box } from "@mui/material";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import SideNavBar from './components/sideNavBar';
-import PedidosRutas from './Pedidos';
-import ClientesRutas from './Clientes';
+import SolicitudesRutas from './Pedidos';
+import UsuariosRutas from './Clientes';
 import AdministracionRutas from './administracion';
 import CuentaRutas from './account';
 import PlanificacionesRutas from './planificaciones';
@@ -22,14 +22,14 @@ function App() {
         <Box style={pathCuenta ? { width: '100%' } : { marginLeft: '12rem', width: '100%' }}> 
           <Routes>
             <Route path="/cuenta/*" element={<CuentaRutas />} />
-            <Route path="/clientes/*" element={
+            <Route path="/usuarios/*" element={
               <PrivateRoute>
-                <ClientesRutas />
+                <UsuariosRutas />
               </PrivateRoute>
             } />
-            <Route path="/pedidos/*" element={
+            <Route path="/solicitudes/*" element={
               <PrivateRoute>
-                <PedidosRutas />
+                <SolicitudesRutas />
               </PrivateRoute>
             } />
             <Route path="/planificaciones/*" element={
@@ -42,7 +42,7 @@ function App() {
                 <AdministracionRutas/>
               </PrivateRoute>
             } />
-            <Route path="/" element={<Navigate to="/pedidos" />} />
+            <Route path="/" element={<Navigate to="/solicitudes" />} />
           </Routes>
         </Box>
       </Box>

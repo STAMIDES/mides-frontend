@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
-import UsuarioListado from './usuarios/listado';
-import UsuarioInvitar from './usuarios/invitar';
-import UsuarioDetalles from './usuarios/detalle';
+import OperadorListado from './usuarios/listado';
+import OperadorInvitar from './usuarios/invitar';
+import OperadorDetalles from './usuarios/detalle';
 
 import CamionetasListado from './camionetas/listado';
 import CamionetasCrear from './camionetas/crear';
@@ -18,9 +18,9 @@ import ChoferDetalles from './choferes/detalle';
 const AdministracionRutas = () => {
   return (
     <Routes>
-      <Route path="usuarios" element={<UsuarioListado />} />
-      <Route path="usuarios/invitar" element={<UsuarioInvitar />} />
-      <Route path="usuarios/:id" element={<UsuarioDetalles />} />
+      <Route path="operadores" element={<OperadorListado />} />
+      <Route path="operadores/invitar" element={<OperadorInvitar />} />
+      <Route path="operadores/:id" element={<OperadorDetalles />} />
 
       <Route path="lugares_comunes" element={<LugaresComunesListado />} />
       <Route path="lugares_comunes/crear" element={<LugaresComunesCrear />} />

@@ -12,8 +12,8 @@ const columns = [
   { label: "Rol", key: "rol" }
 ];
 
-const UsuarioListado = () => {
-  const [usuarios, setUsuarios] = useState([]);
+const OperadorListado = () => {
+  const [operadores, setOperadores] = useState([]);
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
   const [cantidadUsuarios, setCantidadUsuarios] = useState(0); // [1
@@ -23,7 +23,7 @@ const UsuarioListado = () => {
     try {
       const offset = page * 10 - pageSize;
       const response = await api.get(`/usuarios?offset=${offset}&limit=${pageSize}&search=${search}`);
-      setUsuarios(response.data.usuarios);
+      setOperadores(response.data.usuarios);
       setCantidadUsuarios(response.data.cantidad);
     } catch (error) {
       if (error.response) {
@@ -44,16 +44,16 @@ const UsuarioListado = () => {
 
   return (
     <Container>
-      <Header createLink="./invitar" createMessage="Invitar Usuario via Email" onSearch={handleSearch}/>
+      <Header createLink="./invitar" createMessage="Invitar Operador via Email" onSearch={handleSearch}/>
       {error && <p>{error}</p>}
       <ListComponent 
-        title="Usuarios" 
-        data={usuarios} 
+        title="Operadores" 
+        data={operadores} 
         columns={columns} 
-        createLink="/usuarios/crear" 
+        createLink="/operadores/crear" 
         icons={[ <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={[ "/usuarios/editar?usuario_id=",  "/usuarios/eliminar?usuario_id="]}
-        iconsTooltip={["Editar Usuario", "Eliminar Usuario"]}
+        iconsLinks={[ "/operadores/editar?usuario_id=",  "/operadores/eliminar?usuario_id="]}
+        iconsTooltip={["Editar Operador", "Eliminar Operador"]}
         getFunction={obtenerUsuarios}
         pageCounter={Math.floor(cantidadUsuarios/pageSize)+1}
       />
@@ -61,4 +61,4 @@ const UsuarioListado = () => {
   );
 };
 
-export default UsuarioListado;
+export default OperadorListado;

@@ -7,7 +7,7 @@ const Roles = {
   chofer: 'Chofer'
 };
 
-const UsuarioInvitar = ({ usuario = {} }) => {
+const OperadorInvitar = ({ usuario = {} }) => {
   const [formData, setFormData] = useState({
     email: '',
     nombre: '',
@@ -39,8 +39,8 @@ const UsuarioInvitar = ({ usuario = {} }) => {
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom>Invitación de usuario</Typography>
-        <Typography variant="body1" gutterBottom sx={{ mb: 3 }}>Al confirmar, se enviará un correo electrónico con un enlace al usuario</Typography>
+        <Typography variant="h4" gutterBottom>Invitación para nuevo operador de la aplicación</Typography>
+        <Typography variant="body1" gutterBottom sx={{ mb: 3 }}>Al confirmar, se enviará un correo electrónico con un enlace al nuevo operador</Typography>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
@@ -104,4 +104,4 @@ const UsuarioInvitar = ({ usuario = {} }) => {
   );
 };
 
-export default UsuarioInvitar;
+export default OperadorInvitar;
