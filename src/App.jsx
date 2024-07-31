@@ -16,37 +16,35 @@ function App() {
   const pathCuenta = location.pathname.includes('/cuenta');
   console.log('logged:', isAuthenticated, 'pathCuenta:', pathCuenta)
   return (
-    <div className="app">
-      <Box display="flex" >
-        {isAuthenticated && !pathCuenta && <SideNavBar/>}
-        <Box style={pathCuenta ? { width: '100%' } : { marginLeft: '12rem', width: '100%' }}> 
-          <Routes>
-            <Route path="/cuenta/*" element={<CuentaRutas />} />
-            <Route path="/clientes/*" element={
-              <PrivateRoute>
-                <ClientesRutas />
-              </PrivateRoute>
-            } />
-            <Route path="/pedidos/*" element={
-              <PrivateRoute>
-                <PedidosRutas />
-              </PrivateRoute>
-            } />
-            <Route path="/planificaciones/*" element={
-              <PrivateRoute>
-                <PlanificacionesRutas />
-              </PrivateRoute>
-            } />
-            <Route path="/administracion/*" element={
-              <PrivateRoute>
-                <AdministracionRutas/>
-              </PrivateRoute>
-            } />
-            <Route path="/" element={<Navigate to="/pedidos" />} />
-          </Routes>
-        </Box>
+    <Box display="flex" style={{ width: '100%', height: '100%' }}>
+      {isAuthenticated && !pathCuenta && <SideNavBar/>}
+      <Box style={pathCuenta ? { width: '100%' } : { marginLeft: '12rem', width: '100%' }}> 
+        <Routes>
+          <Route path="/cuenta/*" element={<CuentaRutas />} />
+          <Route path="/clientes/*" element={
+            <PrivateRoute>
+              <ClientesRutas />
+            </PrivateRoute>
+          } />
+          <Route path="/pedidos/*" element={
+            <PrivateRoute>
+              <PedidosRutas />
+            </PrivateRoute>
+          } />
+          <Route path="/planificaciones/*" element={
+            <PrivateRoute>
+              <PlanificacionesRutas />
+            </PrivateRoute>
+          } />
+          <Route path="/administracion/*" element={
+            <PrivateRoute>
+              <AdministracionRutas/>
+            </PrivateRoute>
+          } />
+          <Route path="/" element={<Navigate to="/pedidos" />} />
+        </Routes>
       </Box>
-    </div>
+    </Box>
   );
 }
 
