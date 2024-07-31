@@ -12,7 +12,8 @@ const debounce = (func, delay) => {
   };
 };
 
-const Header = ({ createLink, createMessage = "Crear Nuevo", onSearch }) => {
+const Header = ({ createLink = null,
+  createMessage = "Crear Nuevo", onSearch }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useRef(
     debounce((value) => {
@@ -29,11 +30,13 @@ const Header = ({ createLink, createMessage = "Crear Nuevo", onSearch }) => {
   return (
     <AppBar position="static" color="default">
       <Toolbar>
+        {createLink && (
         <Link to={createLink}>
           <Button variant="contained" size="small">
             {createMessage}
           </Button>
         </Link>
+        )}
         <Box flex={1} display="flex" justifyContent="flex-end">
           <Box position="relative" width="100%" maxWidth="400px">
             <SearchIcon

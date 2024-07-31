@@ -47,7 +47,7 @@ function LoginComponent() {
   useEffect(() => {
     if (token && refresh_token){
       console.log('Token:', token, 'Refresh Token:', refresh_token)
-      navigate('/clientes'); 
+      navigate('/usuarios'); 
     }
   }, [ token, refresh_token]);
 

@@ -49,13 +49,13 @@ const SideNavBar = () => {
   };
 
   const menuItems = [
-    "Clientes",
-    "Pedidos",
+    "Usuarios",
+    "Solicitudes",
     "Planificaciones"
   ];
 
   const adminSubItems = [
-    "Usuarios",
+    "Operadores",
     "Choferes",
     "Camionetas",
     "Lugares Comunes"

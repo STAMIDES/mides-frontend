@@ -4,32 +4,32 @@ import { Container, Paper, Typography, Button, Grid } from '@mui/material';
 import useApi from '../../network/axios';
 import '../css/detalle.css';
 
-const UsuarioDetalles = () => {
+const OperadorDetalles = () => {
   const { id } = useParams();
-  const [usuario, setUsuario] = useState(null);
+  const [operador, setOperador] = useState(null);
 
   const api = useApi();
   useEffect(() => {
-    console.log("Fetching usuario data...");
+    console.log("Fetching operador data...");
     api.get(`usuarios/${id}`)
       .then(response => {
-        setUsuario(response.data.usuario);
+        setOperador(response.data.usuario);
       })
       .catch(error => {
-        console.error("There was an error fetching the usuario data!", error);
+        console.error("There was an error fetching the operador data!", error);
       });
   }, [id]);
 
-  if (!usuario) {
+  if (!operador) {
     return <Typography>Loading...</Typography>;
   }
 
   const handleEdit = () => {
-    console.log("Editing usuario", usuario.id);
+    console.log("Editing operador", operador.id);
   };
 
   const handleDelete = () => {
-    console.log("Deleting usuario", usuario.id);
+    console.log("Deleting operador", operador.id);
   };
 
   return (
@@ -37,7 +37,7 @@ const UsuarioDetalles = () => {
       <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column'}}>
         <div className='header-container'>
           <Typography variant="h4" gutterBottom>
-            Detalles del Usuario
+            Detalles del Operador
           </Typography>
           <div>
             <Button variant="contained" color="secondary" onClick={handleEdit}>
@@ -51,15 +51,15 @@ const UsuarioDetalles = () => {
         <Grid container spacing={3} className='details-container' style={{ width: '100%', margin: '0' }} >
           <Grid item xs={12} sm={6}>
             <Typography variant="h6">Nombre:</Typography>
-            <Typography>{usuario.nombre}</Typography>
+            <Typography>{operador.nombre}</Typography>
           </Grid>
           <Grid item xs={12} sm={6}>
             <Typography variant="h6">Email:</Typography>
-            <Typography>{usuario.email}</Typography>
+            <Typography>{operador.email}</Typography>
           </Grid>
           <Grid item xs={12} sm={6} mb={2}>
             <Typography variant="h6">Rol:</Typography>
-            <Typography>{usuario.rol}</Typography>
+            <Typography>{operador.rol}</Typography>
           </Grid>
         </Grid>
       </Paper>
@@ -67,4 +67,4 @@ const UsuarioDetalles = () => {
   );
 };
 
-export default UsuarioDetalles;
+export default OperadorDetalles;

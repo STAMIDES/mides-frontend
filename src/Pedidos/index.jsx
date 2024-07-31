@@ -3,7 +3,7 @@ import PedidoListado from './listado';
 import PedidoCrear from './crear';
 import PedidoDetalles from './detalle';
 
-const PedidosRutas = () => {
+const SolicitudesRutas = () => {
   return (
     <Routes>
       <Route index element={<PedidoListado />} />
@@ -13,4 +13,4 @@ const PedidosRutas = () => {
   );
 };
 
-export default PedidosRutas;
+export default SolicitudesRutas;

@@ -61,7 +61,7 @@ const ClienteListado = () => {
         columns={columns} 
         createLink="/clientes/crear" 
         icons={[<AddCircleIcon />, <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={["/pedidos/crear?clienteId=", "/clientes/editar?clienteId=",  ""]}
+        iconsLinks={["/solicitudes/crear?usuarioId=", "/usuarios/editar?usuarioId=",  ""]}
         iconsTooltip={["Agregar Pedido", "Editar Cliente", "Eliminar Cliente"]}
         getFunction={obtenerClientes}
         pageCounter={Math.floor(cantidadClientes/pageSize)+1}

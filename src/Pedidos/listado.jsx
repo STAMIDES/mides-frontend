@@ -9,7 +9,7 @@ import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 import moment from 'moment';
 
 const columns = [
-  { label: "Pedido por", key: "nombre_y_apellido" },
+  { label: "Solicitado por", key: "nombre_y_apellido" },
   { label: "Documento", key: "usuario_documento" },
   { label: "Origen", key: "direccion_origen_y_horario"},
   { label: "Destino", key: "direccion_destino_y_horario" },
@@ -93,7 +93,7 @@ const PedidoListado = () => {
 
   return (
     <Container>
-      <Header createLink="./crear"  onSearch={handleSearch}/>
+      <Header onSearch={handleSearch}/>
       {error && <p>{error}</p>}
       <ListComponent 
         title="Pedidos" 
@@ -103,7 +103,7 @@ const PedidoListado = () => {
         columns={columns} 
         icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
         iconsLinks={[ "/pedidos/editar",  "/pedidos/eliminar"]} 
-        iconsTooltip={[ "Editar Pedido", "Eliminar Pedido"]}
+        iconsTooltip={[ "Editar Solicitud", "Eliminar Solicitud"]}
         getFunction={obtenerPedidos}
         currentPage={currentPage}
         pageCounter={Math.floor(cantidadPedidos/pageSize)+1}

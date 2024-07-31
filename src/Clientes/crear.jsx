@@ -4,13 +4,7 @@ import { Box, TextField, Button, Typography, Select, MenuItem, Container, FormLa
 import useApi from '../network/axios';
 import { useNavigate } from 'react-router-dom';
 
-const TipoCliente = {
-  particular: 'Usuario particular',
-  dispositivo: 'Usuario de dispositivo del MIDES',
-  salud: 'Centro de salud o rehabilitación'
-};
-
-const CrearCliente = ({ cliente = {} }) => {
+const CrearUsuario = ({ usuario = {} }) => {
   const [formData, setFormData] = useState({
     documento: '',
     nombre: '',
@@ -19,13 +13,12 @@ const CrearCliente = ({ cliente = {} }) => {
     email: '',
     caracteristicas: [],
     observaciones: '',
-    tipo: '',
-    ...cliente
+    ...usuario
   });
 
   const [errors, setErrors] = useState({});
   const [caracteristicasTodas, setCaracteristicasTodas] = useState([]); 
-  const [caracteristicas, setCaracteristicasCliente] = useState([]);
+  const [caracteristicas, setCaracteristicasUsuario] = useState([]);
   const [message, setMessage] = useState(null);
   let crearPedido = false;
 
@@ -52,7 +45,7 @@ const CrearCliente = ({ cliente = {} }) => {
 
 
   const handleNavigation = (id) => {
-    navigate(`/pedidos/crear?clienteId=${id}`);
+    navigate(`/solicitudes/crear?usuarioId=${id}`);
   };
 
   const validarDoc = () => {
@@ -92,18 +85,18 @@ const CrearCliente = ({ cliente = {} }) => {
       if (crearPedido) {
         handleNavigation(response.data.cliente.id);
       }
-      setMessage({ type: 'success', text: 'Nuevo cliente agregado exitosamente' });
+      setMessage({ type: 'success', text: 'Nuevo usuario agregado exitosamente' });
     } catch (error) {
       if (error.response && error.response.status >= 400 && error.response.status < 500) {
         setMessage({ type: 'error', text: error.response.data.detail });
       } else {
-        setMessage({ type: 'error', text: 'Error al agregar cliente. Inténtalo de nuevo más tarde.' });
+        setMessage({ type: 'error', text: 'Error al agregar usuario. Inténtalo de nuevo más tarde.' });
       }
     }
   };
 
   const handleCheckboxChange = (value) => {
-    setCaracteristicasCliente((prev) => {
+    setCaracteristicasUsuario((prev) => {
       if (prev.includes(value)) {
         return prev.filter((item) => item !== value);
       } else {
@@ -115,7 +108,7 @@ const CrearCliente = ({ cliente = {} }) => {
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
       <Paper elevation={3} sx={{ p: 4 }}> 
-        <Typography variant="h4" gutterBottom>Agregar Nuevo Cliente</Typography>
+        <Typography variant="h4" gutterBottom>Agregar Nuevo Usuario</Typography>
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
@@ -209,32 +202,14 @@ const CrearCliente = ({ cliente = {} }) => {
                 rows={4}
               />
             </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth required>
-                <InputLabel id="tipo-label">Tipo de Cliente</InputLabel>
-                <Select
-                  labelId="tipo-label"
-                  name="tipo"
-                  value={formData.tipo}
-                  onChange={handleChange}
-                  displayEmpty
-                >
-                  {Object.entries(TipoCliente).map(([key, value]) => (
-                    <MenuItem key={key} value={key}>
-                      {value}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
             <Grid item xs={6}>
               <Button type="submit" variant="contained" color="primary" fullWidth>
-                Agregar Cliente
+                Agregar Usuario
               </Button>
             </Grid>
             <Grid item xs={6}>
               <Button type="submit" variant="contained" color="secondary" fullWidth onClick={()=> crearPedido=true} >
-                Agregar Cliente y Crear Pedido
+                Agregar Usuario y Crear Pedido
               </Button>
             </Grid>
           </Grid>
@@ -249,4 +224,4 @@ const CrearCliente = ({ cliente = {} }) => {
   );
 };
 
-export default CrearCliente;
+export default CrearUsuario;
