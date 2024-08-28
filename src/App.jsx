@@ -14,6 +14,17 @@ function App() {
   const {  isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   const pathCuenta = location.pathname.includes('/cuenta');
+  const pathVuePlanification = location.pathname.includes('/planificaciones/crear');
+
+  useEffect(() => {
+    const rootElement = document.getElementById('root');
+    if (pathVuePlanification) {
+      rootElement.style.height = '0%';
+    } else {
+      rootElement.style.height = '100%';
+    }
+  }, [pathVuePlanification]);
+
   console.log('logged:', isAuthenticated, 'pathCuenta:', pathCuenta)
   return (
     <Box display="flex" style={{ width: '100%', height: '100%' }}>
