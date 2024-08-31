@@ -1,16 +1,35 @@
-import React, { useState } from "react";
-import { Box, Typography, Avatar, Button, List, ListItem, ListItemText, Popper } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Box, Typography, Avatar, Button, List, ListItem, ListItemText, Popper, IconButton } from "@mui/material";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
 import useApi from '../network/axios';
-
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import KeyboardArrowLeftOutlinedIcon from '@mui/icons-material/KeyboardArrowLeftOutlined';
 const SideNavBar = () => {
   const navigate = useNavigate();
   const { refresh_token, email, removeAuthContext } = useAuth();
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [isMouseOverSubmenu, setIsMouseOverSubmenu] = useState(false);
+  const [hideSideBar, setHideSideBar] = useState(false);
+
   const api = useApi();
+  const location = useLocation();
+  const pathVuePlanification = location.pathname.includes('/planificaciones/crear');
+
+  useEffect(() => {
+    if (pathVuePlanification) {
+      setHideSideBar(true);
+    } else {
+      setHideSideBar(false);
+    }
+  }, [pathVuePlanification]);
+
+  const toggleSideBar = () => {
+    setHideSideBar(!hideSideBar);
+  };
+
   const handleLogoClick = () => {
     navigate("/");
   };
@@ -62,48 +81,72 @@ const SideNavBar = () => {
   ];
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      justifyContent="space-between"
-      alignItems="center"
-      bgcolor="grey.900"
-      width="12rem"
-      height="100vh"
-      position="fixed"
-      top='0'
-      left='0'
-    >
-      <Box display="flex" flexDirection="column" alignItems="center" style={{ marginTop: '2rem'}}>
-        <Avatar
-          src="/src/imgs/logo_mides.png"
-          alt="Logo"
-          sx={{ width: 56, height: 56, cursor: "pointer", mb: 4 }}
-          onClick={handleLogoClick}
-        />
-        {menuItems.map((item) => (
-          <Link key={item} to={item.toLowerCase()} style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
-            <Box
-              textAlign="left"
-              py={1}
-              px={2}
-              mb={2}
-              color="white"
-              borderRadius={1}
-              transition="background-color 0.3s"
-              sx={{
-                "&:hover": {
-                  backgroundColor: "rgba(255, 255, 255, 0.1)"
-                },
-                "&:active": {
-                  backgroundColor: "rgba(255, 255, 255, 0.2)"
-                }
-              }}
-            >
-              <Typography variant="h6">{item}</Typography>
-            </Box>
-          </Link>
-        ))}
+    <>
+      {pathVuePlanification && (
+        <IconButton
+          onClick={toggleSideBar}
+          sx={{
+            position: 'fixed',
+            top: '1rem',
+            left: hideSideBar ? '1rem' : '13rem',
+            zIndex: 1301,
+            color: 'white',
+            bgcolor: 'grey.900',
+            '&:hover': {
+              bgcolor: 'grey.800',
+            },
+          }}
+        >
+          {hideSideBar ? <MenuIcon /> : <KeyboardArrowLeftOutlinedIcon />}
+        </IconButton>
+      )}
+      <Box
+        display={hideSideBar ? "none" : "flex"}
+        zIndex={1300}
+        flexDirection="column"
+        justifyContent="space-between"
+        alignItems="center"
+        bgcolor="grey.900"
+        width="12rem"
+        height="100vh"
+        position="fixed"
+        top='0'
+        left='0'
+        sx={{
+          transition: 'all 0.3s',
+          transform: hideSideBar ? 'translateX(-100%)' : 'translateX(0)',
+        }}
+      >
+        <Box display="flex" flexDirection="column" alignItems="center" style={{ marginTop: '2rem'}}>
+          <Avatar
+            src="/src/imgs/logo_mides.png"
+            alt="Logo"
+            sx={{ width: 56, height: 56, cursor: "pointer", mb: 4 }}
+            onClick={handleLogoClick}
+          />
+          {menuItems.map((item) => (
+            <Link key={item} to={item.toLowerCase()} style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+              <Box
+                textAlign="left"
+                py={1}
+                px={2}
+                mb={2}
+                color="white"
+                borderRadius={1}
+                transition="background-color 0.3s"
+                sx={{
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.1)"
+                  },
+                  "&:active": {
+                    backgroundColor: "rgba(255, 255, 255, 0.2)"
+                  }
+                }}
+              >
+                <Typography variant="h6">{item}</Typography>
+              </Box>
+            </Link>
+          ))}
         <Box
           onMouseEnter={handleAdminMouseEnter}
           onMouseLeave={handleAdminMouseLeave}
@@ -150,18 +193,17 @@ const SideNavBar = () => {
             </Box>
           </Popper>
         </Box>
+        </Box>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={logout}
+          sx={{ mt: 2, mb: 2 }}
+        >
+          Cerrar Sesión
+        </Button>
       </Box>
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={logout}
-        sx={{ mt: 2 }}
-        style={{    padding: '0.5rem',
-        marginBottom: '2rem'}}
-      >
-        Cerrar Sesión
-      </Button>
-    </Box>
+    </>
   );
 };
 
