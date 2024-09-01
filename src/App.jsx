@@ -15,9 +15,11 @@ function App() {
   const location = useLocation();
   const pathCuenta = location.pathname.includes('/cuenta');
   const pathVuePlanification = location.pathname.includes('/planificaciones/crear');
+  const rootElement = document.getElementById('root');
 
   useEffect(() => {
-    const rootElement = document.getElementById('root');
+    const event = new CustomEvent('vueRouteChange', { detail: location.pathname });
+    window.dispatchEvent(event);
     if (pathVuePlanification) {
       rootElement.style.height = '0%';
     } else {
