@@ -4,12 +4,15 @@
       {{ isHidden ? '>' : '<' }}
     </button>
     <div class="sidebar-content">
-      <div class="top-buttons">
-        <button class="btn">Pedidos</button>
-        <button class="btn">Turnos</button>
-      </div>
-      <div class="bottom-button">
-        <button class="btn">Planificar</button>
+      <input type="date" :value="selectedDate" @input="handleDateChange" class="date-input">
+      <div class="button-group">
+        <div class="top-buttons">
+          <button class="btn">Pedidos</button>
+          <button class="btn">Turnos</button>
+        </div>
+        <div class="bottom-button">
+          <button class="btn">Planificar</button>
+        </div>
       </div>
     </div>
   </div>
@@ -20,16 +23,32 @@ import { ref } from 'vue';
 
 export default {
   name: 'RightSidebar',
-  setup() {
+  props: {
+    selectedDate: {
+      type: String,
+      required: true
+    },
+    pedidos: {
+      type: Array,
+      required: true
+    }
+  },
+  emits: ['date-changed'],
+  setup(props, { emit }) {
     const isHidden = ref(false);
 
     const toggleSidebar = () => {
       isHidden.value = !isHidden.value;
     };
 
+    const handleDateChange = (event) => {
+      emit('date-changed', event.target.value);
+    };
+
     return {
       isHidden,
-      toggleSidebar
+      toggleSidebar,
+      handleDateChange
     };
   }
 };
@@ -71,6 +90,18 @@ export default {
   height: 100%;
 }
 
+.date-input {
+  margin-bottom: 20px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.button-group {
+  background-color: #e0e0e0;
+  padding: 20px;
+  border-radius: 5px;
+}
+
 .top-buttons {
   display: flex;
   justify-content: space-between;
@@ -78,7 +109,7 @@ export default {
 }
 
 .bottom-button {
-  margin-top: auto;
+  margin-top: 20px;
 }
 
 .btn {

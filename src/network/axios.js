@@ -79,3 +79,4 @@ const useApi = () => {
 };
 
 export default useApi;
+export { api };
