@@ -14,11 +14,24 @@ function App() {
   const {  isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   const pathCuenta = location.pathname.includes('/cuenta');
+  const pathVuePlanification = location.pathname.includes('/planificaciones/crear');
+  const rootElement = document.getElementById('root');
+
+  useEffect(() => {
+    const event = new CustomEvent('vueRouteChange', { detail: location.pathname });
+    window.dispatchEvent(event);
+    if (pathVuePlanification) {
+      rootElement.style.height = '0%';
+    } else {
+      rootElement.style.height = '100%';
+    }
+  }, [pathVuePlanification]);
+
   console.log('logged:', isAuthenticated, 'pathCuenta:', pathCuenta)
   return (
     <Box display="flex" style={{ width: '100%', height: '100%' }}>
       {isAuthenticated && !pathCuenta && <SideNavBar/>}
-      <Box style={pathCuenta ? { width: '100%' } : { marginLeft: '12rem', width: '100%' }}> 
+      <Box style={pathCuenta || pathVuePlanification? { width: '100%' } : { marginLeft: '12rem', width: '100%' }}> 
         <Routes>
           <Route path="/cuenta/*" element={<CuentaRutas />} />
           <Route path="/usuarios/*" element={
