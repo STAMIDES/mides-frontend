@@ -41,7 +41,7 @@ export default {
   top: 0;
   right: 0;
   height: 100vh;
-  width: 250px;
+  width: 300px;
   background-color: #f0f0f0;
   transition: transform 0.3s ease-in-out;
   display: flex;
@@ -50,7 +50,7 @@ export default {
 }
 
 .sidebar-hidden {
-  transform: translateX(250px);
+  transform: translateX(300px);
 }
 
 .toggle-btn {

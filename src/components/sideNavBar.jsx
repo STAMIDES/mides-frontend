@@ -88,7 +88,7 @@ const SideNavBar = () => {
           sx={{
             position: 'fixed',
             top: '1rem',
-            left: hideSideBar ? '1rem' : '13rem',
+            left: hideSideBar ? '3rem' : '13rem',
             zIndex: 1301,
             color: 'white',
             bgcolor: 'grey.900',
