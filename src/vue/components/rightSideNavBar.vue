@@ -30,7 +30,7 @@
                 <th>Destino y Horario</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody style="font-size: 10px;">
               <tr
                 v-for="(pedido, index) in processedPedidos"
                 :key="index"
@@ -140,7 +140,7 @@ export default {
 }
 
 .date-input {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   padding: 10px;
   font-size: 16px;
 }
@@ -155,11 +155,12 @@ export default {
 .top-buttons {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 }
 
 .bottom-button {
   margin-top: 20px;
+  display: grid
 }
 
 .btn {
