@@ -10,7 +10,13 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 export default {
-  name: 'Planificaciones',
+  name: 'MontevideoMap',
+  props: {
+    processedPedidos: {
+      type: Array,
+      required: true
+    }
+  },
   setup() {
     onMounted(() => {
       // Initialize the map with new coordinates

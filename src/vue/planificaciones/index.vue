@@ -1,34 +1,63 @@
 <template>
   <div class="main-container">
-    <Planificaciones :pedidos="pedidos" />
+    <MontevideoMap :processedPedidos="processedPedidos"  />
     <RightSidebar 
       :selectedDate="selectedDate" 
-      :pedidos="pedidos" 
+      :processedPedidos="processedPedidos" 
       @date-changed="handleDateChange"
     />
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import Planificaciones from '../components/montevideoMap.vue';
+import { ref, computed, onMounted } from 'vue';
+import MontevideoMap from '../components/montevideoMap.vue';
 import RightSidebar from '../components/rightSideNavBar.vue';
+
 import { api } from "../../network/axios";
 
 export default {
   name: 'MainPage',
   components: {
-    Planificaciones,
+    MontevideoMap,
     RightSidebar
   },
   setup() {
     const selectedDate = ref(new Date().toISOString().split('T')[0]);
     const pedidos = ref([]);
 
+    const procesarPedidos = (pedidosSinProcesar) => {
+      const nuevoListado = [];
+      console.log(pedidosSinProcesar);
+      pedidosSinProcesar.sort((a, b) => new Date(a.fecha_programado) - new Date(b.fecha_programado));
+      pedidosSinProcesar.forEach(pedido => {
+        const paradas = pedido.paradas;
+        paradas.sort((a, b) => a.posicion_en_pedido - b.posicion_en_pedido);
+        
+        for (let i = 0; i + 1 < paradas.length; i += 1) {
+          const origen = paradas[i];
+          const destino = paradas[i + 1];
+          
+          const direccionOrigenYHorario = `${origen.direccion} \n ${origen.ventana_horaria_inicio  || 'Sin horario'}`;
+          const direccionDestinoYHorario = `${destino.direccion} \n ${destino.ventana_horaria_inicio || 'Sin horario'}`;
+          
+          nuevoListado.push({
+            id: pedido.id,
+            direccion_origen_y_horario: direccionOrigenYHorario,
+            direccion_destino_y_horario: direccionDestinoYHorario
+          });
+        }
+      });
+      console.log(nuevoListado);
+      return nuevoListado;
+    };
+    
+    const processedPedidos = computed(() => procesarPedidos(pedidos.value));
+
     const fetchPedidos = async () => {
       try {
         const response = await api.get(`/pedidos/fecha/${selectedDate.value}`);
-        pedidos.value = response.data;
+        pedidos.value = response.data.pedidos;
       } catch (error) {
         console.error('Error fetching pedidos:', error);
       }
@@ -40,12 +69,14 @@ export default {
     };
 
     onMounted(() => {
-      fetchPedidos();
+      fetchPedidos().then(() => {
+        console.log('Pedidos fetched and component is fully mounted');
+      });
     });
 
     return {
       selectedDate,
-      pedidos,
+      processedPedidos,
       handleDateChange
     };
   }

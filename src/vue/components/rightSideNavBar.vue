@@ -7,9 +7,32 @@
       <input type="date" :value="selectedDate" @input="handleDateChange" class="date-input">
       <div class="button-group">
         <div class="top-buttons">
-          <button class="btn">Pedidos</button>
-          <button class="btn">Turnos</button>
+          <button 
+            class="btn" 
+            :class="{ 'active': activeButton === 'Pedidos' }" 
+            @click="setActiveButton('Pedidos')"
+          >
+            Pedidos
+          </button>
+          <button 
+            class="btn" 
+            :class="{ 'active': activeButton === 'Turnos' }" 
+            @click="setActiveButton('Turnos')"
+          >
+            Turnos
+          </button>
         </div>
+      <div v-if="activeButton === 'Pedidos'" class="pedidos-list">
+        <div 
+          v-for="(pedido, index) in processedPedidos" 
+          :key="index" 
+          class="pedido-item"
+          :style="{ backgroundColor: getPedidoColor(pedido.id, index) }"
+        >
+          <div>{{ pedido.direccion_origen_y_horario }}</div>
+          <div>{{ pedido.direccion_destino_y_horario }}</div>
+        </div>
+      </div>
         <div class="bottom-button">
           <button class="btn">Planificar</button>
         </div>
@@ -28,7 +51,7 @@ export default {
       type: String,
       required: true
     },
-    pedidos: {
+    processedPedidos: {
       type: Array,
       required: true
     }
@@ -36,6 +59,7 @@ export default {
   emits: ['date-changed'],
   setup(props, { emit }) {
     const isHidden = ref(false);
+    const activeButton = ref('Pedidos');
 
     const toggleSidebar = () => {
       isHidden.value = !isHidden.value;
@@ -45,10 +69,23 @@ export default {
       emit('date-changed', event.target.value);
     };
 
+    const setActiveButton = (button) => {
+      activeButton.value = button;
+    };
+
+    const getPedidoColor = (id, index) => {
+      const baseHue = (id * 137.5) % 360; // Using golden angle approximation for color distribution
+      const lightness = 70 - (index * 5); // Gradually darken for items with the same ID
+      return `hsl(${baseHue}, 70%, ${lightness}%)`;
+    };
+
     return {
       isHidden,
+      activeButton,
       toggleSidebar,
-      handleDateChange
+      handleDateChange,
+      setActiveButton,
+      getPedidoColor
     };
   }
 };
@@ -88,6 +125,7 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow-y: auto;
 }
 
 .date-input {
@@ -100,6 +138,7 @@ export default {
   background-color: #e0e0e0;
   padding: 20px;
   border-radius: 5px;
+  margin-bottom: 20px;
 }
 
 .top-buttons {
@@ -122,5 +161,28 @@ export default {
 
 .btn:hover {
   background-color: #0056b3;
+}
+
+.btn.active {
+  background-color: #0056b3;
+  font-weight: bold;
+}
+
+.pedidos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pedido-item {
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pedido-item div {
+  white-space: pre-line;
 }
 </style>
