@@ -4,7 +4,7 @@
       {{ isHidden ? '>' : '<' }}
     </button>
     <div class="sidebar-content">
-      <input type="date" :value="selectedDate" @input="handleDateChange" class="date-input" />
+      <DatePicker v-model="date" dateFormat="yy-mm-dd" @date-select="handleDateChange" class="date-input" />
       <div class="button-group">
         <div class="top-buttons">
           <button
@@ -52,9 +52,13 @@
 
 <script>
 import { ref } from 'vue';
+import DatePicker from 'primevue/datepicker';
 
 export default {
   name: 'RightSidebar',
+  components: {
+    DatePicker
+  },
   props: {
     selectedDate: {
       type: String,
@@ -69,13 +73,23 @@ export default {
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
+    const date = ref(new Date(props.selectedDate).toISOString().split('T')[0]);
+    console.log(props.selectedDate);
 
     const toggleSidebar = () => {
       isHidden.value = !isHidden.value;
     };
 
-    const handleDateChange = (event) => {
-      emit('date-changed', event.target.value);
+    const handleDateChange = (value) => {
+      const formattedDate = formatDate(value);
+      emit('date-changed', formattedDate);
+    };
+
+    const formatDate = (date) => {
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${year}-${month}-${day}`;
     };
 
     const setActiveButton = (button) => {
@@ -84,15 +98,15 @@ export default {
 
     const getPedidoColor = (id) => {
       const baseLightness = 60;
-      const variance = (id % 30) - 10; // Creates a small variance in brightness based on the ID
+      const variance = (id % 30) - 10;
       const lightness = baseLightness + variance;
-      return `hsl(220, 15%, ${lightness}%)`; // Subtle blue-gray color with consistent hue
+      return `hsl(220, 15%, ${lightness}%)`;
     };
-
 
     return {
       isHidden,
       activeButton,
+      date,
       toggleSidebar,
       handleDateChange,
       setActiveButton,
@@ -102,6 +116,13 @@ export default {
 };
 </script>
 
+<style>
+.p-datepicker-calendar-container {
+  background-color: white !important;
+  z-index: 1001 !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+</style>
 <style scoped>
 .sidebar {
   position: fixed;
@@ -119,6 +140,7 @@ export default {
 .sidebar-hidden {
   transform: translateX(400px);
 }
+
 
 .toggle-btn {
   position: absolute;
@@ -143,8 +165,8 @@ export default {
   margin-bottom: 10px;
   padding: 10px;
   font-size: 16px;
+  background-color: white;
 }
-
 .button-group {
   background-color: #e8e8e8;
   padding: 20px;

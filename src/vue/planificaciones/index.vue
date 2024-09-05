@@ -62,6 +62,7 @@ export default {
 
     const fetchPedidos = async () => {
       try {
+        console.log(selectedDate);
         const response = await api.get(`/pedidos/fecha/${selectedDate.value}`);
         pedidos.value = response.data.pedidos;
       } catch (error) {
