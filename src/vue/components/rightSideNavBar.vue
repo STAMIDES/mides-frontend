@@ -26,6 +26,8 @@
           <table class="pedidos-table">
             <thead>
               <tr>
+                <th></th>
+                <th>ID</th>
                 <th>Origen y Horario</th>
                 <th>Destino y Horario</th>
               </tr>
@@ -36,6 +38,14 @@
                 :key="index"
                 :style="{ backgroundColor: getPedidoColor(pedido.id) }"
               >
+                <td>
+                  <input 
+                    type="checkbox" 
+                    :checked="!unselectedPedidos.includes(pedido.id)" 
+                    @change="toggleSelection(pedido.id)" 
+                  />
+                </td>
+                <td>{{ pedido.id }}</td>
                 <td>{{ pedido.direccion_origen_y_horario }}</td>
                 <td>{{ pedido.direccion_destino_y_horario }}</td>
               </tr>
@@ -43,12 +53,13 @@
           </table>
         </div>
         <div class="bottom-button">
-          <button class="btn">Planificar</button>
+          <button class="btn" @click="planificar">Planificar</button>
         </div>
       </div>
     </div>
   </div>
 </template>
+  
 
 <script>
 import { ref } from 'vue';
@@ -69,12 +80,13 @@ export default {
       required: true
     }
   },
-  emits: ['date-changed'],
+  emits: ['date-changed', 'planificar'],
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
     const date = ref(new Date(props.selectedDate).toISOString().split('T')[0]);
-    console.log(props.selectedDate);
+
+    const unselectedPedidos = ref([]);  // Start with an empty array
 
     const toggleSidebar = () => {
       isHidden.value = !isHidden.value;
@@ -103,6 +115,20 @@ export default {
       return `hsl(220, 15%, ${lightness}%)`;
     };
 
+    const toggleSelection = (id) => {
+      if (unselectedPedidos.value.includes(id)) {
+        // Remove id from unselectedPedidos when checked
+        unselectedPedidos.value = unselectedPedidos.value.filter(pedidoId => pedidoId !== id);
+      } else {
+        // Add id to unselectedPedidos when unchecked
+        unselectedPedidos.value.push(id);
+      }
+    };
+
+    const planificar = () => {
+      emit('planificar', unselectedPedidos.value);
+    };
+
     return {
       isHidden,
       activeButton,
@@ -110,10 +136,14 @@ export default {
       toggleSidebar,
       handleDateChange,
       setActiveButton,
-      getPedidoColor
+      getPedidoColor,
+      unselectedPedidos,
+      toggleSelection,
+      planificar
     };
   }
 };
+
 </script>
 
 <style>
