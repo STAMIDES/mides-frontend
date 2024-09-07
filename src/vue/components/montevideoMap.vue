@@ -15,6 +15,10 @@ export default {
     processedPedidos: {
       type: Array,
       required: true
+    },
+    planificacion: {
+      type: Array,
+      required: true
     }
   },
   setup(props) {
@@ -46,9 +50,21 @@ export default {
           .addTo(map)
           .bindPopup(`Destino: ${pedido.direccion_destino_y_horario}`);
 
-        // Draw a line between origin and destination
-        L.polyline([originLatLng, destinationLatLng], { color: 'blue' }).addTo(map).bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
-      });
+        // Draw a line between origin and destination or use planificacion geometry
+        if (props.planificacion.length === 0) {
+          // If planificacion is empty, draw a direct line
+          L.polyline([originLatLng, destinationLatLng], { color: 'blue' })
+            .addTo(map)
+            .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
+        } 
+        });
+        if (props.planificacion.length > 0) {
+          // Use planificacion geometry to draw the polyline
+          const geometryCoordinates = props.planificacion[0].geometry.map(coord => [coord[1], coord[0]]);
+          L.polyline(geometryCoordinates, { color: 'blue' })
+            .addTo(map)
+            .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
+        }
     };
 
     onMounted(() => {
@@ -64,6 +80,7 @@ export default {
     });
 
     watch(() => props.processedPedidos, addPedidosToMap);
+    watch(() => props.planificacion, addPedidosToMap);
 
     return {};
   }
