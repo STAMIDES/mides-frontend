@@ -17,7 +17,7 @@ export default {
       required: true
     },
     planificacion: {
-      type: Array,
+      type: Object,
       required: true
     }
   },
@@ -38,7 +38,9 @@ export default {
       props.processedPedidos.forEach(pedido => {
         const originLatLng = [pedido.latitud_origen, pedido.longitud_origen];
         const destinationLatLng = [pedido.latitud_destino, pedido.longitud_destino];
-
+        if (props.planificacion.hasOwnProperty('routes')  && props.planificacion.unselectedPedidos.includes(pedido.id)){
+          return;
+        }
         // Add origin marker
         L.marker(originLatLng)
           .addTo(map)
@@ -51,19 +53,18 @@ export default {
           .bindPopup(`Destino: ${pedido.direccion_destino_y_horario}`);
 
         // Draw a line between origin and destination or use planificacion geometry
-        if (props.planificacion.length === 0) {
+        if (Object.keys(props.planificacion).length==0) {
           // If planificacion is empty, draw a direct line
           L.polyline([originLatLng, destinationLatLng], { color: 'blue' })
             .addTo(map)
             .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
         } 
         });
-        if (props.planificacion.length > 0) {
+        if (Object.keys(props.planificacion).length > 0) {
           // Use planificacion geometry to draw the polyline
-          const geometryCoordinates = props.planificacion[0].geometry.map(coord => [coord[1], coord[0]]);
+          const geometryCoordinates = props.planificacion.routes[0].geometry.map(coord => [coord[1], coord[0]]);
           L.polyline(geometryCoordinates, { color: 'blue' })
-            .addTo(map)
-            .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
+            .addTo(map);
         }
     };
 

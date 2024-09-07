@@ -28,7 +28,7 @@ export default {
     const pedidos = ref([]);
     const vehiculos = ref([]);
     const lugaresComunes = ref([]);
-    const planificacion = ref([]);
+    const planificacion = ref({});
 
     const procesarPedidos = (pedidosSinProcesar) => { // Funcion ya definida en react :/ #FIXME mover a utils
       const nuevoListado = [];
@@ -68,6 +68,7 @@ export default {
       try {
         const response = await api.get(`/pedidos/fecha/${selectedDate.value}`);
         pedidos.value = response.data.pedidos;
+        planificacion.value = {};
       } catch (error) {
         console.error('Error fetching pedidos:', error);
       }
@@ -90,7 +91,7 @@ export default {
         console.error('Error fetching lugares comunes:', error);
       }
     };
-    const crearPlanificacion = async (pedidosNormalizados) => {
+    const crearPlanificacion = async (pedidosNormalizados, unselectedPedidos) => {
       const problem = {"depot": {
                     "id": "5774",
                     "address": "Dr. Martín C. Martínez 1222",
@@ -117,7 +118,8 @@ export default {
                 };
       const response = await api.post(`http://localhost:4210/optimization/v1/solve`,  problem);
       console.log(response);
-      planificacion.value = response.data.routes;
+      planificacion.value = response.data;
+      planificacion.value.unselectedPedidos = unselectedPedidos;
     };
 
     const handleDateChange = (newDate) => {
@@ -210,8 +212,7 @@ export default {
             }}
         return acc;
       }, []);
-      console.log(pedidosNormalizados);
-      return crearPlanificacion(pedidosNormalizados);
+      return crearPlanificacion(pedidosNormalizados, unselectedPedidos);
     };
 
     onMounted(() => {
