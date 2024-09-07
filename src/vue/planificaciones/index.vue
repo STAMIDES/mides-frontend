@@ -1,11 +1,12 @@
 <template>
   <div class="main-container">
-    <MontevideoMap :processedPedidos="processedPedidos" :planificacion="planificacion" />
+    <MontevideoMap :processedPedidos="processedPedidos" :planificacion="planificacion" :unselectedPedidosIds="unselectedPedidosIds" />
     <RightSidebar 
       :selectedDate="selectedDate" 
       :processedPedidos="processedPedidos" 
       @date-changed="handleDateChange"
       @planificar="planificar"
+      @checkbox-change="handleCheckboxChange"
     />
   </div>
 </template>
@@ -29,6 +30,7 @@ export default {
     const vehiculos = ref([]);
     const lugaresComunes = ref([]);
     const planificacion = ref({});
+    const unselectedPedidosIds = ref([]);
 
     const procesarPedidos = (pedidosSinProcesar) => { // Funcion ya definida en react :/ #FIXME mover a utils
       const nuevoListado = [];
@@ -91,7 +93,7 @@ export default {
         console.error('Error fetching lugares comunes:', error);
       }
     };
-    const crearPlanificacion = async (pedidosNormalizados, unselectedPedidos) => {
+    const crearPlanificacion = async (pedidosNormalizados) => {
       const problem = {"depot": {
                     "id": "5774",
                     "address": "Dr. Martín C. Martínez 1222",
@@ -119,7 +121,6 @@ export default {
       const response = await api.post(`http://localhost:4210/optimization/v1/solve`,  problem);
       console.log(response);
       planificacion.value = response.data;
-      planificacion.value.unselectedPedidos = unselectedPedidos;
     };
 
     const handleDateChange = (newDate) => {
@@ -141,10 +142,14 @@ export default {
       return updatedTime;
     };
 
-    const planificar = (unselectedPedidos) => {
-      console.log('Planificar', unselectedPedidos);
+    const handleCheckboxChange = (unselectedPedidos) =>{
+      console.log('Checkbox change', unselectedPedidos);
+      unselectedPedidosIds.value = unselectedPedidos;
+    }
+
+    const planificar = () => {
       const pedidosNormalizados = pedidos.value.reduce((acc, pedido) => {
-        if (!unselectedPedidos.includes(pedido.id)) {
+        if (!unselectedPedidosIds.value.includes(pedido.id)) {
           const paradas = pedido.paradas;
           paradas.sort((a, b) => a.posicion_en_pedido - b.posicion_en_pedido);
           for (let i = 0; i + 1 < paradas.length; i += 1) {
@@ -212,7 +217,7 @@ export default {
             }}
         return acc;
       }, []);
-      return crearPlanificacion(pedidosNormalizados, unselectedPedidos);
+      return crearPlanificacion(pedidosNormalizados);
     };
 
     onMounted(() => {
@@ -225,8 +230,10 @@ export default {
       selectedDate,
       processedPedidos,
       planificacion,
+      unselectedPedidosIds,
       handleDateChange,
-      planificar
+      planificar,
+      handleCheckboxChange
     };
   }
 };

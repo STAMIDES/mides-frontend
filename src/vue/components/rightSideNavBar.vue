@@ -80,7 +80,7 @@ export default {
       required: true
     }
   },
-  emits: ['date-changed', 'planificar'],
+  emits: ['date-changed', 'planificar', 'checkbox-change'],
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
@@ -123,10 +123,11 @@ export default {
         // Add id to unselectedPedidos when unchecked
         unselectedPedidos.value.push(id);
       }
+      emit('checkbox-change', unselectedPedidos.value);
     };
 
     const planificar = () => {
-      emit('planificar', unselectedPedidos.value);
+      emit('planificar');
     };
 
     return {

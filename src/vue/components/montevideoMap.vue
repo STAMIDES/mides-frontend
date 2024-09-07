@@ -19,6 +19,10 @@ export default {
     planificacion: {
       type: Object,
       required: true
+    },
+    unselectedPedidosIds: {
+      type: Array,
+      required: true
     }
   },
   setup(props) {
@@ -33,12 +37,11 @@ export default {
           }
         });
       }
-
       // Add markers and lines for each pedido
       props.processedPedidos.forEach(pedido => {
         const originLatLng = [pedido.latitud_origen, pedido.longitud_origen];
         const destinationLatLng = [pedido.latitud_destino, pedido.longitud_destino];
-        if (props.planificacion.hasOwnProperty('routes')  && props.planificacion.unselectedPedidos.includes(pedido.id)){
+        if (props.unselectedPedidosIds.includes(pedido.id)){
           return;
         }
         // Add origin marker
@@ -82,6 +85,7 @@ export default {
 
     watch(() => props.processedPedidos, addPedidosToMap);
     watch(() => props.planificacion, addPedidosToMap);
+    watch(() => props.unselectedPedidosIds, addPedidosToMap, { deep: true });
 
     return {};
   }
