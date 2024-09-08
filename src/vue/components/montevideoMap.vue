@@ -27,7 +27,7 @@ export default {
   },
   setup(props) {
     let map;
-
+    const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF'];
     const addPedidosToMap = () => {
       // Clear existing layers if any (optional)
       if (map) {
@@ -65,9 +65,15 @@ export default {
         });
         if (Object.keys(props.planificacion).length > 0) {
           // Use planificacion geometry to draw the polyline
-          const geometryCoordinates = props.planificacion.routes[0].geometry.map(coord => [coord[1], coord[0]]);
-          L.polyline(geometryCoordinates, { color: 'blue' })
-            .addTo(map);
+          props.planificacion.routes.forEach((route, index) => {
+              const geometryCoordinates = route.geometry.map(coord => [coord[1], coord[0]]);
+
+              // Use the index to select a color from the array
+              const color = colors[index % colors.length];
+
+              L.polyline(geometryCoordinates, { color })
+                .addTo(map);
+            });
         }
     };
 

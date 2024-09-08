@@ -8,7 +8,8 @@
       :lugaresComunes="lugaresComunes" 
       @date-changed="handleDateChange"
       @planificar="planificar"
-      @checkbox-change="handleCheckboxChange"
+      @checkbox-change-pedidos="handleCheckboxChangePedidos"
+      @checkbox-change-vehicles="handleCheckboxChangeVehicles"
     />
   </div>
 </template>
@@ -33,6 +34,18 @@ export default {
     const lugaresComunes = ref([]);
     const planificacion = ref({});
     const unselectedPedidosIds = ref([]);
+    const selectedVehiclesid = ref({
+      morning: [],
+      afternoon: []
+    });
+    const turnoManana = ref({
+      start: '08:00:00',
+      end: '12:00:00'
+    });
+    const turnoTarde = ref({
+      start: '12:00:00',
+      end: '16:00:00'
+    });
 
     const procesarPedidos = (pedidosSinProcesar) => { // Funcion ya definida en react :/ #FIXME mover a utils
       const nuevoListado = [];
@@ -95,7 +108,28 @@ export default {
         console.error('Error fetching lugares comunes:', error);
       }
     };
+    const normalizeVehicles = (vehiclesId, turnoValue) => {
+      console.log(vehiclesId);
+      return vehiclesId.reduce((acc, vehiculoId) => {
+        const v = vehiculos.value.find(v => v.id === vehiculoId);
+        if (v) {
+          acc.push({
+            id: v.id,
+            capacity: v.capacidad_convencional,
+            time_window: {
+              start: turnoValue.start,
+              end: turnoValue.end
+            }
+          });
+        }
+        return acc;
+      }, []);
+    };
     const crearPlanificacion = async (pedidosNormalizados) => {
+      let vehiculosNormalizados = [
+        ...normalizeVehicles(selectedVehiclesid.value.morning, turnoManana.value),
+        ...normalizeVehicles(selectedVehiclesid.value.afternoon, turnoTarde.value)
+      ];
       const problem = {"depot": {
                     "id": "5774",
                     "address": "Dr. Martín C. Martínez 1222",
@@ -108,16 +142,7 @@ export default {
                       "end": "23:00:00"
                     }
                   },
-                  "vehicles": [
-                    {
-                      "id": "24457",
-                      "capacity": 10,
-                      "time_window": {
-                        "start": "08:00:00",
-                        "end": "23:00:00"
-                      }
-                    }
-                  ],
+                  "vehicles": vehiculosNormalizados,
                   "ride_requests": pedidosNormalizados
                 };
       const response = await api.post(`http://localhost:4210/optimization/v1/solve`,  problem);
@@ -144,9 +169,11 @@ export default {
       return updatedTime;
     };
 
-    const handleCheckboxChange = (unselectedPedidos) =>{
-      console.log('Checkbox change', unselectedPedidos);
+    const handleCheckboxChangePedidos = (unselectedPedidos) =>{
       unselectedPedidosIds.value = unselectedPedidos;
+    }
+    const handleCheckboxChangeVehicles = (v) =>{
+      selectedVehiclesid.value = v;
     }
 
     const planificar = () => {
@@ -237,7 +264,8 @@ export default {
       unselectedPedidosIds,
       handleDateChange,
       planificar,
-      handleCheckboxChange
+      handleCheckboxChangePedidos,
+      handleCheckboxChangeVehicles
     };
   }
 };

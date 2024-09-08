@@ -42,7 +42,7 @@
                   <input 
                     type="checkbox" 
                     :checked="!unselectedPedidos.includes(pedido.id)" 
-                    @change="toggleSelection(pedido.id)" 
+                    @change="toggleSelectionPedido(pedido.id)" 
                   />
                 </td>
                 <td>{{ pedido.id }}</td>
@@ -60,10 +60,10 @@
                 <input 
                   type="checkbox" 
                   :id="'morning-' + vehicle.id"
-                  v-model="selectedVehicles.morning[vehicle.id]"
-                  @change="emitSelectedVehicles"
+                  :checked="selectedVehicles['morning'].includes(vehicle.id)"
+                  @change="toggleSelectionVehiculo('morning', vehicle.id)"
                 />
-                <label :for="'morning-' + vehicle.id">{{ vehicle.descripcion }}</label>
+                <label :for="'morning-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
                 <label :for="'morning-' + vehicle.id">{{ vehicle.matricula }}</label>
               </div>
             </div>
@@ -75,10 +75,10 @@
                 <input 
                   type="checkbox" 
                   :id="'afternoon-' + vehicle.id"
-                  v-model="selectedVehicles.afternoon[vehicle.id]"
-                  @change="emitSelectedVehicles"
+                  :checked="selectedVehicles['afternoon'].includes(vehicle.id)"
+                  @change="toggleSelectionVehiculo('afternoon', vehicle.id)"
                 />
-                <label :for="'afternoon-' + vehicle.id">{{ vehicle.descripcion }}</label>
+                <label :for="'afternoon-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
                 <label :for="'afternoon-' + vehicle.id">{{ vehicle.matricula }}</label>
               </div>
             </div>
@@ -120,16 +120,16 @@ export default {
       required: true
     }
   },
-  emits: ['date-changed', 'planificar', 'checkbox-change', 'selected-vehicles'],
+  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'checkbox-change-vehicles'],
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
     const date = ref(new Date(props.selectedDate).toISOString().split('T')[0]);
     const unselectedPedidos = ref([]);
 
-    const selectedVehicles = reactive({
-      morning: {},
-      afternoon: {}
+    const selectedVehicles = ref({
+      morning: [],
+      afternoon: []
     });
 
     const toggleSidebar = () => {
@@ -159,18 +159,26 @@ export default {
       return `hsl(220, 15%, ${lightness}%)`;
     };
 
-    const toggleSelection = (id) => {
+    const toggleSelectionPedido = (id) => {
       if (unselectedPedidos.value.includes(id)) {
         unselectedPedidos.value = unselectedPedidos.value.filter(pedidoId => pedidoId !== id);
       } else {
         unselectedPedidos.value.push(id);
       }
-      emit('checkbox-change', unselectedPedidos.value);
+      emit('checkbox-change-pedidos', unselectedPedidos.value);
     };
 
-    const emitSelectedVehicles = () => {
-      emit('selected-vehicles', selectedVehicles);
-    };
+    const toggleSelectionVehiculo = (period,id) => {
+      console.log(selectedVehicles.value);
+      console.log(selectedVehicles.value['morning']);
+      const index = selectedVehicles.value[period].indexOf(id);
+        if (index === -1) {
+          selectedVehicles.value[period].push(id);  // Add if not present
+        } else {
+          selectedVehicles.value[period].splice(index, 1);  // Remove if present
+        }
+      emit('checkbox-change-vehicles', selectedVehicles.value);
+    };  
 
     const planificar = () => {
       emit('planificar');
@@ -185,10 +193,10 @@ export default {
       setActiveButton,
       getPedidoColor,
       unselectedPedidos,
-      toggleSelection,
+      toggleSelectionPedido,
       planificar,
       selectedVehicles,
-      emitSelectedVehicles
+      toggleSelectionVehiculo
     };
   }
 };
@@ -322,9 +330,11 @@ export default {
 
 .vehicles-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(4, 1fr); /* Set 4 columns for the grid */
   gap: 10px;
   margin-top: 10px;
+  overflow-x: auto; /* Enable horizontal scrolling */
+  white-space: nowrap;
 }
 
 .vehicle-box {
@@ -335,9 +345,19 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 5px;
+  min-width: 120px; /* Ensure each vehicle box takes a minimum width */
 }
 
 .vehicle-box label {
   font-size: 14px;
+  text-align: center;
+}
+
+.truncate {
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Add ellipsis for text overflow */
 }
 </style>
