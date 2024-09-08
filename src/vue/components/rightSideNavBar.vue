@@ -52,6 +52,38 @@
             </tbody>
           </table>
         </div>
+        <div v-else class="turnos-container">
+          <div class="turno morning-shift">
+            <h3>Turno mañana (7:00 - 13:00)</h3>
+            <div class="vehicles-grid">
+              <div v-for="vehicle in vehiculos" :key="vehicle.id" class="vehicle-box">
+                <input 
+                  type="checkbox" 
+                  :id="'morning-' + vehicle.id"
+                  v-model="selectedVehicles.morning[vehicle.id]"
+                  @change="emitSelectedVehicles"
+                />
+                <label :for="'morning-' + vehicle.id">{{ vehicle.descripcion }}</label>
+                <label :for="'morning-' + vehicle.id">{{ vehicle.matricula }}</label>
+              </div>
+            </div>
+          </div>
+          <div class="turno afternoon-shift">
+            <h3>Turno tarde (13:00 - 20:00)</h3>
+            <div class="vehicles-grid">
+              <div v-for="vehicle in vehiculos" :key="vehicle.id" class="vehicle-box">
+                <input 
+                  type="checkbox" 
+                  :id="'afternoon-' + vehicle.id"
+                  v-model="selectedVehicles.afternoon[vehicle.id]"
+                  @change="emitSelectedVehicles"
+                />
+                <label :for="'afternoon-' + vehicle.id">{{ vehicle.descripcion }}</label>
+                <label :for="'afternoon-' + vehicle.id">{{ vehicle.matricula }}</label>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="bottom-button">
           <button class="btn" @click="planificar">Planificar</button>
         </div>
@@ -59,10 +91,10 @@
     </div>
   </div>
 </template>
-  
+
 
 <script>
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
 import DatePicker from 'primevue/datepicker';
 
 export default {
@@ -78,15 +110,27 @@ export default {
     processedPedidos: {
       type: Array,
       required: true
+    },
+    vehiculos: {
+      type: Array,
+      required: true
+    },
+    lugaresComunes: {
+      type: Array,
+      required: true
     }
   },
-  emits: ['date-changed', 'planificar', 'checkbox-change'],
+  emits: ['date-changed', 'planificar', 'checkbox-change', 'selected-vehicles'],
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
     const date = ref(new Date(props.selectedDate).toISOString().split('T')[0]);
+    const unselectedPedidos = ref([]);
 
-    const unselectedPedidos = ref([]);  // Start with an empty array
+    const selectedVehicles = reactive({
+      morning: {},
+      afternoon: {}
+    });
 
     const toggleSidebar = () => {
       isHidden.value = !isHidden.value;
@@ -117,13 +161,15 @@ export default {
 
     const toggleSelection = (id) => {
       if (unselectedPedidos.value.includes(id)) {
-        // Remove id from unselectedPedidos when checked
         unselectedPedidos.value = unselectedPedidos.value.filter(pedidoId => pedidoId !== id);
       } else {
-        // Add id to unselectedPedidos when unchecked
         unselectedPedidos.value.push(id);
       }
       emit('checkbox-change', unselectedPedidos.value);
+    };
+
+    const emitSelectedVehicles = () => {
+      emit('selected-vehicles', selectedVehicles);
     };
 
     const planificar = () => {
@@ -140,11 +186,12 @@ export default {
       getPedidoColor,
       unselectedPedidos,
       toggleSelection,
-      planificar
+      planificar,
+      selectedVehicles,
+      emitSelectedVehicles
     };
   }
 };
-
 </script>
 
 <style>
@@ -253,5 +300,44 @@ export default {
 
 .pedidos-table tr:hover {
   background-color: #f1f1f1;
+}
+.turnos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.turno {
+  padding: 15px;
+  border-radius: 5px;
+}
+
+.morning-shift {
+  background-color: #ffedcc;
+}
+
+.afternoon-shift {
+  background-color: #e6f2ff;
+}
+
+.vehicles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.vehicle-box {
+  background-color: white;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.vehicle-box label {
+  font-size: 14px;
 }
 </style>

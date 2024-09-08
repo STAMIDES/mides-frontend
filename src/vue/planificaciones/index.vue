@@ -3,7 +3,9 @@
     <MontevideoMap :processedPedidos="processedPedidos" :planificacion="planificacion" :unselectedPedidosIds="unselectedPedidosIds" />
     <RightSidebar 
       :selectedDate="selectedDate" 
-      :processedPedidos="processedPedidos" 
+      :processedPedidos="processedPedidos"
+      :vehiculos="vehiculos"
+      :lugaresComunes="lugaresComunes" 
       @date-changed="handleDateChange"
       @planificar="planificar"
       @checkbox-change="handleCheckboxChange"
@@ -88,7 +90,7 @@ export default {
     const fetchLugaresComunes = async () => {
       try {
         const response = await api.get(`/lugares_comunes`);
-        lugaresComunes.value = response.data.lugares_comunes;
+        lugaresComunes.value = response.data.lugares;
       } catch (error) {
         console.error('Error fetching lugares comunes:', error);
       }
@@ -229,6 +231,8 @@ export default {
     return {
       selectedDate,
       processedPedidos,
+      vehiculos,
+      lugaresComunes,
       planificacion,
       unselectedPedidosIds,
       handleDateChange,
