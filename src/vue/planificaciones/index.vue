@@ -10,9 +10,7 @@
       @date-changed="handleDateChange"
       @planificar="planificar"
       @checkbox-change-pedidos="handleCheckboxChangePedidos"
-      @checkbox-change-vehicles="handleCheckboxChangeVehicles"
-      @selector-change-lugares-comunes="handleSelectorChangeLugaresComunes"
-      @selector-change-choferes="handleSelectorChoferes"
+      @selected-vehicles="handleSelectedVehicles"
     />
   </div>
 </template>
@@ -38,15 +36,7 @@ export default {
     const lugaresComunes = ref([]);
     const planificacion = ref({});
     const unselectedPedidosIds = ref([]);
-    const selectedVehiclesid = ref({
-      morning: [],
-      afternoon: []
-    });
-    const selectedLugaresComunes = ref({
-      morning: [],
-      afternoon: []
-    });
-    const selectedChoferes = ref({
+    const selectedVehicles = ref({
       morning: [],
       afternoon: []
     });
@@ -128,17 +118,17 @@ export default {
         console.error('Error fetching choferes:', error);
       }
     };
-    const normalizeVehicles = (vehiclesId, turnoValue) => {
-      console.log(vehiclesId);
-      return vehiclesId.reduce((acc, vehiculoId) => {
-        const v = vehiculos.value.find(v => v.id === vehiculoId);
+    const normalizeVehicles = (vehicles, turnoTime) => {
+      console.log(vehicles);
+      return vehicles.reduce((acc, vehiculo) => {
+        const v = vehiculos.value.find(v => v.id === vehiculo.vehicle_id);
         if (v) {
           acc.push({
             id: v.id,
             capacity: v.capacidad_convencional,
             time_window: {
-              start: turnoValue.start,
-              end: turnoValue.end
+              start: turnoTime.start,
+              end: turnoTime.end
             }
           });
         }
@@ -147,8 +137,8 @@ export default {
     };
     const crearPlanificacion = async (pedidosNormalizados) => {
       let vehiculosNormalizados = [
-        ...normalizeVehicles(selectedVehiclesid.value.morning, turnoManana.value),
-        ...normalizeVehicles(selectedVehiclesid.value.afternoon, turnoTarde.value)
+        ...normalizeVehicles(selectedVehicles.value.morning, turnoManana.value),
+        ...normalizeVehicles(selectedVehicles.value.afternoon, turnoTarde.value)
       ];
       const problem = {"depot": {
                     "id": "5774",
@@ -192,14 +182,8 @@ export default {
     const handleCheckboxChangePedidos = (unselectedPedidos) =>{
       unselectedPedidosIds.value = unselectedPedidos;
     }
-    const handleCheckboxChangeVehicles = (v) =>{
-      selectedVehiclesid.value = v;
-    }
-    const handleSelectorChangeLugaresComunes = (l) =>{
-      selectedLugaresComunes.value = l;
-    }
-    const handleSelectorChoferes = (c) =>{
-      selectedChoferes.value = c;
+    const handleSelectedVehicles = (v) =>{
+      selectedVehicles.value = v;
     }
     const planificar = () => {
       const pedidosNormalizados = pedidos.value.reduce((acc, pedido) => {
@@ -292,9 +276,7 @@ export default {
       handleDateChange,
       planificar,
       handleCheckboxChangePedidos,
-      handleCheckboxChangeVehicles,
-      handleSelectorChangeLugaresComunes,
-      handleSelectorChoferes
+      handleSelectedVehicles
     };
   }
 };

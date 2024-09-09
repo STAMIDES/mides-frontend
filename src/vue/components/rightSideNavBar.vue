@@ -60,12 +60,12 @@
                 <input 
                   type="checkbox" 
                   :id="'morning-' + vehicle.id"
-                  :checked="selectedVehicles['morning'].includes(vehicle.id)"
+                  :checked="selectedVehicles['morning'].some(v => v.vehicle_id === vehicle.id)"
                   @change="toggleSelectionVehiculo('morning', vehicle.id)"
                 />
                 <label :for="'morning-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
                 <label :for="'morning-' + vehicle.id">{{ vehicle.matricula }}</label>
-                <template v-if="selectedVehicles['morning'].includes(vehicle.id)">
+                <template v-if="selectedVehicles['morning'].some(v => v.vehicle_id === vehicle.id)">
                 <select> 
                   @change="selectLugarComun('morning', vehicle.id, $event.target.value)">
                   <option value="">Lugar de salida</option>
@@ -91,12 +91,12 @@
                 <input 
                   type="checkbox" 
                   :id="'afternoon-' + vehicle.id"
-                  :checked="selectedVehicles['afternoon'].includes(vehicle.id)"
+                  :checked="selectedVehicles['afternoon'].some(v => v.vehicle_id === vehicle.id)"
                   @change="toggleSelectionVehiculo('afternoon', vehicle.id)"
                 />
                 <label :for="'afternoon-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
                 <label :for="'afternoon-' + vehicle.id">{{ vehicle.matricula }}</label>
-                <template v-if="selectedVehicles['afternoon'].includes(vehicle.id)">
+                <template v-if="selectedVehicles['afternoon'].some(v => v.vehicle_id === vehicle.id)">
                 <select>
                   @change="selectLugarComun('afternoon', vehicle.id, $event.target.value)">
                   <option value="">Lugar de salida</option>
@@ -156,7 +156,7 @@ export default {
       required: true
     }
   },
-  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'checkbox-change-vehicles', 'selector-change-lugares-comunes', 'selector-change-choferes'],
+  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-vehicles'],
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
@@ -166,16 +166,6 @@ export default {
     const selectedVehicles = ref({
       morning: [],
       afternoon: []
-    });
-
-    const selectLugaresComunes = ref({
-      morning: [],
-      afternoon: [],
-    });
-
-    const selectChoferes = ref({
-      morning: [],
-      afternoon: [],
     });
 
     const toggleSidebar = () => {
@@ -214,54 +204,33 @@ export default {
       emit('checkbox-change-pedidos', unselectedPedidos.value);
     };
 
-    const toggleSelectionVehiculo = (period,id) => {
-      console.log(selectedVehicles.value);
-      console.log(selectedVehicles.value['morning']);
-      const index = selectedVehicles.value[period].indexOf(id);
-        if (index === -1) {
-          selectedVehicles.value[period].push(id);  
-        } else {
-          selectedVehicles.value[period].splice(index, 1);
-          selectLugaresComunes.value[period] = selectLugaresComunes.value[period].filter(item => item.vehicle_id !== id);
-          selectChoferes.value[period] = selectChoferes.value[period].filter(item => item.vehicle_id !== id);
-        }
-      emit('checkbox-change-vehicles', selectedVehicles.value);
-    };  
+    const toggleSelectionVehiculo = (period, id) => {
+      const index = selectedVehicles.value[period].findIndex(item => item.vehicle_id === id);
+      if (index === -1) {
+        selectedVehicles.value[period].push({ vehicle_id: id, lugares_comunes_id: null, chofer_id: null });
+      } else {
+        selectedVehicles.value[period].splice(index, 1);
+      }
+      emit('selected-vehicles', selectedVehicles.value);
+    };
+    const selectLugarComun = (period, vehicleId, lugarComunId) => {
+      const index = selectedVehicles.value[period].findIndex(item => item.vehicle_id === vehicleId);
+      if (index !== -1) {
+        selectedVehicles.value[period][index].lugares_comunes_id = lugarComunId;
+        emit('selected-vehicles', selectedVehicles.value);
+      }
+    };
+
+    const selectChofer = (period, vehicleId, choferId) => {
+      const index = selectedVehicles.value[period].findIndex(item => item.vehicle_id === vehicleId);
+      if (index !== -1) {
+        selectedVehicles.value[period][index].chofer_id = choferId;
+        emit('selected-vehicles', selectedVehicles.value);
+      }
+    };
 
     const planificar = () => {
       emit('planificar');
-    };
-
-    const selectLugarComun = (period, vehicleId, lugarComunId) => {
-      // Check if the vehicle is selected in both periods
-      if (selectedVehicles.value.morning.includes(vehicleId) && selectedVehicles.value.afternoon.includes(vehicleId)) {
-        // skip for now
-      } else {
-        // Add to the current period array
-        const index = selectLugaresComunes.value[period].findIndex(item => item.vehicle_id === vehicleId);
-        if (index !== -1) {
-          selectLugaresComunes.value[period][index].lugares_comunes_id = lugarComunId;
-        } else {
-          selectLugaresComunes.value[period].push({ vehicle_id: vehicleId, lugares_comunes_id: lugarComunId });
-        }
-      }
-      emit('selector-change-lugares-comunes', selectLugaresComunes.value);
-    };
-    
-    const selectChofer = (period, vehicleId, choferId) => {
-      // Check if the vehicle is selected in both periods
-      if (selectedVehicles.value.morning.includes(vehicleId) && selectedVehicles.value.afternoon.includes(vehicleId)) {
-        // skip for now
-      } else {
-        // Add to the current period array
-        const index = selectChoferes.value[period].findIndex(item => item.vehicle_id === vehicleId);
-        if (index !== -1) {
-          selectChoferes.value[period][index].chofer_id = choferId;
-        } else {
-          selectChoferes.value[period].push({ vehicle_id: vehicleId, chofer_id: choferId });
-        }
-      }
-      emit('selector-change-choferes', selectChoferes.value);
     };
 
     return {
@@ -278,8 +247,7 @@ export default {
       selectedVehicles,
       toggleSelectionVehiculo,
       selectLugarComun,
-      selectChofer,
-      selectLugaresComunes
+      selectChofer
     };
   }
 };
