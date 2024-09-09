@@ -65,20 +65,22 @@
                 />
                 <label :for="'morning-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
                 <label :for="'morning-' + vehicle.id">{{ vehicle.matricula }}</label>
-                <select v-if="selectedVehicles['morning'].includes(vehicle.id)" 
+                <template v-if="selectedVehicles['morning'].includes(vehicle.id)">
+                <select> 
                   @change="selectLugarComun('morning', vehicle.id, $event.target.value)">
                   <option value="">Lugar de salida</option>
                   <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id">
                     {{ lugar.nombre }}
                   </option>
                 </select>
-                <select v-if="selectedVehicles['morning'].includes(vehicle.id)" 
+                <select> 
                   @change="selectChofer('morning', vehicle.id, $event.target.value)">
                   <option value="">Chofer</option>
                   <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id">
                     {{ chofer.nombre }}
                   </option>
                 </select>
+              </template>
               </div>
             </div>
           </div>
@@ -94,20 +96,22 @@
                 />
                 <label :for="'afternoon-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
                 <label :for="'afternoon-' + vehicle.id">{{ vehicle.matricula }}</label>
-                <select v-if="selectedVehicles['afternoon'].includes(vehicle.id)" 
+                <template v-if="selectedVehicles['afternoon'].includes(vehicle.id)">
+                <select>
                   @change="selectLugarComun('afternoon', vehicle.id, $event.target.value)">
                   <option value="">Lugar de salida</option>
                   <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id">
                     {{ lugar.nombre }}
                   </option>
                 </select>
-                <select v-if="selectedVehicles['afternoon'].includes(vehicle.id)" 
+                <select>
                   @change="selectChofer('afternoon', vehicle.id, $event.target.value)">
                   <option value="">Chofer</option>
                   <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id">
                     {{ chofer.nombre }}
                   </option>
                 </select>
+              </template>
               </div>
             </div>
           </div>
