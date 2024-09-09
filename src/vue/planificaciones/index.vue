@@ -5,11 +5,14 @@
       :selectedDate="selectedDate" 
       :processedPedidos="processedPedidos"
       :vehiculos="vehiculos"
+      :choferes="choferes"
       :lugaresComunes="lugaresComunes" 
       @date-changed="handleDateChange"
       @planificar="planificar"
       @checkbox-change-pedidos="handleCheckboxChangePedidos"
       @checkbox-change-vehicles="handleCheckboxChangeVehicles"
+      @selector-change-lugares-comunes="handleSelectorChangeLugaresComunes"
+      @selector-change-choferes="handleSelectorChoferes"
     />
   </div>
 </template>
@@ -31,10 +34,19 @@ export default {
     const selectedDate = ref(new Date().toISOString().split('T')[0]);
     const pedidos = ref([]);
     const vehiculos = ref([]);
+    const choferes = ref([]);
     const lugaresComunes = ref([]);
     const planificacion = ref({});
     const unselectedPedidosIds = ref([]);
     const selectedVehiclesid = ref({
+      morning: [],
+      afternoon: []
+    });
+    const selectedLugaresComunes = ref({
+      morning: [],
+      afternoon: []
+    });
+    const selectedChoferes = ref({
       morning: [],
       afternoon: []
     });
@@ -108,6 +120,14 @@ export default {
         console.error('Error fetching lugares comunes:', error);
       }
     };
+    const fetchChoferes = async () => {
+      try {
+        const response = await api.get(`/choferes`);
+        choferes.value = response.data.choferes;
+      } catch (error) {
+        console.error('Error fetching choferes:', error);
+      }
+    };
     const normalizeVehicles = (vehiclesId, turnoValue) => {
       console.log(vehiclesId);
       return vehiclesId.reduce((acc, vehiculoId) => {
@@ -175,7 +195,12 @@ export default {
     const handleCheckboxChangeVehicles = (v) =>{
       selectedVehiclesid.value = v;
     }
-
+    const handleSelectorChangeLugaresComunes = (l) =>{
+      selectedLugaresComunes.value = l;
+    }
+    const handleSelectorChoferes = (c) =>{
+      selectedChoferes.value = c;
+    }
     const planificar = () => {
       const pedidosNormalizados = pedidos.value.reduce((acc, pedido) => {
         if (!unselectedPedidosIds.value.includes(pedido.id)) {
@@ -252,6 +277,7 @@ export default {
     onMounted(() => {
       fetchPedidos()
       fetchVehiculos()
+      fetchChoferes()
       fetchLugaresComunes()
     });
 
@@ -259,13 +285,16 @@ export default {
       selectedDate,
       processedPedidos,
       vehiculos,
+      choferes,
       lugaresComunes,
       planificacion,
       unselectedPedidosIds,
       handleDateChange,
       planificar,
       handleCheckboxChangePedidos,
-      handleCheckboxChangeVehicles
+      handleCheckboxChangeVehicles,
+      handleSelectorChangeLugaresComunes,
+      handleSelectorChoferes
     };
   }
 };

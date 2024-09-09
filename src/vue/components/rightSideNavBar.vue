@@ -65,6 +65,20 @@
                 />
                 <label :for="'morning-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
                 <label :for="'morning-' + vehicle.id">{{ vehicle.matricula }}</label>
+                <select v-if="selectedVehicles['morning'].includes(vehicle.id)" 
+                  @change="selectLugarComun('morning', vehicle.id, $event.target.value)">
+                  <option value="">Lugar de salida</option>
+                  <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id">
+                    {{ lugar.nombre }}
+                  </option>
+                </select>
+                <select v-if="selectedVehicles['morning'].includes(vehicle.id)" 
+                  @change="selectChofer('morning', vehicle.id, $event.target.value)">
+                  <option value="">Chofer</option>
+                  <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id">
+                    {{ chofer.nombre }}
+                  </option>
+                </select>
               </div>
             </div>
           </div>
@@ -80,6 +94,20 @@
                 />
                 <label :for="'afternoon-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
                 <label :for="'afternoon-' + vehicle.id">{{ vehicle.matricula }}</label>
+                <select v-if="selectedVehicles['afternoon'].includes(vehicle.id)" 
+                  @change="selectLugarComun('afternoon', vehicle.id, $event.target.value)">
+                  <option value="">Lugar de salida</option>
+                  <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id">
+                    {{ lugar.nombre }}
+                  </option>
+                </select>
+                <select v-if="selectedVehicles['afternoon'].includes(vehicle.id)" 
+                  @change="selectChofer('afternoon', vehicle.id, $event.target.value)">
+                  <option value="">Chofer</option>
+                  <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id">
+                    {{ chofer.nombre }}
+                  </option>
+                </select>
               </div>
             </div>
           </div>
@@ -94,7 +122,7 @@
 
 
 <script>
-import { ref, reactive } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import DatePicker from 'primevue/datepicker';
 
 export default {
@@ -118,9 +146,13 @@ export default {
     lugaresComunes: {
       type: Array,
       required: true
+    },
+    choferes: {
+      type: Array,
+      required: true
     }
   },
-  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'checkbox-change-vehicles'],
+  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'checkbox-change-vehicles', 'selector-change-lugares-comunes', 'selector-change-choferes'],
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
@@ -130,6 +162,16 @@ export default {
     const selectedVehicles = ref({
       morning: [],
       afternoon: []
+    });
+
+    const selectLugaresComunes = ref({
+      morning: [],
+      afternoon: [],
+    });
+
+    const selectChoferes = ref({
+      morning: [],
+      afternoon: [],
     });
 
     const toggleSidebar = () => {
@@ -173,15 +215,49 @@ export default {
       console.log(selectedVehicles.value['morning']);
       const index = selectedVehicles.value[period].indexOf(id);
         if (index === -1) {
-          selectedVehicles.value[period].push(id);  // Add if not present
+          selectedVehicles.value[period].push(id);  
         } else {
-          selectedVehicles.value[period].splice(index, 1);  // Remove if present
+          selectedVehicles.value[period].splice(index, 1);
+          selectLugaresComunes.value[period] = selectLugaresComunes.value[period].filter(item => item.vehicle_id !== id);
+          selectChoferes.value[period] = selectChoferes.value[period].filter(item => item.vehicle_id !== id);
         }
       emit('checkbox-change-vehicles', selectedVehicles.value);
     };  
 
     const planificar = () => {
       emit('planificar');
+    };
+
+    const selectLugarComun = (period, vehicleId, lugarComunId) => {
+      // Check if the vehicle is selected in both periods
+      if (selectedVehicles.value.morning.includes(vehicleId) && selectedVehicles.value.afternoon.includes(vehicleId)) {
+        // skip for now
+      } else {
+        // Add to the current period array
+        const index = selectLugaresComunes.value[period].findIndex(item => item.vehicle_id === vehicleId);
+        if (index !== -1) {
+          selectLugaresComunes.value[period][index].lugares_comunes_id = lugarComunId;
+        } else {
+          selectLugaresComunes.value[period].push({ vehicle_id: vehicleId, lugares_comunes_id: lugarComunId });
+        }
+      }
+      emit('selector-change-lugares-comunes', selectLugaresComunes.value);
+    };
+    
+    const selectChofer = (period, vehicleId, choferId) => {
+      // Check if the vehicle is selected in both periods
+      if (selectedVehicles.value.morning.includes(vehicleId) && selectedVehicles.value.afternoon.includes(vehicleId)) {
+        // skip for now
+      } else {
+        // Add to the current period array
+        const index = selectChoferes.value[period].findIndex(item => item.vehicle_id === vehicleId);
+        if (index !== -1) {
+          selectChoferes.value[period][index].chofer_id = choferId;
+        } else {
+          selectChoferes.value[period].push({ vehicle_id: vehicleId, chofer_id: choferId });
+        }
+      }
+      emit('selector-change-choferes', selectChoferes.value);
     };
 
     return {
@@ -196,7 +272,10 @@ export default {
       toggleSelectionPedido,
       planificar,
       selectedVehicles,
-      toggleSelectionVehiculo
+      toggleSelectionVehiculo,
+      selectLugarComun,
+      selectChofer,
+      selectLugaresComunes
     };
   }
 };
@@ -346,6 +425,9 @@ export default {
   align-items: center;
   gap: 5px;
   min-width: 120px; /* Ensure each vehicle box takes a minimum width */
+  max-width: 200px; /* Set a max-width to prevent the box from expanding too much */
+  box-sizing: border-box; /* Include padding in width calculation */
+  overflow: hidden;
 }
 
 .vehicle-box label {
@@ -359,5 +441,11 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis; /* Add ellipsis for text overflow */
+}
+.vehicle-box select {
+  width: 100%; /* Make the select element take full width of the box */
+  max-width: 100%; /* Prevent the select from overflowing the box */
+  box-sizing: border-box; /* Include padding in width calculation */
+  font-size: 10px;
 }
 </style>
