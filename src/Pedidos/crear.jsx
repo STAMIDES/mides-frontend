@@ -118,16 +118,15 @@ const CrearPedido = () => {
     return Object.keys(tempErrors).length === 0;
   };
   const filterParadas = () => {
-    let retParadas = [{direccion: formData.direccion_origen, tipo:  {id: formData.direccion_origen_tipo, nombre: "ss"}, 
+    let retParadas = [{
+      direccion: formData.direccion_origen,
       latitud: cords[0].lat, longitud: cords[0].lng,
       ventana_horaria_inicio: formData.ventana_horaria_inicio? formData.ventana_horaria_inicio: null,
       posicion_en_pedido: 0}];
     let counter = 0;
     for (const parada of formData.paradas){
-      let tipoParada = {
-        id: parada.tipo_parada,
-        nombre: "ss"
-      }
+      console.log(formData)
+      let tipoParada = parada.tipo_parada
       counter = counter + 1;
       if (tipoViaje===0){
         retParadas.push({direccion: parada.direccion_destino,
