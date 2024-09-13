@@ -7,8 +7,10 @@
       :vehiculos="vehiculos"
       :choferes="choferes"
       :lugaresComunes="lugaresComunes" 
+      :planificacion="planificacion"
       @date-changed="handleDateChange"
       @planificar="planificar"
+      @guardar-planificacion="guardarPlanificacion"
       @checkbox-change-pedidos="handleCheckboxChangePedidos"
       @selected-vehicles="handleSelectedVehicles"
     />
@@ -135,6 +137,16 @@ export default {
         return acc;
       }, []);
     };
+
+    const guardarPlanificacion = async () => {
+      try {
+        await api.post(`/planificaciones`, planificacion.value);
+        console.log('Planificacion guardada');
+      } catch (error) {
+        console.error('Error guardando planificacion:', error);
+      }
+    };
+    
     const crearPlanificacion = async (pedidosNormalizados) => {
       let vehiculosNormalizados = [
         ...normalizeVehicles(selectedVehicles.value.morning, turnoManana.value),
@@ -239,7 +251,7 @@ export default {
                     end: addTolerance(origen.ventana_horaria_inicio, false),
                   };
                 }else{ //solo cuando va a 2 o mas lugares y vuelve a su casa
-                  normalized.direction = "undefined"; //TODO: definir
+                  normalized.direction = "going"; //TODO: definir que va aca cuando tiene doble time window
                   normalized.pickup.time_window = {
                     start: addTolerance(origen.ventana_horaria_fin),
                     end: addTolerance(origen.ventana_horaria_fin, false),
@@ -275,6 +287,7 @@ export default {
       unselectedPedidosIds,
       handleDateChange,
       planificar,
+      guardarPlanificacion,
       handleCheckboxChangePedidos,
       handleSelectedVehicles
     };

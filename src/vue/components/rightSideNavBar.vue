@@ -117,7 +117,15 @@
           </div>
         </div>
         <div class="bottom-button">
-          <button class="btn" @click="planificar">Planificar</button>
+          <button class="btn" @click="planificar" :disabled="isPlanificando">
+            <span v-if="!isPlanificando">Planificar</span>
+            <span v-else class="spinner"></span>
+          </button>
+          <button 
+            class="btn" @click="guardarPlanificacion" :disabled="!planificacion"
+            :class="{ 'save': planificacion }"
+            >Guardar planificación
+          </button>
         </div>
       </div>
     </div>
@@ -126,7 +134,7 @@
 
 
 <script>
-import { ref, reactive, watch } from 'vue';
+import { ref, watch } from 'vue';
 import DatePicker from 'primevue/datepicker';
 
 export default {
@@ -154,14 +162,19 @@ export default {
     choferes: {
       type: Array,
       required: true
+    },
+    planificacion: {
+      type: Object,
+      default: {}
     }
   },
-  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-vehicles'],
+  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-vehicles', 'guardar-planificacion'],
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
     const date = ref(new Date(props.selectedDate).toISOString().split('T')[0]);
     const unselectedPedidos = ref([]);
+    const isPlanificando = ref(false);
 
     const selectedVehicles = ref({
       morning: [],
@@ -229,9 +242,24 @@ export default {
       }
     };
 
-    const planificar = () => {
+    const planificar = async () => {
+      if (selectedVehicles.value.morning.length === 0 && selectedVehicles.value.afternoon.length === 0) {
+        alert('Debe seleccionar al menos un vehículo para planificar');
+        return;
+      }
+      isPlanificando.value = true;
       emit('planificar');
     };
+
+    const guardarPlanificacion = () => {
+      emit('guardar-planificacion', props.planificacion);
+    };
+
+    watch(() => props.planificacion, (newValue) => {
+      if (newValue !== null) {
+        isPlanificando.value = false;
+      }
+    });
 
     return {
       isHidden,
@@ -247,7 +275,10 @@ export default {
       selectedVehicles,
       toggleSelectionVehiculo,
       selectLugarComun,
-      selectChofer
+      selectChofer,
+      isPlanificando,
+      planificar,
+      guardarPlanificacion
     };
   }
 };
@@ -319,7 +350,8 @@ export default {
 
 .bottom-button {
   margin-top: 20px;
-  display: grid
+  display: flex;
+  justify-content: space-between;
 }
 
 .btn {
@@ -337,6 +369,9 @@ export default {
 .btn.active {
   background-color: #0056b3;
   font-weight: bold;
+}
+.btn.save {
+  background-color: #28a745;
 }
 
 .pedidos-list {
@@ -419,5 +454,23 @@ export default {
   max-width: 100%; /* Prevent the select from overflowing the box */
   box-sizing: border-box; /* Include padding in width calculation */
   font-size: 10px;
+}
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 </style>
