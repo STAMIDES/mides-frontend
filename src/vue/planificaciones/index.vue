@@ -140,7 +140,23 @@ export default {
 
     const guardarPlanificacion = async () => {
       try {
-        await api.post(`/planificaciones`, planificacion.value);
+        const normalizedPlanificacion = planificacion.value.routes.map(p => {
+
+          return {  
+                    "fecha": selectedDate.value,
+                    "rutas": {
+                            id_vehiculo: p.vehicle_id,
+                            hora_inicio: p.start_time,
+                            hora_fin: p.end_time,
+                            geometria: p.geometry,
+                          },
+                    "turnos": {
+                      hora_inicio: p.time_window.start,
+                      hora_fin : p.time_window.end
+                    },
+                    }
+      });
+        await api.post(`/planificaciones`, normalizedPlanificacion);
         console.log('Planificacion guardada');
       } catch (error) {
         console.error('Error guardando planificacion:', error);
@@ -152,25 +168,42 @@ export default {
         ...normalizeVehicles(selectedVehicles.value.morning, turnoManana.value),
         ...normalizeVehicles(selectedVehicles.value.afternoon, turnoTarde.value)
       ];
-      const problem = {"depot": {
-                    "id": "5774",
-                    "address": "Dr. Martín C. Martínez 1222",
-                    "coordinates": {
-                      "latitude": -34.8704884,
-                      "longitude": -56.1401427
-                    },
-                    "time_window": {
-                      "start": "08:00:00",
-                      "end": "23:00:00"
-                    }
-                  },
-                  "vehicles": vehiculosNormalizados,
-                  "ride_requests": pedidosNormalizados
-                };
-      const response = await api.post(`http://localhost:4210/optimization/v1/solve`,  problem);
-      console.log(response);
-      planificacion.value = response.data;
-    };
+
+      const problem = {
+        "depot": {
+          "id": "5774",
+          "address": "Dr. Martín C. Martínez 1222",
+          "coordinates": {
+            "latitude": -34.8704884,
+            "longitude": -56.1401427
+          },
+          "time_window": {
+            "start": "08:00:00",
+            "end": "23:00:00"
+          }
+        },
+        "vehicles": vehiculosNormalizados,
+        "ride_requests": pedidosNormalizados
+      };
+
+      try {
+        const response = await api.post('http://localhost:4210/optimization/v1/solve', problem);
+        for (const key in response.data.routes) {
+            const route = response.data.routes[key];
+            console.log('Vehicle Info:', vehiculosNormalizados);
+            const vehicle = vehiculosNormalizados.find(v => v.id === Number(route.vehicle_id));
+            if (vehicle) {
+              route.time_window = vehicle.time_window;
+            } else {
+              console.warn(`No vehicle found with id: ${route.vehicle_id}`);
+            }
+        }
+        planificacion.value = response.data;
+     } catch (error) {
+      console.error('Error during API request:', error);
+    }
+  };
+
 
     const handleDateChange = (newDate) => {
       selectedDate.value = newDate;

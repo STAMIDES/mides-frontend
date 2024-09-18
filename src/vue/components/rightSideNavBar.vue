@@ -122,7 +122,7 @@
             <span v-else class="spinner"></span>
           </button>
           <button 
-            class="btn" @click="guardarPlanificacion" :disabled="!planificacion"
+            class="btn" @click="guardarPlanificacion" :disabled="Object.keys(planificacion).length === 0"
             :class="{ 'save': planificacion }"
             >Guardar planificación
           </button>
