@@ -120,6 +120,40 @@ export default {
         console.error('Error fetching choferes:', error);
       }
     };
+
+    const guardarPlanificacion = async () => {
+      try {
+        const normalizedRutas = [];
+        const normalizedTurnos = [];
+
+        planificacion.value.routes.forEach(p => {
+            // Normalize routes
+            normalizedRutas.push({
+                    id_vehiculo: p.vehicle_id,
+                    hora_inicio: p.time_window.start,
+                    hora_fin: p.time_window.end,
+                    geometria: p.geometry
+            });
+            // Ensure the unique time intervals (start_time and end_time) are collected
+            if (normalizedTurnos.length==0 || !normalizedTurnos.find(t => t.hora_inicio === p.start_time && t.hora_fin === p.end_time)) {
+                normalizedTurnos.push({
+                    hora_inicio: p.time_window.start,
+                    hora_fin: p.time_window.end,
+                });
+            }
+        });
+        const normalizedPlanificacion = {
+          planificacion: {fecha: selectedDate.value},
+          rutas: normalizedRutas,
+          turnos: normalizedTurnos
+        };
+        await api.post(`/planificaciones`, normalizedPlanificacion);
+        console.log('Planificacion guardada');
+      } catch (error) {
+        console.error('Error guardando planificacion:', error);
+      }
+    };
+
     const normalizeVehicles = (vehicles, turnoTime) => {
       console.log(vehicles);
       return vehicles.reduce((acc, vehiculo) => {
@@ -136,31 +170,6 @@ export default {
         }
         return acc;
       }, []);
-    };
-
-    const guardarPlanificacion = async () => {
-      try {
-        const normalizedPlanificacion = planificacion.value.routes.map(p => {
-
-          return {  
-                    "fecha": selectedDate.value,
-                    "rutas": {
-                            id_vehiculo: p.vehicle_id,
-                            hora_inicio: p.start_time,
-                            hora_fin: p.end_time,
-                            geometria: p.geometry,
-                          },
-                    "turnos": {
-                      hora_inicio: p.time_window.start,
-                      hora_fin : p.time_window.end
-                    },
-                    }
-      });
-        await api.post(`/planificaciones`, normalizedPlanificacion);
-        console.log('Planificacion guardada');
-      } catch (error) {
-        console.error('Error guardando planificacion:', error);
-      }
     };
     
     const crearPlanificacion = async (pedidosNormalizados) => {

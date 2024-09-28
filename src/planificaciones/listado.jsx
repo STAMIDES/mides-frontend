@@ -9,8 +9,7 @@ import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 import moment from 'moment';
 
 const columns = [
-  { label: "Planificación por", key: "nombre_y_apellido" },
-  { label: "Documento", key: "usuario_documento" },
+  { label: "Planificado por", key: "nombre_y_apellido" },
   { label: "Origen", key: "direccion_origen_y_horario"},
   { label: "Destino", key: "direccion_destino_y_horario" },
 ]
