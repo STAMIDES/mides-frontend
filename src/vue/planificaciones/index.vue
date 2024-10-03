@@ -132,7 +132,17 @@ export default {
                     id_vehiculo: p.vehicle_id,
                     hora_inicio: p.time_window.start,
                     hora_fin: p.time_window.end,
-                    geometria: p.geometry
+                    geometria: p.geometry,
+                    visitas: p.visits.map((v)=>{
+                      return {
+                        id_item: v.ride_id? v.ride_id : selectedVehicles.value.morning.find(v => v.vehicle_id .toString()===  p.vehicle_id)?.lugares_comunes_id? 
+                                                                selectedVehicles.value.morning.find(v => v.vehicle_id.toString() === p.vehicle_id)?.lugares_comunes_id :
+                                                                selectedVehicles.value.afternoon.find(v => v.vehicle_id.toString() === p.vehicle_id)?.lugares_comunes_id,
+                        tipo_item: v.ride_id? "Parada" : "Lugar común",
+                        hora_llegada: v.arrival_time,
+                        hora_salida: v.arrival_time
+                      }
+                    })
             });
             // Ensure the unique time intervals (start_time and end_time) are collected
             if (normalizedTurnos.length==0 || !normalizedTurnos.find(t => t.hora_inicio === p.start_time && t.hora_fin === p.end_time)) {

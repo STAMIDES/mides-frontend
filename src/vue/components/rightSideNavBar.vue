@@ -66,14 +66,14 @@
                 <label :for="'morning-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
                 <label :for="'morning-' + vehicle.id">{{ vehicle.matricula }}</label>
                 <template v-if="selectedVehicles['morning'].some(v => v.vehicle_id === vehicle.id)">
-                <select> 
+                <select
                   @change="selectLugarComun('morning', vehicle.id, $event.target.value)">
                   <option value="">Lugar de salida</option>
                   <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id">
                     {{ lugar.nombre }}
                   </option>
                 </select>
-                <select> 
+                <select
                   @change="selectChofer('morning', vehicle.id, $event.target.value)">
                   <option value="">Chofer</option>
                   <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id">
@@ -97,14 +97,14 @@
                 <label :for="'afternoon-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
                 <label :for="'afternoon-' + vehicle.id">{{ vehicle.matricula }}</label>
                 <template v-if="selectedVehicles['afternoon'].some(v => v.vehicle_id === vehicle.id)">
-                <select>
-                  @change="selectLugarComun('afternoon', vehicle.id, $event.target.value)">
+                <select
+                  @change="selectLugarComun('afternoon', vehicle.id, $event.target.value, selectedVehicles['afternoon'])">
                   <option value="">Lugar de salida</option>
                   <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id">
                     {{ lugar.nombre }}
                   </option>
                 </select>
-                <select>
+                <select
                   @change="selectChofer('afternoon', vehicle.id, $event.target.value)">
                   <option value="">Chofer</option>
                   <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id">
@@ -227,6 +227,7 @@ export default {
       emit('selected-vehicles', selectedVehicles.value);
     };
     const selectLugarComun = (period, vehicleId, lugarComunId) => {
+      debugger
       const index = selectedVehicles.value[period].findIndex(item => item.vehicle_id === vehicleId);
       if (index !== -1) {
         selectedVehicles.value[period][index].lugares_comunes_id = lugarComunId;
