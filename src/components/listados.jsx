@@ -77,10 +77,27 @@ const ListComponent = ({
                     <tr key={index} className="grid-item">
                       {columns.map((column, colIndex) => (
                         <td key={colIndex} className="data-cell">
-                          <div className="link-hover-outline" onClick={()=>handleNavigation(item.id)} style={{ cursor: 'pointer' }}>
-                            <Typography variant="body2" color="textSecondary" className="dataText" >
-                              {item[column.key]}
-                            </Typography>
+                          <div className="link-hover-outline" onClick={() => handleNavigation(item.id)} style={{ cursor: 'pointer' }}>
+                            {!column.columns ? (
+                              <Typography variant="body2" color="textSecondary" className="dataText">
+                                {item[column.key]}
+                              </Typography>
+                            ) : (
+                              <Typography variant="body2" color="textSecondary" className="dataText">
+                                {item[column.key].map((innerItem, indexData) => (
+                                  <div key={indexData}>
+                                    {column.columns.map((subColumn, subColIndex) => (
+                                      <div key={subColIndex}>
+                                        <strong>{subColumn.label}:</strong> {innerItem?.[subColumn.key]}
+                                      </div>
+                                    ))}
+                                    {indexData < item[column.key].length - 1 && (
+                                      <div>-------------------</div>
+                                    )}
+                                  </div>
+                                ))}
+                              </Typography>
+                            )}
                           </div>
                         </td>
                       ))}

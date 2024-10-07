@@ -258,7 +258,7 @@ export default {
             const origen = paradas[i];
             const destino = paradas[i + 1];
             let normalized ={
-                id: pedido.id,
+                id: paradas[i].id,
                 user_id: pedido.cliente_documento,
                 has_companion: pedido.acompanante,
                 weelchair_required:   true,//cliente.caracteristicas.contains(silla_de_ruedas),
