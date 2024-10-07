@@ -21,6 +21,8 @@
 import { ref, computed, onMounted } from 'vue';
 import MontevideoMap from '../components/montevideoMap.vue';
 import RightSidebar from '../components/rightSideNavBar.vue';
+import {useRoute} from "vue-router";
+
 
 import { api } from "../../network/axios";
 const TIMEWINDOW_TOLERANCE = 15;
@@ -31,6 +33,7 @@ export default {
     RightSidebar
   },
   setup() {
+    const route = useRoute();
     const selectedDate = ref(new Date().toISOString().split('T')[0]);
     const pedidos = ref([]);
     const vehiculos = ref([]);
@@ -53,7 +56,6 @@ export default {
 
     const procesarPedidos = (pedidosSinProcesar) => { // Funcion ya definida en react :/ #FIXME mover a utils
       const nuevoListado = [];
-      console.log(pedidosSinProcesar);
       pedidosSinProcesar.sort((a, b) => new Date(a.fecha_programado) - new Date(b.fecha_programado));
       pedidosSinProcesar.forEach(pedido => {
         const paradas = pedido.paradas;
@@ -79,7 +81,6 @@ export default {
           });
         }
       });
-      console.log(nuevoListado);
       return nuevoListado;
     };
     
@@ -92,6 +93,15 @@ export default {
         planificacion.value = {};
       } catch (error) {
         console.error('Error fetching pedidos:', error);
+      }
+    };
+
+    const fetchPlanificacion = async (id) => {
+      try {
+        const response = await api.get(`/planificaciones/${id}`);
+        planificacion.value = response.data.planificacion;
+      } catch (error) {
+        console.error('Error fetching planificacion:', error);
       }
     };
 
@@ -165,7 +175,6 @@ export default {
     };
 
     const normalizeVehicles = (vehicles, turnoTime) => {
-      console.log(vehicles);
       return vehicles.reduce((acc, vehiculo) => {
         const v = vehiculos.value.find(v => v.id === vehiculo.vehicle_id);
         if (v) {
@@ -209,7 +218,6 @@ export default {
         const response = await api.post('http://localhost:4210/optimization/v1/solve', problem);
         for (const key in response.data.routes) {
             const route = response.data.routes[key];
-            console.log('Vehicle Info:', vehiculosNormalizados);
             const vehicle = vehiculosNormalizados.find(v => v.id === Number(route.vehicle_id));
             if (vehicle) {
               route.time_window = vehicle.time_window;
@@ -239,7 +247,6 @@ export default {
         date.setTime(date.getTime() + TIMEWINDOW_TOLERANCE * 60 * 1000);
       }
       let updatedTime = date.toISOString().substring(11, 19);
-      console.log(updatedTime); // Outputs the time after adding 15 minutes
       return updatedTime;
     };
 
@@ -327,6 +334,12 @@ export default {
       fetchVehiculos()
       fetchChoferes()
       fetchLugaresComunes()
+      if (route.params.planificacionId) {
+        fetchPlanificacion(route.params.planificacionId);
+      } else {
+        fetchPedidos(); 
+        console.log(1)
+      }
     });
 
     return {
