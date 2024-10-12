@@ -227,7 +227,6 @@ export default {
       emit('selected-vehicles', selectedVehicles.value);
     };
     const selectLugarComun = (period, vehicleId, lugarComunId) => {
-      debugger
       const index = selectedVehicles.value[period].findIndex(item => item.vehicle_id === vehicleId);
       if (index !== -1) {
         selectedVehicles.value[period][index].lugares_comunes_id = lugarComunId;

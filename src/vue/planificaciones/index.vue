@@ -1,6 +1,7 @@
 <template>
   <div class="main-container">
-    <MontevideoMap :processedPedidos="processedPedidos" :planificacion="planificacion" :unselectedPedidosIds="unselectedPedidosIds" />
+    <MontevideoMap :processedPedidos="processedPedidos" :planificacion="planificacion" 
+    :unselectedPedidosIds="unselectedPedidosIds" :showPedidos="showPedidos" />
     <RightSidebar 
       :selectedDate="selectedDate" 
       :processedPedidos="processedPedidos"
@@ -41,6 +42,7 @@ export default {
     const lugaresComunes = ref([]);
     const planificacion = ref({});
     const unselectedPedidosIds = ref([]);
+    const showPedidos = ref(null);
     const selectedVehicles = ref({
       morning: [],
       afternoon: []
@@ -216,8 +218,13 @@ export default {
 
       try {
         const response = await api.post('http://localhost:4210/optimization/v1/solve', problem);
-        for (const key in response.data.routes) {
-            const route = response.data.routes[key];
+        const planificacionProcesada = response.data;
+        planificacionProcesada.rutas = response.data.routes;
+        for (const key in planificacionProcesada.rutas) {
+            const route = planificacionProcesada.rutas[key];
+            planificacionProcesada.rutas[key].geometria = route.geometry;
+            delete planificacionProcesada.rutas[key].geometry;
+            planificacionProcesada.rutas[key].visitas = route.visits;
             const vehicle = vehiculosNormalizados.find(v => v.id === Number(route.vehicle_id));
             if (vehicle) {
               route.time_window = vehicle.time_window;
@@ -225,7 +232,9 @@ export default {
               console.warn(`No vehicle found with id: ${route.vehicle_id}`);
             }
         }
-        planificacion.value = response.data;
+        planificacion.value = planificacionProcesada;
+        showPedidos.value = false;
+        console.log('Planificacion creada', planificacionProcesada);
      } catch (error) {
       console.error('Error during API request:', error);
     }
@@ -336,9 +345,12 @@ export default {
       fetchLugaresComunes()
       if (route.params.planificacionId) {
         fetchPlanificacion(route.params.planificacionId);
-      } else {
-        fetchPedidos(); 
+        showPedidos.value = false;
         console.log(1)
+      } else {
+        console.log(2)
+        fetchPedidos(); 
+        showPedidos.value = true;
       }
     });
 
@@ -354,7 +366,8 @@ export default {
       planificar,
       guardarPlanificacion,
       handleCheckboxChangePedidos,
-      handleSelectedVehicles
+      handleSelectedVehicles,
+      showPedidos
     };
   }
 };
