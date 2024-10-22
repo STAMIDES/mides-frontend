@@ -8,6 +8,8 @@
 import { onMounted, watch } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import homeIcon from '../../imgs/map_home.png';
+import building from '../../imgs/map_building.png';
 
 export default {
   name: 'MontevideoMap',
@@ -32,6 +34,16 @@ export default {
   setup(props) {
     let map;
     const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF'];
+    var houseIcon = L.icon({
+          iconUrl: homeIcon,
+          iconSize:     [20, 30], // size of the icon
+          iconAnchor:   [20, 30], // point of the icon which will correspond to marker's location
+      });
+    var buildingIcon = L.icon({
+          iconUrl: building,
+          iconSize:     [20, 30], // size of the icon
+          iconAnchor:   [20, 30], // point of the icon which will correspond to marker's location
+      });
     const addPedidosToMap = () => {
       // Clear existing layers if any (optional)
       if (map) {
@@ -83,6 +95,19 @@ export default {
 
         L.polyline(geometryCoordinates, { color })
           .addTo(map);
+        ruta.visitas.map(visita => {
+          const latLng = [visita.item.latitud, visita.item.longitud];
+          var newIcon= '';
+          debugger
+          if (visita.tipo_item === 'Lugar común') {
+            newIcon = buildingIcon;
+          }else if(visita.tipo_item === 'Parada'){
+            newIcon = houseIcon;
+          }
+            L.marker(latLng, {icon: newIcon})
+            .addTo(map)
+            .bindPopup(`Pedido: ${visita.item.direccion}`);
+        });
       });
     };
 
