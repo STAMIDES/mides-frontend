@@ -6,126 +6,156 @@
     <div class="sidebar-content">
       <DatePicker v-model="date" dateFormat="yy-mm-dd" @date-select="handleDateChange" class="date-input" />
       <div class="button-group">
-        <div class="top-buttons">
-          <button
-            class="btn"
-            :class="{ 'active': activeButton === 'Pedidos' }"
-            @click="setActiveButton('Pedidos')"
-          >
-            Pedidos
-          </button>
-          <button
-            class="btn"
-            :class="{ 'active': activeButton === 'Turnos' }"
-            @click="setActiveButton('Turnos')"
-          >
-            Turnos
-          </button>
+        <div v-if="planificacion" class="planification-results">
+          <h2 class="text-lg font-bold mb-4">
+            Detalles de Planificación {{ planificacion.id }} - {{ formatDate2(planificacion.fecha) }}
+          </h2>
+          
+          <div class="rutas-container">
+            <div v-for="(ruta, index) in planificacion.rutas" :key="index" class="ruta-block">
+              <div class="ruta-header">
+                <h3 class="font-bold">
+                  Turno: {{ formatTime(ruta.hora_inicio) }} - {{ formatTime(ruta.hora_fin) }}
+                </h3>
+                <p class="text-sm">
+                  Vehículo: {{ ruta.vehiculo.matricula }} - {{ ruta.vehiculo.descripcion }}
+                </p>
+              </div>
+              
+              <div class="visitas-container">
+                <div v-for="(visita, vIndex) in ruta.visitas" :key="vIndex" class="visita-row">
+                  <div class="visita-time">{{ formatTime(visita.hora_llegada) }}</div>
+                  <div class="visita-status" :class="getStatusClass(visita.estado)">
+                    {{ visita.estado }}
+                  </div>
+                  <div class="visita-address">{{ visita.item.direccion }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div v-if="activeButton === 'Pedidos'" class="pedidos-list">
-          <table class="pedidos-table">
-            <thead>
-              <tr>
-                <th></th>
-                <th>ID</th>
-                <th>Origen y Horario</th>
-                <th>Destino y Horario</th>
-              </tr>
-            </thead>
-            <tbody style="font-size: 10px;">
-              <tr
-                v-for="(pedido, index) in processedPedidos"
-                :key="index"
-                :style="{ backgroundColor: getPedidoColor(pedido.id) }"
-              >
-                <td>
+        <div v-else>
+          <div class="top-buttons">
+            <button
+              class="btn"
+              :class="{ 'active': activeButton === 'Pedidos' }"
+              @click="setActiveButton('Pedidos')"
+            >
+              Pedidos
+            </button>
+            <button
+              class="btn"
+              :class="{ 'active': activeButton === 'Turnos' }"
+              @click="setActiveButton('Turnos')"
+            >
+              Turnos
+            </button>
+          </div>
+          <div v-if="activeButton === 'Pedidos'" class="pedidos-list">
+            <table class="pedidos-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>ID</th>
+                  <th>Origen y Horario</th>
+                  <th>Destino y Horario</th>
+                </tr>
+              </thead>
+              <tbody style="font-size: 10px;">
+                <tr
+                  v-for="(pedido, index) in processedPedidos"
+                  :key="index"
+                  :style="{ backgroundColor: getPedidoColor(pedido.id) }"
+                >
+                  <td>
+                    <input 
+                      type="checkbox" 
+                      :checked="!unselectedPedidos.includes(pedido.id)" 
+                      @change="toggleSelectionPedido(pedido.id)" 
+                    />
+                  </td>
+                  <td>{{ pedido.id }}</td>
+                  <td>{{ pedido.direccion_origen_y_horario }}</td>
+                  <td>{{ pedido.direccion_destino_y_horario }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else class="turnos-container">
+            <div class="turno morning-shift">
+              <h3>Turno mañana (7:00 - 13:00)</h3>
+              <div class="vehicles-grid">
+                <div v-for="vehicle in vehiculos" :key="vehicle.id" class="vehicle-box">
                   <input 
                     type="checkbox" 
-                    :checked="!unselectedPedidos.includes(pedido.id)" 
-                    @change="toggleSelectionPedido(pedido.id)" 
+                    :id="'morning-' + vehicle.id"
+                    :checked="selectedVehicles['morning'].some(v => v.vehicle_id === vehicle.id)"
+                    @change="toggleSelectionVehiculo('morning', vehicle.id)"
                   />
-                </td>
-                <td>{{ pedido.id }}</td>
-                <td>{{ pedido.direccion_origen_y_horario }}</td>
-                <td>{{ pedido.direccion_destino_y_horario }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div v-else class="turnos-container">
-          <div class="turno morning-shift">
-            <h3>Turno mañana (7:00 - 13:00)</h3>
-            <div class="vehicles-grid">
-              <div v-for="vehicle in vehiculos" :key="vehicle.id" class="vehicle-box">
-                <input 
-                  type="checkbox" 
-                  :id="'morning-' + vehicle.id"
-                  :checked="selectedVehicles['morning'].some(v => v.vehicle_id === vehicle.id)"
-                  @change="toggleSelectionVehiculo('morning', vehicle.id)"
-                />
-                <label :for="'morning-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
-                <label :for="'morning-' + vehicle.id">{{ vehicle.matricula }}</label>
-                <template v-if="selectedVehicles['morning'].some(v => v.vehicle_id === vehicle.id)">
-                <select
-                  @change="selectLugarComun('morning', vehicle.id, $event.target.value)">
-                  <option value="">Lugar de salida</option>
-                  <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id">
-                    {{ lugar.nombre }}
-                  </option>
-                </select>
-                <select
-                  @change="selectChofer('morning', vehicle.id, $event.target.value)">
-                  <option value="">Chofer</option>
-                  <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id">
-                    {{ chofer.nombre }}
-                  </option>
-                </select>
-              </template>
+                  <label :for="'morning-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
+                  <label :for="'morning-' + vehicle.id">{{ vehicle.matricula }}</label>
+                  <template v-if="selectedVehicles['morning'].some(v => v.vehicle_id === vehicle.id)">
+                  <select
+                    @change="selectLugarComun('morning', vehicle.id, $event.target.value)">
+                    <option value="">Lugar de salida</option>
+                    <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id">
+                      {{ lugar.nombre }}
+                    </option>
+                  </select>
+                  <select
+                    @change="selectChofer('morning', vehicle.id, $event.target.value)">
+                    <option value="">Chofer</option>
+                    <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id">
+                      {{ chofer.nombre }}
+                    </option>
+                  </select>
+                </template>
+                </div>
+              </div>
+            </div>
+            <div class="turno afternoon-shift">
+              <h3>Turno tarde (13:00 - 20:00)</h3>
+              <div class="vehicles-grid">
+                <div v-for="vehicle in vehiculos" :key="vehicle.id" class="vehicle-box">
+                  <input 
+                    type="checkbox" 
+                    :id="'afternoon-' + vehicle.id"
+                    :checked="selectedVehicles['afternoon'].some(v => v.vehicle_id === vehicle.id)"
+                    @change="toggleSelectionVehiculo('afternoon', vehicle.id)"
+                  />
+                  <label :for="'afternoon-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
+                  <label :for="'afternoon-' + vehicle.id">{{ vehicle.matricula }}</label>
+                  <template v-if="selectedVehicles['afternoon'].some(v => v.vehicle_id === vehicle.id)">
+                  <select
+                    @change="selectLugarComun('afternoon', vehicle.id, $event.target.value, selectedVehicles['afternoon'])">
+                    <option value="">Lugar de salida</option>
+                    <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id">
+                      {{ lugar.nombre }}
+                    </option>
+                  </select>
+                  <select
+                    @change="selectChofer('afternoon', vehicle.id, $event.target.value)">
+                    <option value="">Chofer</option>
+                    <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id">
+                      {{ chofer.nombre }}
+                    </option>
+                  </select>
+                </template>
+                </div>
               </div>
             </div>
           </div>
-          <div class="turno afternoon-shift">
-            <h3>Turno tarde (13:00 - 20:00)</h3>
-            <div class="vehicles-grid">
-              <div v-for="vehicle in vehiculos" :key="vehicle.id" class="vehicle-box">
-                <input 
-                  type="checkbox" 
-                  :id="'afternoon-' + vehicle.id"
-                  :checked="selectedVehicles['afternoon'].some(v => v.vehicle_id === vehicle.id)"
-                  @change="toggleSelectionVehiculo('afternoon', vehicle.id)"
-                />
-                <label :for="'afternoon-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
-                <label :for="'afternoon-' + vehicle.id">{{ vehicle.matricula }}</label>
-                <template v-if="selectedVehicles['afternoon'].some(v => v.vehicle_id === vehicle.id)">
-                <select
-                  @change="selectLugarComun('afternoon', vehicle.id, $event.target.value, selectedVehicles['afternoon'])">
-                  <option value="">Lugar de salida</option>
-                  <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id">
-                    {{ lugar.nombre }}
-                  </option>
-                </select>
-                <select
-                  @change="selectChofer('afternoon', vehicle.id, $event.target.value)">
-                  <option value="">Chofer</option>
-                  <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id">
-                    {{ chofer.nombre }}
-                  </option>
-                </select>
-              </template>
-              </div>
-            </div>
+          <div class="bottom-button">
+            <button class="btn" @click="planificar" :disabled="isPlanificando">
+              <span v-if="!isPlanificando">Planificar</span>
+              <span v-else class="spinner"></span>
+            </button>
+            <button 
+              class="btn" @click="guardarPlanificacion" :disabled="Object.keys(planificacion).length === 0"
+              :class="{ 'save': planificacion }"
+              >Guardar planificación
+            </button>
           </div>
-        </div>
-        <div class="bottom-button">
-          <button class="btn" @click="planificar" :disabled="isPlanificando">
-            <span v-if="!isPlanificando">Planificar</span>
-            <span v-else class="spinner"></span>
-          </button>
-          <button 
-            class="btn" @click="guardarPlanificacion" :disabled="Object.keys(planificacion).length === 0"
-            :class="{ 'save': planificacion }"
-            >Guardar planificación
-          </button>
         </div>
       </div>
     </div>
@@ -196,6 +226,27 @@ export default {
       const year = date.getFullYear();
       return `${year}-${month}-${day}`;
     };
+    const formatDate2 = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    };
+
+    const formatTime = (timeString) => {
+      if (!timeString) return '';
+      const [hours, minutes] = timeString.split(':');
+      return `${hours}:${minutes}`;
+    };
+
+    const getStatusClass = (status) => {
+      return {
+        'status-pending': status === 'Pendiente',
+        'status-completed': status === 'Completado'
+      };
+    };
 
     const setActiveButton = (button) => {
       activeButton.value = button;
@@ -252,7 +303,7 @@ export default {
     };
 
     const guardarPlanificacion = () => {
-      emit('guardar-planificacion', props.planificacion);
+      emit('guardar-planificacion');
     };
 
     watch(() => props.planificacion, (newValue) => {
@@ -278,7 +329,10 @@ export default {
       selectChofer,
       isPlanificando,
       planificar,
-      guardarPlanificacion
+      guardarPlanificacion,
+      formatDate2,
+      formatTime,
+      getStatusClass
     };
   }
 };
@@ -472,5 +526,70 @@ export default {
 .btn:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
+}
+
+.planification-results {
+  background-color: white;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.ruta-block {
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.ruta-header {
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.visitas-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.visita-row {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 8px;
+  background-color: white;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.visita-time {
+  font-weight: 500;
+  color: #495057;
+}
+
+.visita-status {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+}
+
+.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-completed {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.visita-address {
+  color: #6c757d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

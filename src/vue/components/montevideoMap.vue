@@ -98,7 +98,6 @@ export default {
         ruta.visitas.map(visita => {
           const latLng = [visita.item.latitud, visita.item.longitud];
           var newIcon= '';
-          debugger
           if (visita.tipo_item === 'Lugar común') {
             newIcon = buildingIcon;
           }else if(visita.tipo_item === 'Parada'){
