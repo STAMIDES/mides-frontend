@@ -6,7 +6,7 @@
     <div class="sidebar-content">
       <DatePicker v-model="date" dateFormat="yy-mm-dd" @date-select="handleDateChange" class="date-input" />
       <div class="button-group">
-        <div v-if="planificacion" class="planification-results">
+        <div v-if="Object.keys(planificacion).length > 0" class="planification-results">
           <h2 class="text-lg font-bold mb-4">
             Detalles de Planificación {{ planificacion.id }} - {{ formatDate2(planificacion.fecha) }}
           </h2>
@@ -25,8 +25,8 @@
               <div class="visitas-container">
                 <div v-for="(visita, vIndex) in ruta.visitas" :key="vIndex" class="visita-row">
                   <div class="visita-time">{{ formatTime(visita.hora_llegada) }}</div>
-                  <div class="visita-status" :class="getStatusClass(visita.estado)">
-                    {{ visita.estado }}
+                  <div class="visita-status-wrapper" :class="getStatusClass(visita.estado)">
+                    <div class="visita-status-circle" :class="getStatusClass(visita.estado)"/>
                   </div>
                   <div class="visita-address">{{ visita.item.direccion }}</div>
                 </div>
@@ -244,7 +244,7 @@ export default {
     const getStatusClass = (status) => {
       return {
         'status-pending': status === 'Pendiente',
-        'status-completed': status === 'Completado'
+        'status-completed': status === 'Realizada'
       };
     };
 
@@ -308,6 +308,7 @@ export default {
 
     watch(() => props.planificacion, (newValue) => {
       if (newValue !== null) {
+        console.log(newValue);
         isPlanificando.value = false;
       }
     });
@@ -551,18 +552,19 @@ export default {
 .visitas-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 .visita-row {
   display: grid;
   grid-template-columns: auto auto 1fr;
-  gap: 12px;
   align-items: center;
-  padding: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  gap: 1rem;
   background-color: white;
-  border-radius: 4px;
   font-size: 0.9em;
+  border-bottom-style: double;
+  border-bottom-color: #dee2e6;
 }
 
 .visita-time {
@@ -570,26 +572,45 @@ export default {
   color: #495057;
 }
 
-.visita-status {
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.8em;
+.visita-status-circle {
+  position: relative;
+  border-radius: 50%;
+  height: 16px;
+  width: 16px;
+  z-index: 1;
+}
+.status-pending.visita-status-circle {
+  background-color: blue;
+}
+.status-completed.visita-status-circle {
+  background-color: rgb(154, 157, 181);
 }
 
-.status-pending {
-  background-color: #fff3cd;
-  color: #856404;
+.visita-status-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
-.status-completed {
-  background-color: #d4edda;
-  color: #155724;
+.visita-status-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%; 
+  width: 8px; 
+  transform: translateX(-50%); 
+}
+.status-pending.visita-status-wrapper::before {
+  background-color: blue;
+}
+
+.status-completed.visita-status-wrapper::before {
+  background-color: rgb(154, 157, 181);
 }
 
 .visita-address {
   color: #6c757d;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>
