@@ -4,89 +4,94 @@
       {{ isHidden ? '>' : '<' }}
     </button>
     <div class="sidebar-content">
-      <DatePicker v-model="date" dateFormat="yy-mm-dd" @date-select="handleDateChange" class="date-input" />
       <div class="button-group">
-        <div v-if="Object.keys(planificacion).length > 0" class="planification-results">
-          <div>
+        <div v-if="Object.keys(planificacion).length > 0" >
+          <button class="btn" @click="fetchPedidos()">
+            Crear nueva planificación
+          </button>
+          <div class="planification-results">
+            <div>
 
-            <h3 style="margin:0">
-              Detalles de Planificación {{ planificacion.id }} 
-            </h3>
-            <p>
-              {{ formatDate2(planificacion.fecha) }}
-            </p>
-          </div>
-          
-          <div class="rutas-container">
-            <div v-for="(ruta, index) in planificacion.rutas" :key="index" class="ruta-block">
-              <div class="ruta-header">
-                <h3 class="font-bold">
-                  Turno: {{ formatTime(ruta.hora_inicio) }} - {{ formatTime(ruta.hora_fin) }}
-                </h3>
-                <p class="text-sm">
-                  Vehículo: {{ ruta.vehiculo.matricula }} - {{ ruta.vehiculo.descripcion }}
-                </p>
-              </div>
-              
-              <div class="visitas-container">
-                <div v-for="(visita, vIndex) in ruta.visitas" :key="vIndex" class="visita-row">
-                  <div class="visita-time">{{ formatTime(visita.hora_llegada) }}</div>
-                  <div class="visita-status-wrapper" :class="getStatusClass(visita.estado)">
-                    <div class="visita-status-circle" :class="getStatusClass(visita.estado)"/>
+              <h3 style="margin:0">
+                Detalles de Planificación {{ planificacion.id }} 
+              </h3>
+              <p>
+                {{ formatDate2(planificacion.fecha) }}
+              </p>
+            </div>
+            
+            <div class="rutas-container">
+              <div v-for="(ruta, index) in planificacion.rutas" :key="index" class="ruta-block">
+                <div class="ruta-header">
+                  <h3 class="font-bold">
+                    Turno: {{ formatTime(ruta.hora_inicio) }} - {{ formatTime(ruta.hora_fin) }}
+                  </h3>
+                  <p class="text-sm">
+                    Vehículo: {{ ruta.vehiculo.matricula }} - {{ ruta.vehiculo.descripcion }}
+                  </p>
+                </div>
+                
+                <div class="visitas-container">
+                  <div v-for="(visita, vIndex) in ruta.visitas" :key="vIndex" class="visita-row">
+                    <div class="visita-time">{{ formatTime(visita.hora_llegada) }}</div>
+                    <div class="visita-status-wrapper" :class="getStatusClass(visita.estado)">
+                      <div class="visita-status-circle" :class="getStatusClass(visita.estado)"/>
+                    </div>
+                    <div class="visita-address">{{ visita.item.direccion }}</div>
                   </div>
-                  <div class="visita-address">{{ visita.item.direccion }}</div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div v-else>
-          <div class="top-buttons">
-            <button
-              class="btn"
-              :class="{ 'active': activeButton === 'Pedidos' }"
-              @click="setActiveButton('Pedidos')"
-            >
-              Pedidos
-            </button>
-            <button
-              class="btn"
-              :class="{ 'active': activeButton === 'Turnos' }"
-              @click="setActiveButton('Turnos')"
-            >
-              Turnos
-            </button>
           </div>
-          <div v-if="activeButton === 'Pedidos'" class="pedidos-list">
-            <table class="pedidos-table">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>ID</th>
-                  <th>Origen y Horario</th>
-                  <th>Destino y Horario</th>
-                </tr>
-              </thead>
-              <tbody style="font-size: 10px;">
-                <tr
-                  v-for="(pedido, index) in processedPedidos"
-                  :key="index"
-                  :style="{ backgroundColor: getPedidoColor(pedido.id) }"
-                >
-                  <td>
-                    <input 
-                      type="checkbox" 
-                      :checked="!unselectedPedidos.includes(pedido.id)" 
-                      @change="toggleSelectionPedido(pedido.id)" 
-                    />
-                  </td>
-                  <td>{{ pedido.id }}</td>
-                  <td>{{ pedido.direccion_origen_y_horario }}</td>
-                  <td>{{ pedido.direccion_destino_y_horario }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <div v-else>
+            <DatePicker v-model="date" dateFormat="yy-mm-dd" @date-select="handleDateChange" class="date-input" />
+            <div class="top-buttons">
+              <button
+                class="btn"
+                :class="{ 'active': activeButton === 'Pedidos' }"
+                @click="setActiveButton('Pedidos')"
+              >
+                Pedidos
+              </button>
+              <button
+                class="btn"
+                :class="{ 'active': activeButton === 'Turnos' }"
+                @click="setActiveButton('Turnos')"
+              >
+                Turnos
+              </button>
+            </div>
+            <div v-if="activeButton === 'Pedidos'" class="pedidos-list">
+              <table class="pedidos-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>ID</th>
+                    <th>Origen y Horario</th>
+                    <th>Destino y Horario</th>
+                  </tr>
+                </thead>
+                <tbody style="font-size: 10px;">
+                  <tr
+                    v-for="(pedido, index) in processedPedidos"
+                    :key="index"
+                    :style="{ backgroundColor: getPedidoColor(pedido.id) }"
+                  >
+                    <td>
+                      <input 
+                        type="checkbox" 
+                        :checked="!unselectedPedidos.includes(pedido.id)" 
+                        @change="toggleSelectionPedido(pedido.id)" 
+                      />
+                    </td>
+                    <td>{{ pedido.id }}</td>
+                    <td>{{ pedido.direccion_origen_y_horario }}</td>
+                    <td>{{ pedido.direccion_destino_y_horario }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           <div v-else class="turnos-container">
             <div class="turno morning-shift">
               <h3>Turno mañana (7:00 - 13:00)</h3>
@@ -197,6 +202,10 @@ export default {
     planificacion: {
       type: Object,
       default: {}
+    },
+    fetchPedidos: {
+      type: Function,
+      required: true
     }
   },
   emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-vehicles'],
@@ -385,6 +394,7 @@ export default {
   padding: 10px;
   font-size: 16px;
   background-color: white;
+  width: 100%;
 }
 .button-group {
   background-color: #e8e8e8;

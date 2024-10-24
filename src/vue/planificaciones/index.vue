@@ -9,6 +9,7 @@
       :choferes="choferes"
       :lugaresComunes="lugaresComunes" 
       :planificacion="planificacion"
+      :fetchPedidos="fetchPedidos"
       @date-changed="handleDateChange"
       @planificar="planificar"
       @checkbox-change-pedidos="handleCheckboxChangePedidos"
@@ -335,16 +336,13 @@ export default {
     };
 
     onMounted(() => {
-      fetchPedidos()
       fetchVehiculos()
       fetchChoferes()
       fetchLugaresComunes()
       if (route.params.planificacionId) {
         fetchPlanificacion(route.params.planificacionId);
         showPedidos.value = false;
-        console.log(1)
       } else {
-        console.log(2)
         fetchPedidos(); 
         showPedidos.value = true;
       }
@@ -362,7 +360,8 @@ export default {
       planificar,
       handleCheckboxChangePedidos,
       handleSelectedVehicles,
-      showPedidos
+      showPedidos,
+      fetchPedidos
     };
   }
 };
