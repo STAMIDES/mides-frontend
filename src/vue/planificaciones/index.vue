@@ -11,7 +11,6 @@
       :planificacion="planificacion"
       @date-changed="handleDateChange"
       @planificar="planificar"
-      @guardar-planificacion="guardarPlanificacion"
       @checkbox-change-pedidos="handleCheckboxChangePedidos"
       @selected-vehicles="handleSelectedVehicles"
     />
@@ -133,25 +132,38 @@ export default {
       }
     };
 
-    const guardarPlanificacion = async () => {
-      try {
+    const procesarNuevaPlanificacion = (nueva_planificacion, vehiculosNormalizados) => {
         const normalizedRutas = [];
         const normalizedTurnos = [];
 
-        planificacion.value.routes.forEach(p => {
+        nueva_planificacion.routes.forEach(p => {
             // Normalize routes
+            const vehicle = vehiculosNormalizados.find(v => v.id === Number(p.vehicle_id));
             normalizedRutas.push({
                     id_vehiculo: p.vehicle_id,
-                    hora_inicio: p.time_window.start,
-                    hora_fin: p.time_window.end,
-                    geometria: p.geometria,
-                    visitas: p.visitas
+                    hora_inicio: vehicle.time_window.start,
+                    hora_fin: vehicle.time_window.end,
+                    geometria: p.geometry,
+                    visitas: p.visits.map(v=>{
+                      return {
+                        direccion: v.address,
+                        item: {
+                          latitud: v.coordinates.latitude,
+                          longitud: v.coordinates.longitude
+                        },
+                        id_item: v.ride_id? v.ride_id : selectedVehicles.value.morning.find(v => v.vehicle_id.toString() === p.vehicle_id)?.lugares_comunes_id? 
+                                                                        selectedVehicles.value.morning.find(v => v.vehicle_id.toString() === p.vehicle_id)?.lugares_comunes_id :
+                                                                        selectedVehicles.value.afternoon.find(v => v.vehicle_id.toString() === p.vehicle_id)?.lugares_comunes_id,
+                        tipo_item: v.ride_id? "Parada" : "Lugar común",
+                        hora_llegada: v.arrival_time,
+                        hora_salida: v.arrival_time
+                      }
+                    })
             });
-            // Ensure the unique time intervals (start_time and end_time) are collected
             if (normalizedTurnos.length==0 || !normalizedTurnos.find(t => t.hora_inicio === p.start_time && t.hora_fin === p.end_time)) {
                 normalizedTurnos.push({
-                    hora_inicio: p.time_window.start,
-                    hora_fin: p.time_window.end,
+                    hora_inicio: vehicle.time_window.start,
+                    hora_fin: vehicle.time_window.end,
                 });
             }
         });
@@ -160,8 +172,15 @@ export default {
           rutas: normalizedRutas,
           turnos: normalizedTurnos
         };
-        await api.post(`/planificaciones`, normalizedPlanificacion);
-        console.log('Planificacion guardada');
+        return normalizedPlanificacion;
+    }
+    
+    const guardarPlanificacion = async (nueva_planificacion) => {
+      try {
+        debugger
+        const response = await api.post(`/planificaciones`, nueva_planificacion);
+        console.log('Planificacion guardada', response.data);
+        planificacion.value = response.data.planificacion
       } catch (error) {
         console.error('Error guardando planificacion:', error);
       }
@@ -185,7 +204,7 @@ export default {
     };
     
     const crearPlanificacion = async (pedidosNormalizados) => {
-      let vehiculosNormalizados = [
+      var vehiculosNormalizados = [
         ...normalizeVehicles(selectedVehicles.value.morning, turnoManana.value),
         ...normalizeVehicles(selectedVehicles.value.afternoon, turnoTarde.value)
       ];
@@ -209,37 +228,9 @@ export default {
 
       try {
         const response = await api.post('http://localhost:4210/optimization/v1/solve', problem);
-        const planificacionProcesada = response.data;
-        planificacionProcesada.rutas = response.data.routes;
-        for (const key in planificacionProcesada.rutas) {
-            const route = planificacionProcesada.rutas[key];
-            planificacionProcesada.rutas[key].geometria = route.geometry;
-            delete planificacionProcesada.rutas[key].geometry;
-            planificacionProcesada.rutas[key].visitas = route.visits.map(v=>{
-              return {
-                direccion: v.address,
-                item: {
-                  latitud: v.coordinates.latitude,
-                  longitud: v.coordinates.longitude
-                },
-                id_item: v.ride_id? v.ride_id : selectedVehicles.value.morning.find(v => v.vehicle_id .toString()===  route.vehicle_id)?.lugares_comunes_id? 
-                                                                selectedVehicles.value.morning.find(v => v.vehicle_id.toString() === route.vehicle_id)?.lugares_comunes_id :
-                                                                selectedVehicles.value.afternoon.find(v => v.vehicle_id.toString() === route.vehicle_id)?.lugares_comunes_id,
-                tipo_item: v.ride_id? "Parada" : "Lugar común",
-                hora_llegada: v.arrival_time,
-                hora_salida: v.arrival_time
-              }
-            });
-            const vehicle = vehiculosNormalizados.find(v => v.id === Number(route.vehicle_id));
-            if (vehicle) {
-              route.time_window = vehicle.time_window;
-            } else {
-              console.warn(`No vehicle found with id: ${route.vehicle_id}`);
-            }
-        }
-        planificacion.value = planificacionProcesada;
+        const planificacionProcesada = procesarNuevaPlanificacion(response.data, vehiculosNormalizados);
+        guardarPlanificacion(planificacionProcesada)
         showPedidos.value = false;
-        console.log('Planificacion creada', planificacionProcesada);
      } catch (error) {
       console.error('Error during API request:', error);
     }
@@ -369,7 +360,6 @@ export default {
       unselectedPedidosIds,
       handleDateChange,
       planificar,
-      guardarPlanificacion,
       handleCheckboxChangePedidos,
       handleSelectedVehicles,
       showPedidos

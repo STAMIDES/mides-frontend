@@ -7,9 +7,15 @@
       <DatePicker v-model="date" dateFormat="yy-mm-dd" @date-select="handleDateChange" class="date-input" />
       <div class="button-group">
         <div v-if="Object.keys(planificacion).length > 0" class="planification-results">
-          <h2 class="text-lg font-bold mb-4">
-            Detalles de Planificación {{ planificacion.id }} - {{ formatDate2(planificacion.fecha) }}
-          </h2>
+          <div>
+
+            <h3 style="margin:0">
+              Detalles de Planificación {{ planificacion.id }} 
+            </h3>
+            <p>
+              {{ formatDate2(planificacion.fecha) }}
+            </p>
+          </div>
           
           <div class="rutas-container">
             <div v-for="(ruta, index) in planificacion.rutas" :key="index" class="ruta-block">
@@ -146,14 +152,9 @@
             </div>
           </div>
           <div class="bottom-button">
-            <button class="btn" @click="planificar" :disabled="isPlanificando">
+            <button class="btn big" @click="planificar" :disabled="isPlanificando">
               <span v-if="!isPlanificando">Planificar</span>
               <span v-else class="spinner"></span>
-            </button>
-            <button 
-              class="btn" @click="guardarPlanificacion" :disabled="Object.keys(planificacion).length === 0"
-              :class="{ 'save': planificacion }"
-              >Guardar planificación
             </button>
           </div>
         </div>
@@ -198,7 +199,7 @@ export default {
       default: {}
     }
   },
-  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-vehicles', 'guardar-planificacion'],
+  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-vehicles'],
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
@@ -302,10 +303,6 @@ export default {
       emit('planificar');
     };
 
-    const guardarPlanificacion = () => {
-      emit('guardar-planificacion');
-    };
-
     watch(() => props.planificacion, (newValue) => {
       if (newValue !== null) {
         console.log(newValue);
@@ -330,7 +327,6 @@ export default {
       selectChofer,
       isPlanificando,
       planificar,
-      guardarPlanificacion,
       formatDate2,
       formatTime,
       getStatusClass
@@ -415,6 +411,10 @@ export default {
   color: white;
   border: none;
   cursor: pointer;
+}
+
+.btn.big {
+  width: 100%;
 }
 
 .btn:hover {
@@ -537,10 +537,11 @@ export default {
 }
 
 .ruta-block {
-  background-color: #f8f9fa;
+  background-color: #abafb2;
   border-radius: 6px;
   padding: 16px;
   margin-bottom: 16px;
+  font-size: 0.8em;
 }
 
 .ruta-header {
