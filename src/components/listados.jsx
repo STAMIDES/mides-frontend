@@ -162,6 +162,7 @@ const ListComponent = ({
           {itemToDelete && (
             <Box className="delete-container">
               {columns.map((column, colIndex) => (
+                !column.columns && (
                 <Box key={colIndex} display="flex" alignItems="center" mb={1}>
                   <Typography variant="body2" fontWeight="bold" mr={1}>
                     {column.label}:
@@ -169,7 +170,7 @@ const ListComponent = ({
                   <Typography variant="body2" color="textSecondary">
                     {itemToDelete[column.key]}
                   </Typography>
-                </Box>
+                </Box>)
               ))}
             </Box>
           )}
