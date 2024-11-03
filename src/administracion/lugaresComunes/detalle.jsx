@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Paper, Typography, Button, Grid } from '@mui/material';
+import { Container, Paper, Typography, Button, Grid, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import useApi from '../../network/axios';
 import '../css/detalle.css';
 
 const LugaresComunDetalles = () => {
   const { id } = useParams();
   const [lugarComun, setLugarComun] = useState(null);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [lugarComunEditor, setLugarComunEditor] = useState(null);
 
   const api = useApi();
   useEffect(() => {
@@ -14,11 +16,33 @@ const LugaresComunDetalles = () => {
     api.get(`lugares_comunes/${id}`)
       .then(response => {
         setLugarComun(response.data.lugar);
+        setLugarComunEditor(response.data.lugar);
       })
       .catch(error => {
         console.error("There was an error fetching the lugar común data!", error);
       });
   }, [id]);
+
+  const editarLugarComun = async () => {
+    const response = await api.put(`lugares_comunes/${lugarComun.id}`, lugarComunEditor);
+    setLugarComun(response.data.lugar);
+    setLugarComunEditor(response.data.lugar);
+  };
+
+  const handleCloseEditDialog = () => {
+    setOpenEditDialog(false);
+    setLugarComunEditor(lugarComun);
+  };
+
+  const handleSaveChanges = () => {
+    setOpenEditDialog(false);
+    editarLugarComun();
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setLugarComunEditor({ ...lugarComunEditor, [name]: value });
+  };
 
   if (!lugarComun) {
     return <Typography>Loading...</Typography>;
@@ -26,6 +50,7 @@ const LugaresComunDetalles = () => {
 
   const handleEdit = () => {
     console.log("Editing lugar común", lugarComun.id);
+    setOpenEditDialog(true);
   };
 
   const handleDelete = () => {
@@ -63,6 +88,44 @@ const LugaresComunDetalles = () => {
           </Grid>
         </Grid>
       </Paper>
+      <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
+        <DialogTitle>Editar Lugar Común</DialogTitle>
+        <DialogContent>
+          <TextField
+              autoFocus
+              margin="dense"
+              name="nombre"
+              label="Nombre"
+              fullWidth
+              value={lugarComunEditor.nombre}
+              onChange={handleInputChange}
+          />
+          <TextField
+              margin="dense"
+              name="direccion"
+              label="Dirección"
+              fullWidth
+              value={lugarComunEditor.direccion}
+              onChange={handleInputChange}
+          />
+          <TextField
+              margin="dense"
+              name="observaciones"
+              label="Observaciones"
+              fullWidth
+              value={lugarComunEditor.observaciones}
+              onChange={handleInputChange}
+          />
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={handleCloseEditDialog} color="primary">
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveChanges} color="primary">
+              Guardar
+            </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
