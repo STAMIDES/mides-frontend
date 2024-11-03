@@ -10,7 +10,7 @@ import moment from 'moment';
 
 const columns = [
   { label: "Planificado por", key: "creado_por" },
-  { label: "Rutas", key: "rutas", columns: [
+  { label: "Rutas", key: "rutas", borderSeparation: true, columns: [
                                 { label: "Origen", key: "direccion_origen_y_horario"},
                                 { label: "Destino", key: "direccion_destino_y_horario"},
                                 { label: "Vehículo", key: "vehiculo"}]},

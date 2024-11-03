@@ -138,8 +138,10 @@ const ClienteDetalles = () => {
                         <Typography>{cliente.telefono}</Typography>
                     </Grid>
                     <Grid item xs={12} sm={4}>
-                        <Typography variant="h6">Tipo:</Typography>
-                        <Typography>{cliente.tipo}</Typography>
+                        <Typography variant="h6">Caracteristicas:</Typography>
+                        {cliente.caracteristicas.map((caracteristica, index) => (
+                            <Typography key={index}>{caracteristica.nombre}</Typography>
+                        ))}
                     </Grid>
                     <Grid item xs={12} pb={2}>
                         <Typography variant="h6">Observaciones:</Typography>

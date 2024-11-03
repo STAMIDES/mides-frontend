@@ -88,10 +88,11 @@ const ListComponent = ({
                                   <div key={indexData}>
                                     {column.columns.map((subColumn, subColIndex) => (
                                       <div key={subColIndex}>
-                                        <strong>{subColumn.label}:</strong> {innerItem?.[subColumn.key]}
+                                        {subColumn.label ? <strong>{subColumn.label}:</strong> : null}
+                                        {innerItem?.[subColumn.key]}
                                       </div>
                                     ))}
-                                    {indexData < item[column.key].length - 1 && (
+                                    {column.borderSeparation && indexData < item[column.key].length - 1 && (
                                       <div>-------------------</div>
                                     )}
                                   </div>

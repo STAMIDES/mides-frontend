@@ -11,7 +11,7 @@ const columns = [
   { label: "Nombre", key: "nombre" },
   { label: "Apellidos", key: "apellido" },
   { label: "Cedula", key: "documento" },
-  { label: "Tipo", key: "tipo" },
+  { label: "Caracteristicas", borderSeparation: false, key: "caracteristicas", columns: [{ label: "", key: "nombre"}]}
 ];
 
 const ClienteListado = () => {
