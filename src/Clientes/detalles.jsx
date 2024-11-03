@@ -9,6 +9,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogContentText,
   DialogActions,
   TextField,
   FormControlLabel,
@@ -37,6 +38,7 @@ const ClienteDetalles = () => {
   const [pageSize, setPageSize] = useState(10);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [caracteristicasTodas, setCaracteristicasTodas] = useState([]); 
+  const [handleDelete, setHandleDelete] = useState(false);
   const navigate = useNavigate();
 
   const obtenerCaracteristicas = async () => {
@@ -161,11 +163,15 @@ const ClienteDetalles = () => {
     setOpenEditDialog(false);
   };
 
-  const handleDelete = () => {
-    // Implement delete functionality here
-    console.log('Deleting client', cliente.id);
+  const onDelete = async () => {
+    try {
+      const response = await api.delete(`/clientes/${cliente.id}`);
+      setHandleDelete(false);
+      navigate('/usuarios');
+    } catch (error) {
+      console.error('Error borrando cliente:', error);
+    }
   };
-
   if (!cliente) {
     return <Typography>Loading...</Typography>;
   }
@@ -191,7 +197,7 @@ const ClienteDetalles = () => {
           <Button
             variant="contained"
             color="error"
-            onClick={handleDelete}
+            onClick={()=>setHandleDelete(true)}
             style={{ marginLeft: '10px' }}
           >
             Borrar
@@ -339,6 +345,26 @@ const ClienteDetalles = () => {
           </Button>
           <Button onClick={handleSaveChanges} color="primary">
             Guardar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={handleDelete}
+        onClose={()=>setHandleDelete(false)}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">Confirmar Borrado</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            ¿Estás seguro que deseas eliminar este usuario? (Borrado lógico)
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={()=>setHandleDelete(false)}>Cancelar</Button>
+          <Button color="error" onClick={()=>onDelete()} autoFocus>
+            Confirmar
           </Button>
         </DialogActions>
       </Dialog>
