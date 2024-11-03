@@ -157,7 +157,7 @@ const ListComponent = ({
         <DialogTitle id="alert-dialog-title">Confirmar Borrado</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            ¿Estás seguro que deseas eliminar este {title.substr(0, title.length - 1).toLowerCase()}?
+            ¿Estás seguro que deseas eliminar a?
           </DialogContentText>
           {itemToDelete && (
             <Box className="delete-container">
