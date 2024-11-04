@@ -3,14 +3,15 @@ import { Container } from "@mui/material";
 import Header from "../../components/headerList";
 import ListComponent from "../../components/listados";
 import useApi from "../../network/axios"; // Ensure this path matches your actual API file path
-import AddCircleIcon from '@mui/icons-material/AddCircle';
+import ToggleOffIcon from '@mui/icons-material/ToggleOff';
+import ToggleOnIcon from '@mui/icons-material/ToggleOn';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 const columns = [
   { label: "Nombre", key: "nombre" },
   { label: "Apellidos", key: "apellido" },
   { label: "Cedula", key: "documento" },
-  { label: "Telefono", key: "telefono" }
+  { label: "Telefono", key: "telefono" },
+  { label: "Activo", key: "activo" },
 ];
 
 const UsuarioListado = () => {
@@ -35,6 +36,15 @@ const UsuarioListado = () => {
     }
   };
 
+  const setStatus = async (id, status) => {
+    try {
+      const response = await api.put(`/choferes/estado/${id}?activo=${status}`);
+      obtenerChoferes();
+    } catch (error) {
+      console.error("Error al marcar como activo o inactivo:", error);
+    }
+  };
+  
   useEffect(() => {
     obtenerChoferes();
   }, []);
@@ -52,10 +62,11 @@ const UsuarioListado = () => {
         data={choferes} 
         columns={columns} 
         createLink="/choferes/crear" 
-        icons={[ <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={[ "/choferes/editar?chofer_id=",  "/choferes/eliminar?chofer_id="]}
-        iconsTooltip={["Editar Chofer", "Eliminar Chofer"]}
+        icons={[ <ToggleOffIcon/>, <ToggleOnIcon/>, <DeleteIcon />]}
+        iconsLinks={[  "", "", "/choferes/eliminar?chofer_id="]}
+        iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Chofer"]}
         getFunction={obtenerChoferes}
+        setStatus={setStatus}
         pageCounter={Math.floor(cantidadChoferes/pageSize)+1}
       />
     </Container>

@@ -3,13 +3,15 @@ import { Container } from "@mui/material";
 import Header from "../../components/headerList";
 import ListComponent from "../../components/listados";
 import useApi from "../../network/axios"; // Ensure this path matches your actual API file path
-import AddCircleIcon from '@mui/icons-material/AddCircle';
+import ToggleOffIcon from '@mui/icons-material/ToggleOff';
+import ToggleOnIcon from '@mui/icons-material/ToggleOn';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
+
 const columns = [
   { label: "Matricula", key: "matricula" },
   { label: "Capacidad", key: "capacidad_convencional" },
   { label: "Capacidad silla de ruedas", key: "capacidad_silla_de_ruedas" },
+  { label: "Activo", key: "activo" },
   { label: "Descripcion", key: "descripcion" }
 ];
 
@@ -43,6 +45,15 @@ const ComionetasListado = () => {
     obtenerCamionetas(1, searchTerm);
   };
 
+  const setStatus = async (id, status) => {
+    try {
+      const response = await api.put(`/vehiculos/estado/${id}?activo=${status}`);
+      obtenerCamionetas();
+    } catch (error) {
+      console.error("Error al marcar como activo o inactivo:", error);
+    }
+  };
+
   return (
     <Container>
       <Header createLink="./crear" createMessage="Crear" onSearch={handleSearch}/>
@@ -52,10 +63,11 @@ const ComionetasListado = () => {
         data={camionetas} 
         columns={columns} 
         createLink="/camionetas/crear" 
-        icons={[ <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={[ "/camionetas/editar?camioneta_id=",  "/camionetas/eliminar?camioneta_id="]}
-        iconsTooltip={["Editar Camioneta", "Eliminar Camioneta"]}
+        icons={[ <ToggleOffIcon/>, <ToggleOnIcon/>, <DeleteIcon />]}
+        iconsLinks={[ "","", "/camionetas/eliminar?camioneta_id="]}
+        iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Camioneta"]}
         getFunction={obtenerCamionetas}
+        setStatus={setStatus}
         pageCounter={Math.floor(cantidadCamionetas/pageSize)+1}
       />
     </Container>
