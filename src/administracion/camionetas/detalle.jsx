@@ -79,8 +79,8 @@ const CamionetaDetalles = () => {
             <Typography>{camioneta.matricula}</Typography>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <Typography variant="h6">Disponibilidad:</Typography>
-            <Typography>{camioneta.disponibilidad ? 'Disponible' : 'No Disponible'}</Typography>
+            <Typography variant="h6">Estado:</Typography>
+            <Typography>{camioneta.activo ? 'Disponible' : 'No Disponible'}</Typography>
           </Grid>
           <Grid item xs={12} sm={6}>
             <Typography variant="h6">Capacidad Convencional:</Typography>
