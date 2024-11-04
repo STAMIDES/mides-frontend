@@ -258,7 +258,7 @@ const ClienteDetalles = () => {
           iconsLinks={['/pedidos/editar', '/pedidos/eliminar']}
           iconsTooltip={['Editar Pedido', 'Eliminar Pedido']}
           getFunction={obtenerPedidosCliente}
-          pageCounter={Math.floor(cantidadPedidos / pageSize) + 1}
+          pageCounter={Math.ceil(cantidadPedidos / pageSize)}
         />
       </Paper>
 

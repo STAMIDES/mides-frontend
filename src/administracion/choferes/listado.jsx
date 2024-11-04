@@ -67,7 +67,7 @@ const UsuarioListado = () => {
         iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Chofer"]}
         getFunction={obtenerChoferes}
         setStatus={setStatus}
-        pageCounter={Math.floor(cantidadChoferes/pageSize)+1}
+        pageCounter={Math.ceil(cantidadChoferes/pageSize)}
       />
     </Container>
   );

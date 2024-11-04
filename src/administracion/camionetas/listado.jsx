@@ -68,7 +68,7 @@ const ComionetasListado = () => {
         iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Camioneta"]}
         getFunction={obtenerCamionetas}
         setStatus={setStatus}
-        pageCounter={Math.floor(cantidadCamionetas/pageSize)+1}
+        pageCounter={Math.ceil(cantidadCamionetas/pageSize)}
       />
     </Container>
   );

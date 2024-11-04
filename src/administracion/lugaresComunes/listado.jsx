@@ -64,7 +64,7 @@ const LugaresComunesListado = () => {
         iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Lugar Comun"]}
         getFunction={obtenerLugaresComunes}
         setStatus={setStatus}
-        pageCounter={Math.floor(cantidadLugaresComunes/pageSize)+1}
+        pageCounter={Math.ceil(cantidadLugaresComunes/pageSize)}
       />
     </Container>
   );
