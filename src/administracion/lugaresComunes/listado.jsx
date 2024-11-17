@@ -3,12 +3,13 @@ import { Container } from "@mui/material";
 import Header from "../../components/headerList";
 import ListComponent from "../../components/listados";
 import useApi from "../../network/axios"; // Ensure this path matches your actual API file path
-import AddCircleIcon from '@mui/icons-material/AddCircle';
+import ToggleOffIcon from '@mui/icons-material/ToggleOff';
+import ToggleOnIcon from '@mui/icons-material/ToggleOn';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 const columns = [
   { label: "Nombre", key: "nombre" },
   { label: "Direccion", key: "direccion" },
+  { label: "Activo", key: "activo" },
   { label: "observaciones", key: "observaciones" }
 ];
 
@@ -33,7 +34,14 @@ const LugaresComunesListado = () => {
       }
     }
   };
-
+  const setStatus = async (id, status) => {
+    try {
+      const response = await api.put(`/lugares_comunes/estado/${id}?activo=${status}`);
+      obtenerLugaresComunes();
+    } catch (error) {
+      console.error("Error al marcar como activo o inactivo:", error);
+    }
+  };
   useEffect(() => {
     obtenerLugaresComunes();
   }, []);
@@ -51,11 +59,12 @@ const LugaresComunesListado = () => {
         data={lugares} 
         columns={columns} 
         createLink="/lugares_comunes/crear" 
-        icons={[ <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={[ "/lugares_comunes/editar?lugar_comun_id=",  "/lugares_comunes/eliminar?lugar_comun_id="]}
-        iconsTooltip={["Editar Lugar Comun", "Eliminar Lugar Comun"]}
+        icons={[ <ToggleOffIcon/>, <ToggleOnIcon/>, <DeleteIcon />]}
+        iconsLinks={["", "", "/lugares_comunes/eliminar?lugar_comun_id="]}
+        iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Lugar Comun"]}
         getFunction={obtenerLugaresComunes}
-        pageCounter={Math.floor(cantidadLugaresComunes/pageSize)+1}
+        setStatus={setStatus}
+        pageCounter={Math.ceil(cantidadLugaresComunes/pageSize)}
       />
     </Container>
   );

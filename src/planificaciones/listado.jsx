@@ -9,10 +9,11 @@ import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 import moment from 'moment';
 
 const columns = [
-  { label: "Planificación por", key: "nombre_y_apellido" },
-  { label: "Documento", key: "usuario_documento" },
-  { label: "Origen", key: "direccion_origen_y_horario"},
-  { label: "Destino", key: "direccion_destino_y_horario" },
+  { label: "Planificado por", key: "creado_por" },
+  { label: "Rutas", key: "rutas", borderSeparation: true, columns: [
+                                { label: "Origen", key: "direccion_origen_y_horario"},
+                                { label: "Destino", key: "direccion_destino_y_horario"},
+                                { label: "Vehículo", key: "vehiculo"}]},
 ]
 
 const PlanificacionListado = () => {
@@ -42,12 +43,14 @@ const PlanificacionListado = () => {
       setPage(page);
       const response = await api.get(`/planificaciones/fecha/${selectedDate.format("YYYY-MM-DD")}?offset=${offset}&limit=${pageSize}&search=${search}`);
       const planificaciones = response.data.planificaciones;
-      console.log(JSON.stringify(planificaciones));
       const planificacionesProcesados = planificaciones.map(planificacion => ({
         ...planificacion,
-        direccion_origen_y_horario: `${planificacion.direccion_origen}  \n ${planificacion.ventana_origen_fin}`,
-        direccion_destino_y_horario: `${planificacion.direccion_destino} \n ${planificacion.ventana_destino_fin}`,
-        nombre_y_apellido: `${planificacion.cliente_nombre} \n ${planificacion.cliente_apellido}`,
+        creado_por: `${planificacion.creado_por.nombre}`,
+        rutas: planificacion.rutas.map(ruta => ({
+          direccion_origen_y_horario: `${ruta.hora_inicio}  ${ruta.visitas[0].lugar_comun.nombre}`,
+          direccion_destino_y_horario: `${ruta.hora_fin} ${ruta.visitas[ruta.visitas.length-1].lugar_comun.nombre}`,
+          vehiculo: `${ruta.vehiculo.descripcion} ${ruta.vehiculo.matricula}`
+        }))
       }));
       setPlanificaciones(planificacionesProcesados);
       setCantidadPlanificaciones(response.data.cantidad);
@@ -55,6 +58,7 @@ const PlanificacionListado = () => {
       if (error.response) {
         setError(error.response.statusText);
       } else {
+        console.log(error)
         setError('An unexpected error occurred');
       }
     }
@@ -84,7 +88,7 @@ const PlanificacionListado = () => {
         iconsTooltip={[ "Editar Planificación", "Eliminar Planificación"]}
         getFunction={obtenerPlanificaciones}
         currentPage={currentPage}
-        pageCounter={Math.floor(cantidadPlanificaciones/pageSize)+1}
+        pageCounter={Math.ceil(cantidadPlanificaciones/pageSize)}
       />
     </Container>
   );

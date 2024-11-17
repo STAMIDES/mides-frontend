@@ -8,6 +8,8 @@
 import { onMounted, watch } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import homeIcon from '../../imgs/map_home.png';
+import building from '../../imgs/map_building.png';
 
 export default {
   name: 'MontevideoMap',
@@ -23,11 +25,25 @@ export default {
     unselectedPedidosIds: {
       type: Array,
       required: true
+    },
+    showPedidos: {  
+      type: Boolean,
+      required: true
     }
   },
   setup(props) {
     let map;
     const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF'];
+    var houseIcon = L.icon({
+          iconUrl: homeIcon,
+          iconSize:     [20, 30], // size of the icon
+          iconAnchor:   [20, 30], // point of the icon which will correspond to marker's location
+      });
+    var buildingIcon = L.icon({
+          iconUrl: building,
+          iconSize:     [20, 30], // size of the icon
+          iconAnchor:   [20, 30], // point of the icon which will correspond to marker's location
+      });
     const addPedidosToMap = () => {
       // Clear existing layers if any (optional)
       if (map) {
@@ -55,26 +71,43 @@ export default {
           .addTo(map)
           .bindPopup(`Destino: ${pedido.direccion_destino_y_horario}`);
 
-        // Draw a line between origin and destination or use planificacion geometry
-        if (Object.keys(props.planificacion).length==0) {
-          // If planificacion is empty, draw a direct line
-          L.polyline([originLatLng, destinationLatLng], { color: 'blue' })
+        // Draw a line between origin and destination for each pedido
+        L.polyline([originLatLng, destinationLatLng], { color: 'blue' })
             .addTo(map)
             .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
-        } 
         });
-        if (Object.keys(props.planificacion).length > 0) {
-          // Use planificacion geometry to draw the polyline
-          props.planificacion.routes.forEach((route, index) => {
-              const geometryCoordinates = route.geometry.map(coord => [coord[1], coord[0]]);
+    };
 
-              // Use the index to select a color from the array
-              const color = colors[index % colors.length];
+    const addPlanificacionToMap = () => {
+      // Clear existing layers if any (optional)
+      if (map) {
+        map.eachLayer(layer => {
+          if (!layer._url) {
+            map.removeLayer(layer);
+          }
+        });
+      }
+      console.log(props.planificacion)
+      // Add planificacion geometry to the map
+      props.planificacion.rutas.forEach((ruta, index) => {
+        const geometryCoordinates = ruta.geometria.map(coord => [coord[1], coord[0]]);
+        const color = colors[index % colors.length];
 
-              L.polyline(geometryCoordinates, { color })
-                .addTo(map);
-            });
-        }
+        L.polyline(geometryCoordinates, { color })
+          .addTo(map);
+        ruta.visitas.map(visita => {
+          const latLng = [visita.item.latitud, visita.item.longitud];
+          var newIcon= '';
+          if (visita.tipo_item === 'Lugar común') {
+            newIcon = buildingIcon;
+          }else if(visita.tipo_item === 'Parada'){
+            newIcon = houseIcon;
+          }
+            L.marker(latLng, {icon: newIcon})
+            .addTo(map)
+            .bindPopup(`Pedido: ${visita.item.direccion}`);
+        });
+      });
     };
 
     onMounted(() => {
@@ -86,11 +119,27 @@ export default {
       }).addTo(map);
 
       // Add the pedidos to the map
-      addPedidosToMap();
+      if (props.showPedidos && props.processedPedidos){
+        console.log(props.showPedidos);
+        addPedidosToMap();
+      }else if (props.planificacion.rutas){
+        addPlanificacionToMap();
+      }
     });
 
-    watch(() => props.processedPedidos, addPedidosToMap);
-    watch(() => props.planificacion, addPedidosToMap);
+    watch(() => props.processedPedidos, 
+    () => {
+      if (props.showPedidos){
+        addPedidosToMap();
+      }
+    });
+    watch(() => props.planificacion, 
+    () => {
+      if (!props.showPedidos && props.planificacion.rutas){
+        console.log(props.planificacion.rutas);
+        addPlanificacionToMap();
+      }
+    });
     watch(() => props.unselectedPedidosIds, addPedidosToMap, { deep: true });
 
     return {};

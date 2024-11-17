@@ -4,7 +4,6 @@ import "./css/listado.css";
 import { Link } from "react-router-dom";
 import { useNavigate } from 'react-router-dom';
 const ListComponent = ({
-  title,
   data,
   columns,
   detailLink="",
@@ -15,6 +14,7 @@ const ListComponent = ({
   iconsTooltip,
   getFunction,
   pageCounter,
+  setStatus,
   onDelete,
   currentPage
 }) => {
@@ -77,30 +77,60 @@ const ListComponent = ({
                     <tr key={index} className="grid-item">
                       {columns.map((column, colIndex) => (
                         <td key={colIndex} className="data-cell">
-                          <div className="link-hover-outline" onClick={()=>handleNavigation(item.id)} style={{ cursor: 'pointer' }}>
-                            <Typography variant="body2" color="textSecondary" className="dataText" >
-                              {item[column.key]}
-                            </Typography>
+                          <div className="link-hover-outline" onClick={() => handleNavigation(item.id)} style={{ cursor: 'pointer' }}>
+                            {!column.columns ? (
+                              <Typography variant="body2" color="textSecondary" className="dataText">
+                                {column.key === 'activo' ? item[column.key] ? 'Si' : 'No' : item[column.key]}
+                              </Typography>
+                            ) : (
+                              <Typography variant="body2" color="textSecondary" className="dataText">
+                                {item[column.key].map((innerItem, indexData) => (
+                                  <div key={indexData}>
+                                    {column.columns.map((subColumn, subColIndex) => (
+                                      <div key={subColIndex}>
+                                        {subColumn.label ? <strong>{subColumn.label}:</strong> : null}
+                                        {innerItem?.[subColumn.key]}
+                                      </div>
+                                    ))}
+                                    {column.borderSeparation && indexData < item[column.key].length - 1 && (
+                                      <div>-------------------</div>
+                                    )}
+                                  </div>
+                                ))}
+                              </Typography>
+                            )}
                           </div>
                         </td>
                       ))}
                       <td className="data-cell actions-cell">
-                        {icons.map((icon, iconIndex) => (
-                          <IconButton
-                            size="small"
-                            key={iconIndex}
-                            title={iconsTooltip[iconIndex]}
-                            onClick={() => {
-                              if (icon.type.type.render.displayName === 'DeleteIcon') {
-                                handleDeleteClick(item);
-                              } else {
-                                navigate(`${iconsLinks[iconIndex]}${item.id}`);
-                              }
-                            }}
-                          >
-                            {icon}
-                          </IconButton>
-                        ))}
+                        {icons.map((icon, iconIndex) => {
+                          if (icon.type.type.render.displayName === 'ToggleOnIcon' && item.activo === true) {
+                            return null;
+                          }
+                          if (icon.type.type.render.displayName === 'ToggleOffIcon' && item.activo === false) {
+                            return null;
+                          }
+                          return (
+                            <IconButton
+                              size="small"
+                              key={iconIndex}
+                              title={iconsTooltip[iconIndex]}
+                              onClick={() => {
+                                if (icon.type.type.render.displayName === 'DeleteIcon') {
+                                  handleDeleteClick(item);
+                                } else if (icon.type.type.render.displayName === 'ToggleOnIcon') {
+                                  setStatus(item.id, true);
+                                } else if ( icon.type.type.render.displayName === 'ToggleOffIcon'){
+                                  setStatus(item.id, false);
+                                }else {
+                                  navigate(`${iconsLinks[iconIndex]}${item.id}`);
+                                }
+                              }}
+                            >
+                              {icon}
+                            </IconButton>
+                          );
+                        })}
                       </td>
                     </tr>
                   ))
@@ -139,19 +169,20 @@ const ListComponent = ({
         <DialogTitle id="alert-dialog-title">Confirmar Borrado</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            ¿Estás seguro que deseas eliminar este {title.substr(0, title.length - 1).toLowerCase()}?
+            ¿Estás seguro que deseas eliminar a?
           </DialogContentText>
           {itemToDelete && (
             <Box className="delete-container">
               {columns.map((column, colIndex) => (
+                !column.columns && (
                 <Box key={colIndex} display="flex" alignItems="center" mb={1}>
                   <Typography variant="body2" fontWeight="bold" mr={1}>
                     {column.label}:
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    {itemToDelete[column.key]}
+                    {column.key === 'activo' ? itemToDelete[column.key] ? 'Si' : 'No' : itemToDelete[column.key]}
                   </Typography>
-                </Box>
+                </Box>)
               ))}
             </Box>
           )}

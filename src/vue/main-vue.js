@@ -15,6 +15,10 @@ const routes = [
     path: '/planificaciones/crear',
     component: Planificaciones
   },
+  {
+    path: '/planificaciones/:planificacionId(\\d+)',
+    component: Planificaciones
+  },
 ];
 
 const router = createRouter({

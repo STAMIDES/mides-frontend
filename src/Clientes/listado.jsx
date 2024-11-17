@@ -5,13 +5,12 @@ import ListComponent from "../components/listados";
 import useApi from "../network/axios"; // Ensure this path matches your actual API file path
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 
 const columns = [
   { label: "Nombre", key: "nombre" },
   { label: "Apellidos", key: "apellido" },
   { label: "Cedula", key: "documento" },
-  { label: "Tipo", key: "tipo" },
+  { label: "Caracteristicas", borderSeparation: false, key: "caracteristicas", columns: [{ label: "", key: "nombre"}]}
 ];
 
 const ClienteListado = () => {
@@ -60,11 +59,11 @@ const ClienteListado = () => {
         data={clients} 
         columns={columns} 
         createLink="/clientes/crear" 
-        icons={[<AddCircleIcon />, <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={["/solicitudes/crear?usuarioId=", "/usuarios/editar?usuarioId=",  ""]}
-        iconsTooltip={["Agregar Pedido", "Editar Cliente", "Eliminar Cliente"]}
+        icons={[<AddCircleIcon />,  <DeleteIcon />]}
+        iconsLinks={["/solicitudes/crear?usuarioId=", ""]}
+        iconsTooltip={["Agregar Pedido",  "Eliminar Cliente"]}
         getFunction={obtenerClientes}
-        pageCounter={Math.floor(cantidadClientes/pageSize)+1}
+        pageCounter={Math.ceil(cantidadClientes/pageSize)}
         onDelete={handleDelete}
       />
     </Container>

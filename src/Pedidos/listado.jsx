@@ -106,7 +106,7 @@ const PedidoListado = () => {
         iconsTooltip={[ "Editar Solicitud", "Eliminar Solicitud"]}
         getFunction={obtenerPedidos}
         currentPage={currentPage}
-        pageCounter={Math.floor(cantidadPedidos/pageSize)+1}
+        pageCounter={Math.ceil(cantidadPedidos/pageSize)}
       />
     </Container>
   );

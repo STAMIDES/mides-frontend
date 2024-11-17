@@ -14,7 +14,9 @@ function App() {
   const {  isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   const pathCuenta = location.pathname.includes('/cuenta');
-  const pathVuePlanification = location.pathname.includes('/planificaciones/crear');
+  const pathVuePlanification = location.pathname.includes('/planificaciones') && 
+  (location.pathname.split('/')[2] === 'crear' || /^\d+$/.test(location.pathname.split('/')[2]));
+
   const rootElement = document.getElementById('root');
 
   useEffect(() => {

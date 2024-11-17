@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Paper, Typography, Button, Grid } from '@mui/material';
+import { Container, Paper, Typography, Button, Grid,
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField
+ } from '@mui/material';
 import useApi from '../../network/axios';
 import '../css/detalle.css';
 const ChoferDetalles = () => {
   const { id } = useParams();
   const [chofer, setChofer] = useState(null);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [choferEditor, setChoferEditor] = useState(null);
 
   const api = useApi();
   useEffect(() => {
@@ -13,11 +17,35 @@ const ChoferDetalles = () => {
     api.get(`choferes/${id}`)
       .then(response => {
         setChofer(response.data.chofer);
+        setChoferEditor(response.data.chofer);
       })
       .catch(error => {
         console.error("There was an error fetching the chofer data!", error);
       });
   }, [id]);
+  
+  const editarChofer = async () => {
+    choferEditor.documento = parseInt(choferEditor.documento);
+    const response = await api.put(`choferes/${chofer.id}`, choferEditor);
+    setChofer(response.data.chofer);
+    setChoferEditor(response.data.chofer);
+
+  };
+
+  const handleCloseEditDialog = () => {
+    setOpenEditDialog(false);
+    setChoferEditor(chofer);
+  };
+  
+  const handleSaveChanges = () => {
+    setOpenEditDialog(false);
+    editarChofer();
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setChoferEditor({ ...choferEditor, [name]: value });
+  };
 
   if (!chofer) {
     return <Typography>Loading...</Typography>;
@@ -25,6 +53,7 @@ const ChoferDetalles = () => {
 
   const handleEdit = () => {
     console.log("Editing chofer", chofer.id);
+    setOpenEditDialog(true);
   };
 
   const handleDelete = () => {
@@ -71,6 +100,60 @@ const ChoferDetalles = () => {
           </Grid>
         </Grid>
       </Paper>
+      <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
+        <DialogTitle>Editar Chofer</DialogTitle>
+        <DialogContent>
+          <TextField
+              autoFocus
+              margin="dense"
+              name="nombre"
+              label="Nombre"
+              fullWidth
+              value={choferEditor.nombre}
+              onChange={handleInputChange}
+          />
+          <TextField
+              margin="dense"
+              name="apellido"
+              label="Apellido"
+              fullWidth
+              value={choferEditor.apellido}
+              onChange={handleInputChange}
+          />
+          <TextField
+              margin="dense"
+              name="documento"
+              label="Documento"
+              fullWidth
+              value={choferEditor.documento}
+              onChange={handleInputChange}
+          />
+          <TextField
+              margin="dense"
+              name="telefono"
+              label="Teléfono"
+              fullWidth
+              value={choferEditor.telefono}
+              onChange={handleInputChange}
+          />
+          <TextField
+              margin="dense"
+              name="observaciones"
+              label="Observaciones"
+              fullWidth
+              value={choferEditor.observaciones}
+              onChange={handleInputChange}
+          />
+          </DialogContent>
+          <DialogActions>
+              <Button onClick={handleCloseEditDialog} color="primary">
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveChanges} color="primary">
+                Guardar
+              </Button>
+          </DialogActions>
+      </Dialog>
     </Container>
   );
 };

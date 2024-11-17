@@ -1,12 +1,15 @@
 <template>
   <div class="main-container">
-    <MontevideoMap :processedPedidos="processedPedidos" :planificacion="planificacion" :unselectedPedidosIds="unselectedPedidosIds" />
+    <MontevideoMap :processedPedidos="processedPedidos" :planificacion="planificacion" 
+    :unselectedPedidosIds="unselectedPedidosIds" :showPedidos="showPedidos" />
     <RightSidebar 
       :selectedDate="selectedDate" 
       :processedPedidos="processedPedidos"
       :vehiculos="vehiculos"
       :choferes="choferes"
       :lugaresComunes="lugaresComunes" 
+      :planificacion="planificacion"
+      :fetchPedidos="fetchPedidos"
       @date-changed="handleDateChange"
       @planificar="planificar"
       @checkbox-change-pedidos="handleCheckboxChangePedidos"
@@ -19,6 +22,8 @@
 import { ref, computed, onMounted } from 'vue';
 import MontevideoMap from '../components/montevideoMap.vue';
 import RightSidebar from '../components/rightSideNavBar.vue';
+import {useRoute} from "vue-router";
+
 
 import { api } from "../../network/axios";
 const TIMEWINDOW_TOLERANCE = 15;
@@ -29,6 +34,7 @@ export default {
     RightSidebar
   },
   setup() {
+    const route = useRoute();
     const selectedDate = ref(new Date().toISOString().split('T')[0]);
     const pedidos = ref([]);
     const vehiculos = ref([]);
@@ -36,6 +42,7 @@ export default {
     const lugaresComunes = ref([]);
     const planificacion = ref({});
     const unselectedPedidosIds = ref([]);
+    const showPedidos = ref(null);
     const selectedVehicles = ref({
       morning: [],
       afternoon: []
@@ -51,7 +58,6 @@ export default {
 
     const procesarPedidos = (pedidosSinProcesar) => { // Funcion ya definida en react :/ #FIXME mover a utils
       const nuevoListado = [];
-      console.log(pedidosSinProcesar);
       pedidosSinProcesar.sort((a, b) => new Date(a.fecha_programado) - new Date(b.fecha_programado));
       pedidosSinProcesar.forEach(pedido => {
         const paradas = pedido.paradas;
@@ -77,7 +83,6 @@ export default {
           });
         }
       });
-      console.log(nuevoListado);
       return nuevoListado;
     };
     
@@ -90,6 +95,15 @@ export default {
         planificacion.value = {};
       } catch (error) {
         console.error('Error fetching pedidos:', error);
+      }
+    };
+
+    const fetchPlanificacion = async (id) => {
+      try {
+        const response = await api.get(`/planificaciones/${id}`);
+        planificacion.value = response.data.planificacion;
+      } catch (error) {
+        console.error('Error fetching planificacion:', error);
       }
     };
 
@@ -118,8 +132,62 @@ export default {
         console.error('Error fetching choferes:', error);
       }
     };
+
+    const procesarNuevaPlanificacion = (nueva_planificacion, vehiculosNormalizados) => {
+        const normalizedRutas = [];
+        const normalizedTurnos = [];
+
+        nueva_planificacion.routes.forEach(p => {
+            // Normalize routes
+            const vehicle = vehiculosNormalizados.find(v => v.id === Number(p.vehicle_id));
+            normalizedRutas.push({
+                    id_vehiculo: p.vehicle_id,
+                    hora_inicio: vehicle.time_window.start,
+                    hora_fin: vehicle.time_window.end,
+                    geometria: p.geometry,
+                    visitas: p.visits.map(v=>{
+                      return {
+                        direccion: v.address,
+                        item: {
+                          latitud: v.coordinates.latitude,
+                          longitud: v.coordinates.longitude
+                        },
+                        id_item: v.ride_id? v.ride_id : selectedVehicles.value.morning.find(v => v.vehicle_id.toString() === p.vehicle_id)?.lugares_comunes_id? 
+                                                                        selectedVehicles.value.morning.find(v => v.vehicle_id.toString() === p.vehicle_id)?.lugares_comunes_id :
+                                                                        selectedVehicles.value.afternoon.find(v => v.vehicle_id.toString() === p.vehicle_id)?.lugares_comunes_id,
+                        tipo_item: v.ride_id? "Parada" : "Lugar común",
+                        hora_llegada: v.arrival_time,
+                        hora_salida: v.arrival_time
+                      }
+                    })
+            });
+            if (normalizedTurnos.length==0 || !normalizedTurnos.find(t => t.hora_inicio === p.start_time && t.hora_fin === p.end_time)) {
+                normalizedTurnos.push({
+                    hora_inicio: vehicle.time_window.start,
+                    hora_fin: vehicle.time_window.end,
+                });
+            }
+        });
+        const normalizedPlanificacion = {
+          planificacion: {fecha: selectedDate.value},
+          rutas: normalizedRutas,
+          turnos: normalizedTurnos
+        };
+        return normalizedPlanificacion;
+    }
+    
+    const guardarPlanificacion = async (nueva_planificacion) => {
+      try {
+        debugger
+        const response = await api.post(`/planificaciones`, nueva_planificacion);
+        console.log('Planificacion guardada', response.data);
+        planificacion.value = response.data.planificacion
+      } catch (error) {
+        console.error('Error guardando planificacion:', error);
+      }
+    };
+
     const normalizeVehicles = (vehicles, turnoTime) => {
-      console.log(vehicles);
       return vehicles.reduce((acc, vehiculo) => {
         const v = vehiculos.value.find(v => v.id === vehiculo.vehicle_id);
         if (v) {
@@ -135,30 +203,40 @@ export default {
         return acc;
       }, []);
     };
+    
     const crearPlanificacion = async (pedidosNormalizados) => {
-      let vehiculosNormalizados = [
+      var vehiculosNormalizados = [
         ...normalizeVehicles(selectedVehicles.value.morning, turnoManana.value),
         ...normalizeVehicles(selectedVehicles.value.afternoon, turnoTarde.value)
       ];
-      const problem = {"depot": {
-                    "id": "5774",
-                    "address": "Dr. Martín C. Martínez 1222",
-                    "coordinates": {
-                      "latitude": -34.8704884,
-                      "longitude": -56.1401427
-                    },
-                    "time_window": {
-                      "start": "08:00:00",
-                      "end": "23:00:00"
-                    }
-                  },
-                  "vehicles": vehiculosNormalizados,
-                  "ride_requests": pedidosNormalizados
-                };
-      const response = await api.post(`http://localhost:4210/optimization/v1/solve`,  problem);
-      console.log(response);
-      planificacion.value = response.data;
-    };
+
+      const problem = {
+        "depot": {
+          "id": "5774",
+          "address": "Dr. Martín C. Martínez 1222",
+          "coordinates": {
+            "latitude": -34.8704884,
+            "longitude": -56.1401427
+          },
+          "time_window": {
+            "start": "08:00:00",
+            "end": "23:00:00"
+          }
+        },
+        "vehicles": vehiculosNormalizados,
+        "ride_requests": pedidosNormalizados
+      };
+
+      try {
+        const response = await api.post('http://localhost:4210/optimization/v1/solve', problem);
+        const planificacionProcesada = procesarNuevaPlanificacion(response.data, vehiculosNormalizados);
+        guardarPlanificacion(planificacionProcesada)
+        showPedidos.value = false;
+     } catch (error) {
+      console.error('Error during API request:', error);
+    }
+  };
+
 
     const handleDateChange = (newDate) => {
       selectedDate.value = newDate;
@@ -175,7 +253,6 @@ export default {
         date.setTime(date.getTime() + TIMEWINDOW_TOLERANCE * 60 * 1000);
       }
       let updatedTime = date.toISOString().substring(11, 19);
-      console.log(updatedTime); // Outputs the time after adding 15 minutes
       return updatedTime;
     };
 
@@ -194,7 +271,7 @@ export default {
             const origen = paradas[i];
             const destino = paradas[i + 1];
             let normalized ={
-                id: pedido.id,
+                id: paradas[i].id,
                 user_id: pedido.cliente_documento,
                 has_companion: pedido.acompanante,
                 weelchair_required:   true,//cliente.caracteristicas.contains(silla_de_ruedas),
@@ -239,7 +316,7 @@ export default {
                     end: addTolerance(origen.ventana_horaria_inicio, false),
                   };
                 }else{ //solo cuando va a 2 o mas lugares y vuelve a su casa
-                  normalized.direction = "undefined"; //TODO: definir
+                  normalized.direction = "going"; //TODO: definir que va aca cuando tiene doble time window
                   normalized.pickup.time_window = {
                     start: addTolerance(origen.ventana_horaria_fin),
                     end: addTolerance(origen.ventana_horaria_fin, false),
@@ -259,10 +336,16 @@ export default {
     };
 
     onMounted(() => {
-      fetchPedidos()
       fetchVehiculos()
       fetchChoferes()
       fetchLugaresComunes()
+      if (route.params.planificacionId) {
+        fetchPlanificacion(route.params.planificacionId);
+        showPedidos.value = false;
+      } else {
+        fetchPedidos(); 
+        showPedidos.value = true;
+      }
     });
 
     return {
@@ -276,7 +359,9 @@ export default {
       handleDateChange,
       planificar,
       handleCheckboxChangePedidos,
-      handleSelectedVehicles
+      handleSelectedVehicles,
+      showPedidos,
+      fetchPedidos
     };
   }
 };
