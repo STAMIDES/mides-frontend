@@ -44,14 +44,19 @@ const PedidoListado = () => {
         const usuario_documento = pedido.cliente.documento;
         const paradas = pedido.paradas;
         paradas.sort((a, b) => a.posicion_en_pedido - b.posicion_en_pedido);
-        
+        var lastDestino
         for (let i = 0; i + 1 < paradas.length; i += 1) {
             const origen = paradas[i];
             const destino = paradas[i + 1];
             
-            const direccionOrigenYHorario = `${origen.direccion} \n ${origen.ventana_horaria_inicio  || 'Sin horario'}`;
-            const direccionDestinoYHorario = `${destino.direccion} \n ${destino.ventana_horaria_inicio || 'Sin horario'}`;
-            
+            var direccionOrigenYHorario;
+            var direccionDestinoYHorario;
+            if (origen===lastDestino){
+              direccionOrigenYHorario = `${origen.direccion} \n ${origen.ventana_horaria_fin || 'Sin horario'}`;
+            }else{
+              direccionOrigenYHorario = `${origen.direccion} \n ${origen.ventana_horaria_inicio  || 'Sin horario'}`;
+            }
+            direccionDestinoYHorario = `${destino.direccion} \n ${destino.ventana_horaria_inicio || 'Sin horario'}`;
             nuevoListado.push({
                 id: pedido.id,
                 nombre_y_apellido: nombreYApellido,
@@ -59,6 +64,7 @@ const PedidoListado = () => {
                 direccion_origen_y_horario: direccionOrigenYHorario,
                 direccion_destino_y_horario: direccionDestinoYHorario
             });
+            lastDestino = destino;
         }
     });
     
