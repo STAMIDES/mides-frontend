@@ -1,5 +1,6 @@
 import React, { useState, useEffect  } from 'react';
-import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Container, Grid, Paper, FormControl, RadioGroup, InputLabel, Radio, IconButton, Alert,Select, MenuItem } from '@mui/material';
+import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Container, Grid, Paper, FormControl, RadioGroup, InputLabel, 
+         Radio, IconButton, Alert,Select, MenuItem, Modal, List, ListItem, ListItemText } from '@mui/material';
 import { Add as AddIcon, GpsFixed as GpsFixedIcon  } from '@mui/icons-material';
 import useApi from '../network/axios';
 import { useParams, useLocation  } from 'react-router-dom';
@@ -36,12 +37,37 @@ const CrearPedido = () => {
   const [cords, setCords] = useState([]);
   const [direccion_final_coords, setDireccionFinalCoords] = useState({});
   const [tiposParadas, setTiposParadas] = useState([]);
-  const [addedTipoParada, setAddedTipoParada] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [geocodeOptions, setGeocodeOptions] = useState([]);
+  const [selectedAddressIndex, setSelectedAddressIndex] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const tiposViaje = [
     "Ida y vuelta" , "Solo ida" , "Solo vuelta" 
   ];
   const api = useApi();
+  const handleOpenModal = () => setModalOpen(true);
+  const handleCloseModal = () => setModalOpen(false);
+
+  const areCoordinatesComplete = () => {
+    const isIdaYVuelta = tipoViaje === 0;
+  
+    const expectedCoordsCount = isIdaYVuelta ? formData.paradas.length + 2 : formData.paradas.length + 1;
+
+    const allCoordsComplete = cords.length === formData.paradas.length + 1 &&
+                              cords.every(coord => coord && coord.lat !== null && coord.lng !== null);
+
+    const finalCoordsComplete = !isIdaYVuelta || (direccion_final_coords.lat && direccion_final_coords.lng);
+  
+    return allCoordsComplete && finalCoordsComplete;
+  };
+
+  const hasValidCoords = (index) => {
+    if (index === -1) {
+      return direccion_final_coords.lat !== null && direccion_final_coords.lng !== null;
+    }
+    return cords[index]?.lat !== null && cords[index]?.lng !== null;
+  };
 
   useEffect(() => {
   if (clienteId) {
@@ -68,32 +94,60 @@ const CrearPedido = () => {
       });
   }, []);
 
-  const handleTipoParadaChange = (e, index) => {
-    const { name, value } = e.target;
-    setAddedTipoParada(tipo => {
-      let tipos = [...tipo];
-      
-      if (index === null) {
-        tipos.push(value);
-      } else {
-        // Fill gaps with emptyCoords
-        while (tipos.length < index) {
-          tipos.push(emptyCoords);
-        }
-        tipos[index] = value;
-      }
-
-      return newCoords;
-    });
-  };
+  useEffect(() => {
+    if (isSubmitting && areCoordinatesComplete()) {
+      const dataToSubmit = {
+        ...formData,
+        documento: parseInt(formData.cliente_documento, 10),
+        paradas: filterParadas(),
+        tipo: getTipoVviaje(),
+      };
+  
+      const { direccion_origen, direccion_final, direccion_origen_tipo, ventana_horaria_inicio, ...remainingData } = dataToSubmit;
+  
+      api.post('pedidos', remainingData)
+        .then(() => {
+          setMessage({ type: 'success', text: 'Nueva solicitud agregada exitosamente' });
+          setIsSubmitting(false);
+        })
+        .catch((error) => {
+          const errorMessage = error.response?.data?.detail || 'Error al agregar la solicitud';
+          setMessage({ type: 'error', text: errorMessage });
+          setIsSubmitting(false);
+        });
+    }
+  }, [isSubmitting, cords, direccion_final_coords]); 
 
   const handleChange = (e) => {
     const { name, value, checked } = e.target;
+  
+    // Limpiamos las coordenadas solo si es necesario
+    if (name === 'direccion_origen') {
+      setCords((prevCords) => {
+        const newCords = [...prevCords];
+        newCords[0] = { lat: null, lng: null }; // Reset coords for direccion_origen
+        return newCords;
+      });
+    }
+  
+    if (name === 'direccion_final') {
+      setDireccionFinalCoords({ lat: null, lng: null }); // Reset coords for direccion_final
+    }
+  
     setFormData({ ...formData, [name]: name === 'acompañante' || name === 'prioridad' ? checked : value });
   };
 
   const handleParadaChange = (index, e) => {
     const { name, value } = e.target;
+
+    if (name === 'direccion_destino') {
+      setCords((prevCords) => {
+        const newCords = [...prevCords];
+        newCords[index + 1] = { lat: null, lng: null };
+        return newCords;
+      });
+    }
+  
     const updatedParadas = formData.paradas.map((destino, i) => (
       i === index ? { ...destino, [name]: value } : destino
     ));
@@ -117,6 +171,7 @@ const CrearPedido = () => {
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
+  
   const filterParadas = () => {
     let retParadas = [{
       direccion: formData.direccion_origen,
@@ -158,80 +213,50 @@ const CrearPedido = () => {
       posicion_en_pedido: counter+1});}
     return retParadas;
   }
+
   const handleGeocode = async (direccion, index = null) => {
-    const emptyCoords = { lat: null, lng: null };
-    
     try {
-      const coordenadas = await geocodeAddress(direccion);
-      if (index === -1) {
-        setDireccionFinalCoords(coordenadas);
-        return
+      const opciones = await geocodeAddress(direccion);
+      if (opciones.length > 0) {
+        setGeocodeOptions(opciones);
+        setSelectedAddressIndex(index);
+        handleOpenModal();
+      } else {
+        setMessage({ type: 'error', text: 'No se encontraron opciones de geocodificación para la dirección.' });
       }
-      setCords(prevCoords => {
-        let newCoords = [...prevCoords];
-        
-        if (index === null) {
-          newCoords.push(coordenadas);
-        } else {
-          // Fill gaps with emptyCoords
-          while (newCoords.length < index) {
-            newCoords.push(emptyCoords);
-          }
-          newCoords[index] = coordenadas;
-        }
-  
-        return newCoords;
-      });
     } catch (error) {
-      console.error('Error geocoding address:', error);
-      
-      setCords(prevCoords => {
-        let newCoords = [...prevCoords];
-        
-        if (index === null) {
-          newCoords.push(emptyCoords);
-        } else {
-          // Fill gaps with emptyCoords
-          while (newCoords.length <= index) {
-            newCoords.push(emptyCoords);
-          }
-        }
-  
-        return newCoords;
+      setMessage({ type: 'error', text: error.message });
+    }
+  };
+
+  const handleSelectGeocode = (index, coordenadas) => {
+    if (selectedAddressIndex === -1) {
+      setDireccionFinalCoords(coordenadas);
+    } else {
+      setCords((prevCords) => {
+        let newCords = [...prevCords];
+        newCords[selectedAddressIndex] = coordenadas;
+        return newCords;
       });
     }
+  
+    setSelectedAddressIndex(null);
+    handleCloseModal();
   };
 
   const getTipoVviaje = () => {
     return tiposViaje[parseInt(tipoViaje, 10)];
   }
+
   const handleSubmit = async (e) => {
-    console.log("formData", formData) 
     e.preventDefault();
+    
     if (!validarDoc()) {
       return;
     }
-
-    let dataToSubmit = {
-      ...formData,
-      documento: parseInt(formData.cliente_documento, 10),
-      paradas: filterParadas(),
-      tipo: getTipoVviaje(),
-    };
-    const { direccion_origen, direccion_final, direccion_origen_tipo, ventana_horaria_inicio, ...remainingData } = dataToSubmit;
-    dataToSubmit = remainingData;
-
-    try {
-      const response = await api.post('pedidos', dataToSubmit);
-      setMessage({ type: 'success', text: 'Nueva solicitud agregada exitosamente' });
-    } catch (error) {
-      if (error.response && error.response.status >= 400 && error.response.status < 500) {
-        setMessage({ type: 'error', text: error.response.data.detail });
-      } else {
-        setMessage({ type: 'error', text: 'Error al agregar la solicitud' });
-      }
-    }
-  }
+  
+    setIsSubmitting(true);
+  };
 
   return (
     <Container maxWidth="md" sx={{ mt: 1 }}>
@@ -316,12 +341,12 @@ const CrearPedido = () => {
                     required
                   />
                   <IconButton
-                      color="primary"
-                      onClick={() => handleGeocode(formData.direccion_origen, 0)}
-                      disabled={!formData.direccion_origen}
-                    >
-                      <GpsFixedIcon />
-                    </IconButton>
+                    color={hasValidCoords(0) ? 'success' : 'primary'}
+                    onClick={() => handleGeocode(formData.direccion_origen, 0)}
+                    disabled={!formData.direccion_origen}
+                  >
+                    <GpsFixedIcon />
+                  </IconButton>
                 </Box>
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -371,8 +396,8 @@ const CrearPedido = () => {
                     required
                   />
                   <IconButton
-                    color="primary"
-                    onClick={() => handleGeocode(destino.direccion_destino, index+1)}
+                    color={hasValidCoords(index + 1) ? 'success' : 'primary'}
+                    onClick={() => handleGeocode(destino.direccion_destino, index + 1)}
                     disabled={!destino.direccion_destino}
                   >
                     <GpsFixedIcon />
@@ -446,8 +471,7 @@ const CrearPedido = () => {
                     disabled={tipoViaje !== 0}
                     />
                     <IconButton
-                      color="primary"
-                      style={{ display: tipoViaje === 0 ? "flex" : "none" }}
+                      color={hasValidCoords(-1) ? 'success' : 'primary'}
                       onClick={() => handleGeocode(formData.direccion_final, -1)}
                       disabled={!formData.direccion_final}
                     >
@@ -482,12 +506,43 @@ const CrearPedido = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <Button type="submit" variant="contained" color="primary" fullWidth>
+
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary" 
+              fullWidth 
+              disabled={!areCoordinatesComplete()}
+            >
                 Agregar Solicitud
-              </Button>
+            </Button>
           </Grid>
           </Grid>
         </form>
+
+        <Modal open={modalOpen} onClose={handleCloseModal}>
+          <Paper sx={{ padding: 2, width: 400, margin: 'auto', marginTop: '20vh' }}>
+            <Typography variant="h6">Selecciona una dirección</Typography>
+            <List>
+              {geocodeOptions.map((option, index) => (
+                <ListItem 
+                  button 
+                  key={index} 
+                  component="button"
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSelectGeocode(index, option);
+                  }}
+                >
+                  <ListItemText primary={option.display_name} />
+                </ListItem>
+              ))}
+            </List>
+          </Paper>
+        </Modal>
+
         {message && (
           <Alert severity={message.type} sx={{ mb: 3 , mt: 3}}>
             {message.text}
