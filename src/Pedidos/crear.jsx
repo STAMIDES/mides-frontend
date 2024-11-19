@@ -100,7 +100,7 @@ const CrearPedido = () => {
         ...formData,
         documento: parseInt(formData.cliente_documento, 10),
         paradas: filterParadas(),
-        tipo: getTipoVviaje(),
+        tipo: getTipoViaje(),
       };
   
       const { direccion_origen, direccion_final, direccion_origen_tipo, ventana_horaria_inicio, ...remainingData } = dataToSubmit;
@@ -108,6 +108,20 @@ const CrearPedido = () => {
       api.post('pedidos', remainingData)
         .then(() => {
           setMessage({ type: 'success', text: 'Nueva solicitud agregada exitosamente' });
+          setFormData({
+            ...formData,
+            direccion_origen: '',
+            direccion_final: '',
+            direccion_origen_tipo: '',
+            ventana_horaria_inicio: '',
+            ventana_horaria_fin: '',
+            paradas: [{
+              direccion_destino: '',
+              ventana_horaria_inicio: '',
+              ventana_horaria_fin: '',
+              tipo_parada: '',
+            }]
+          });
           setIsSubmitting(false);
         })
         .catch((error) => {
@@ -175,32 +189,32 @@ const CrearPedido = () => {
   const filterParadas = () => {
     let retParadas = [{
       direccion: formData.direccion_origen,
-      latitud: cords[0].lat, longitud: cords[0].lng,
+      latitud: cords[0].lat, longitud: cords[0].lng, tipo: tipoViaje ===2 ? formData.direccion_origen_tipo : null,
       ventana_horaria_inicio: formData.ventana_horaria_inicio? formData.ventana_horaria_inicio: null,
       posicion_en_pedido: 0}];
     let counter = 0;
     for (const parada of formData.paradas){
       console.log(formData)
-      let tipoParada = parada.tipo_parada
       counter = counter + 1;
+      debugger
       if (tipoViaje===0){
         retParadas.push({direccion: parada.direccion_destino,
            ventana_horaria_inicio: parada.ventana_horaria_inicio,
            ventana_horaria_fin: parada.ventana_horaria_fin,
            latitud: cords[counter].lat,
            longitud: cords[counter].lng,
-           tipo: tipoParada,
+           tipo: parada.tipo_parada,
            posicion_en_pedido: counter});
       }else if (tipoViaje===1){
         retParadas.push({direccion: parada.direccion_destino, 
           ventana_horaria_inicio: parada.ventana_horaria_inicio,
           latitud: cords[counter].lat,
           longitud: cords[counter].lng,
-          tipo:  tipoParada,
+          tipo:  parada.tipo_parada,
           posicion_en_pedido: counter});
         break;
       }else {
-          retParadas.push({direccion: parada.direccion_destino, tipo:  tipoParada,
+          retParadas.push({direccion: parada.direccion_destino, tipo: null,
             latitud: cords[counter].lat,
             longitud: cords[counter].lng,
              posicion_en_pedido: counter});
@@ -244,7 +258,7 @@ const CrearPedido = () => {
     handleCloseModal();
   };
 
-  const getTipoVviaje = () => {
+  const getTipoViaje = () => {
     return tiposViaje[parseInt(tipoViaje, 10)];
   }
 
@@ -475,7 +489,7 @@ const CrearPedido = () => {
                       onClick={() => handleGeocode(formData.direccion_final, -1)}
                       disabled={!formData.direccion_final}
                     >
-                      <GpsFixedIcon />
+                    {tipoViaje === 0 && <GpsFixedIcon />}
                     </IconButton>
                 </Box>
               </Grid>
@@ -506,7 +520,11 @@ const CrearPedido = () => {
               />
             </Grid>
             <Grid item xs={12}>
-
+            {message && (
+                <Alert severity={message.type} sx={{ mb: 3 }}>
+                  {message.text}
+                </Alert>
+              )}
             <Button 
               type="submit" 
               variant="contained" 
@@ -543,11 +561,7 @@ const CrearPedido = () => {
           </Paper>
         </Modal>
 
-        {message && (
-          <Alert severity={message.type} sx={{ mb: 3 , mt: 3}}>
-            {message.text}
-          </Alert>
-        )}
+        
       </Paper>
     </Container>
   );

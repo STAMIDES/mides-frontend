@@ -161,7 +161,8 @@ export default {
                         id_item: v.stop_id,
                         tipo_item: v.ride_id? "Parada" : "Lugar común",
                         hora_llegada: v.arrival_time,
-                        hora_salida: v.arrival_time
+                        hora_salida: v.arrival_time,
+                        tipo_parada: v.type
                       }
                     })
             });
@@ -214,8 +215,8 @@ export default {
       ];
 
       const problem = {
-        "depot": {
-          "id": "5774",
+        "depot": { //FIXME: hardcodeado
+          "id": 80,
           "address": "Dr. Martín C. Martínez 1222",
           "coordinates": {
             "latitude": -34.8704884,
@@ -274,7 +275,7 @@ export default {
             const origen = paradas[i];
             const destino = paradas[i + 1];
             let normalized ={
-                id: paradas[i].id,
+                id: pedido.id,
                 user_id: pedido.cliente_documento,
                 has_companion: pedido.acompanante,
                 weelchair_required:   true,//cliente.caracteristicas.contains(silla_de_ruedas),
@@ -283,14 +284,18 @@ export default {
                     latitude: origen.latitud,
                     longitude: origen.longitud
                   },
-                  address: origen.direccion
+                  stop_id: origen.id,
+                  address: origen.direccion,
+                  type: origen.tipo_parada? origen.tipo_parada.nombre: null
                 },
                 delivery: {
                   coordinates: {
                     latitude: destino.latitud,
                     longitude: destino.longitud
                   },
+                  stop_id: destino.id,
                   address: destino.direccion,
+                  type: destino.tipo_parada? destino.tipo_parada.nombre: null
                 }
               };//TODO: agrupar los ifs, no se hace x claridad
               if (pedido.tipo=="Solo ida"){ 
@@ -306,7 +311,6 @@ export default {
                   end: addTolerance(origen.ventana_horaria_inicio, false),
                 };
               }else if (pedido.tipo=="Ida y vuelta"){
-                debugger
                 if (i==0){
                   normalized.direction = "going";
                   normalized.delivery.time_window = {
