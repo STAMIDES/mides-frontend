@@ -16,7 +16,7 @@ const OperadorListado = () => {
   const [operadores, setOperadores] = useState([]);
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
-  const [cantidadUsuarios, setCantidadUsuarios] = useState(0); // [1
+  const [cantidadUsuarios, setCantidadUsuarios] = useState(0); 
   const api = useApi();
 
   const obtenerUsuarios = async (page=1, search='') => {

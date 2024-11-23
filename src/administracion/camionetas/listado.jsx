@@ -20,11 +20,13 @@ const ComionetasListado = () => {
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
   const [cantidadCamionetas, setCantidadCamionetas] = useState(0); // [1
+  const [currentPage, setPage] = useState(1);
   const api = useApi();
 
   const obtenerCamionetas = async (page=1, search='') => {
     try {
       const offset = page * 10 - pageSize;
+      setPage(page);
       const response = await api.get(`/vehiculos?offset=${offset}&limit=${pageSize}&search=${search}`);
       setCamionetas(response.data.vehiculos);
       setCantidadCamionetas(response.data.cantidad);
@@ -48,7 +50,7 @@ const ComionetasListado = () => {
   const setStatus = async (id, status) => {
     try {
       const response = await api.put(`/vehiculos/estado/${id}?activo=${status}`);
-      obtenerCamionetas();
+      obtenerCamionetas(currentPage);
     } catch (error) {
       console.error("Error al marcar como activo o inactivo:", error);
     }
@@ -69,6 +71,7 @@ const ComionetasListado = () => {
         getFunction={obtenerCamionetas}
         setStatus={setStatus}
         pageCounter={Math.ceil(cantidadCamionetas/pageSize)}
+        currentPage={currentPage}
       />
     </Container>
   );
