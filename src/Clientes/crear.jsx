@@ -202,6 +202,11 @@ const CrearUsuario = ({ usuario = {} }) => {
                 rows={4}
               />
             </Grid>
+            {message && (
+              <Alert severity={message.type} sx={{ ml: 3, mt: 3 }}>
+                {message.text}
+              </Alert>
+            )}
             <Grid item xs={6}>
               <Button type="submit" variant="contained" color="primary" fullWidth>
                 Agregar Usuario
@@ -214,11 +219,6 @@ const CrearUsuario = ({ usuario = {} }) => {
             </Grid>
           </Grid>
         </form>
-        {message && (
-          <Alert severity={message.type} sx={{ mb: 3 , mt: 3}}>
-            {message.text}
-          </Alert>
-        )}
       </Paper>
     </Container>
   );
