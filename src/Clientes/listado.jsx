@@ -39,7 +39,12 @@ const ClienteListado = () => {
   const handleDelete = async (id) => {
     try {
       const response = await api.delete(`/clientes/${id}`);
-      obtenerClientes(currentPage);
+      debugger
+      if (clients.length==1 && currentPage>1){  
+        obtenerClientes(currentPage-1);
+      }else{
+        obtenerClientes(currentPage);
+      }
     } catch (error) {
       console.error('Error borrando cliente:', error);
     }

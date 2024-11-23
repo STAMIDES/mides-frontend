@@ -50,7 +50,11 @@ const ComionetasListado = () => {
   const setStatus = async (id, status) => {
     try {
       const response = await api.put(`/vehiculos/estado/${id}?activo=${status}`);
-      obtenerCamionetas(currentPage);
+      if (camionetas.length==1 && currentPage>1){  
+        obtenerCamionetas(currentPage-1);
+      }else{
+        obtenerCamionetas(currentPage);
+      }
     } catch (error) {
       console.error("Error al marcar como activo o inactivo:", error);
     }

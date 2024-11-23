@@ -39,7 +39,11 @@ const LugaresComunesListado = () => {
   const setStatus = async (id, status) => {
     try {
       const response = await api.put(`/lugares_comunes/estado/${id}?activo=${status}`);
-      obtenerLugaresComunes(currentPage);
+      if (lugares.length==1 && currentPage>1){
+        obtenerLugaresComunes(currentPage-1);
+      }else{
+        obtenerLugaresComunes(currentPage);
+      }
     } catch (error) {
       console.error("Error al marcar como activo o inactivo:", error);
     }

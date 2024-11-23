@@ -41,7 +41,11 @@ const UsuarioListado = () => {
   const setStatus = async (id, status) => {
     try {
       const response = await api.put(`/choferes/estado/${id}?activo=${status}`);
-      obtenerChoferes(currentPage);
+      if (choferes.length==1 && currentPage>1){
+        obtenerChoferes(currentPage-1);
+      }else{
+        obtenerChoferes(currentPage);
+      }
     } catch (error) {
       console.error("Error al marcar como activo o inactivo:", error);
     }
