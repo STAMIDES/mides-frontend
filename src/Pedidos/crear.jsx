@@ -196,7 +196,6 @@ const CrearPedido = () => {
     for (const parada of formData.paradas){
       console.log(formData)
       counter = counter + 1;
-      debugger
       if (tipoViaje===0){
         retParadas.push({direccion: parada.direccion_destino,
            ventana_horaria_inicio: parada.ventana_horaria_inicio,

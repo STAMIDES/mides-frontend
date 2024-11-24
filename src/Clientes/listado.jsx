@@ -39,7 +39,6 @@ const ClienteListado = () => {
   const handleDelete = async (id) => {
     try {
       const response = await api.delete(`/clientes/${id}`);
-      debugger
       if (clients.length==1 && currentPage>1){  
         obtenerClientes(currentPage-1);
       }else{
