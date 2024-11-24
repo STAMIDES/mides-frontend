@@ -13,7 +13,8 @@ import {
   DialogActions,
   TextField,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  Chip
 } from '@mui/material';
 import useApi from '../network/axios';
 import ListComponent from '../components/listados';
@@ -39,6 +40,7 @@ const ClienteDetalles = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [caracteristicasTodas, setCaracteristicasTodas] = useState([]); 
   const [handleDelete, setHandleDelete] = useState(false);
+  const [handleActivate, setHandleActivate] = useState(false);
   const navigate = useNavigate();
 
   const obtenerCaracteristicas = async () => {
@@ -110,6 +112,7 @@ const ClienteDetalles = () => {
       console.error('Error updating client data!', error);
     }
   };
+
   const handleCheckboxChange = (caracteristica) => {
     if (clienteEditor.caracteristicas.find(clienteCaracteristica => clienteCaracteristica.id === caracteristica.id)) {
       setClienteEditor({ ...clienteEditor, caracteristicas: clienteEditor.caracteristicas.filter(clienteCaracteristica => clienteCaracteristica.id !== caracteristica.id) });
@@ -141,7 +144,6 @@ const ClienteDetalles = () => {
   };
 
   const handleEdit = () => {
-    console.log('hola')
     setOpenEditDialog(true);
     if(caracteristicasTodas.length === 0) {
       obtenerCaracteristicas();
@@ -172,6 +174,18 @@ const ClienteDetalles = () => {
       console.error('Error borrando cliente:', error);
     }
   };
+
+  const onActivate = async () => {
+    try {
+      const response = await api.put(`/clientes/activar/${cliente.documento}`);
+      setHandleActivate(false);
+      // Update the client state with the new active status
+      setCliente({ ...cliente, activo: true });
+    } catch (error) {
+      console.error('Error activando cliente:', error);
+    }
+  };
+
   if (!cliente) {
     return <Typography>Loading...</Typography>;
   }
@@ -181,6 +195,12 @@ const ClienteDetalles = () => {
       <Paper elevation={3} sx={{ p: 4 }}>
         <Typography variant="h4" gutterBottom>
           Detalles del Cliente
+          {!cliente.activo &&
+          <Chip 
+            label={"Borrado"} 
+            color={ "error"}
+            sx={{ ml: 2 }}
+          />}
         </Typography>
         <Grid item xs={12} mt={2}>
           <Button variant="contained" color="primary" onClick={handleCreateOrder}>
@@ -194,14 +214,25 @@ const ClienteDetalles = () => {
           >
             Editar
           </Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={()=>setHandleDelete(true)}
-            style={{ marginLeft: '10px' }}
-          >
-            Borrar
-          </Button>
+          {cliente.activo ? (
+            <Button
+              variant="contained"
+              color="error"
+              onClick={()=>setHandleDelete(true)}
+              style={{ marginLeft: '10px' }}
+            >
+              Borrar
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="success"
+              onClick={()=>setHandleActivate(true)}
+              style={{ marginLeft: '10px' }}
+            >
+              Activar
+            </Button>
+          )}
         </Grid>
         <Grid
           container
@@ -236,11 +267,11 @@ const ClienteDetalles = () => {
             <Typography>{cliente.telefono}</Typography>
           </Grid>
           <Grid item xs={12} sm={4}>
-                        <Typography variant="h6">Caracteristicas:</Typography>
-                        {cliente.caracteristicas.map((caracteristica, index) => (
-                            <Typography key={index}>{caracteristica.nombre}</Typography>
-                        ))}
-                    </Grid>
+            <Typography variant="h6">Caracteristicas:</Typography>
+            {cliente.caracteristicas.map((caracteristica, index) => (
+              <Typography key={index}>{caracteristica.nombre}</Typography>
+            ))}
+          </Grid>
           <Grid item xs={12} pb={2}>
             <Typography variant="h6">Observaciones:</Typography>
             <Typography>{cliente.observaciones || 'No disponible'}</Typography>
@@ -298,7 +329,7 @@ const ClienteDetalles = () => {
             fullWidth
             value={clienteEditor.documento}
             onChange={handleInputChange}
-            disabled // Assuming documento is not editable
+            disabled
           />
           <TextField
             margin="dense"
@@ -349,6 +380,7 @@ const ClienteDetalles = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Delete Confirmation Dialog */}
       <Dialog
         open={handleDelete}
         onClose={()=>setHandleDelete(false)}
@@ -364,6 +396,27 @@ const ClienteDetalles = () => {
         <DialogActions>
           <Button onClick={()=>setHandleDelete(false)}>Cancelar</Button>
           <Button color="error" onClick={()=>onDelete()} autoFocus>
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Activate Confirmation Dialog */}
+      <Dialog
+        open={handleActivate}
+        onClose={()=>setHandleActivate(false)}
+        aria-labelledby="activate-dialog-title"
+        aria-describedby="activate-dialog-description"
+      >
+        <DialogTitle id="activate-dialog-title">Confirmar Activación</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="activate-dialog-description">
+            ¿Estás seguro que deseas reactivar este usuario?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={()=>setHandleActivate(false)}>Cancelar</Button>
+          <Button color="success" onClick={()=>onActivate()} autoFocus>
             Confirmar
           </Button>
         </DialogActions>
