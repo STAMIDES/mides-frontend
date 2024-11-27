@@ -514,7 +514,7 @@ export default {
 .truncate {
   display: block;
   width: 100%;
-  white-space: nowrap;
+  white-space: wrap;
   overflow: hidden;
   text-overflow: ellipsis; /* Add ellipsis for text overflow */
 }
