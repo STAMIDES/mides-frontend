@@ -145,7 +145,7 @@ export default {
 
         nueva_planificacion.routes.forEach(p => {
             // Normalize routes
-            const vehicle = vehiculosNormalizados.find(v => v.id === Number(p.vehicle_id));
+            const vehicle = vehiculosNormalizados.find(v => v.id === Number(p.vehicle_id) && v.time_window.start === p.time_window.start && v.time_window.end === p.time_window.end);
             normalizedRutas.push({
                     id_vehiculo: p.vehicle_id,
                     hora_inicio: vehicle.time_window.start,
