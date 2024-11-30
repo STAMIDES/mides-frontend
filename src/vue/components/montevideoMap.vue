@@ -99,9 +99,10 @@ const addPlanificacionToMap = () => {
       weight: 3,
       opacity: 0.7 
     }).addTo(map);
-
+    let all_coords = {};
     ruta.visitas.forEach(visita => {
       const latLng = [visita.item.latitud, visita.item.longitud];
+      
       let icon;
 
       // Explicit icon selection logic with debug logging
@@ -118,13 +119,39 @@ const addPlanificacionToMap = () => {
           console.log('Using house icon');
         }
       }
-
+      let cliente = visita.item?.pedido?.cliente?.nombre;
+      let tipoViaje = visita.item?.pedido?.tipo;
+      let msg='';
       if (icon) {  // Only create marker if we have a valid icon
-        const marker = L.marker(latLng, { icon })
+        if (Object.keys(all_coords).indexOf(latLng.toString()) === -1){
+          if (cliente){
+            
+            if (visita.item.posicion_en_pedido===0){
+              msg = `${visita.tipo_item}: ${visita.item.direccion}  \nRecoger a ${cliente}:  ${visita.hora_llegada}`;
+            }else{
+              msg = `${visita.tipo_item}: ${visita.item.direccion}  \nDejar a ${cliente}:  ${visita.hora_llegada}`;
+            }
+          }else{
+            msg = `${visita.tipo_item}: ${visita.item.direccion}  \nLlegada:  ${visita.hora_llegada}`;
+          }
+          const marker = L.marker(latLng, { icon })
           .addTo(map)
-          .bindPopup(`${visita.tipo_item}: ${visita.item.direccion}`);
-        
-        console.log(`Added marker at ${latLng}`);
+          .bindPopup(msg);
+          all_coords[latLng] = marker;
+        }else{
+          if (cliente){
+            if(tipoViaje==="Ida y vuelta" && visita.item.posicion_en_pedido && visita.item.posicion_en_pedido%2===1){
+              msg = `\nRecoger a ${cliente}:  ${visita.hora_llegada}`;
+            }else{
+              msg = `\nDejar a ${cliente}:  ${visita.hora_llegada}`;
+            }    
+          }else{
+            msg = `\nVuelta: ${visita.hora_llegada}`;
+          }
+          all_coords[latLng].bindPopup( 
+          all_coords[latLng].getPopup()._content + msg);
+          
+        }
       }
     });
   });
@@ -160,7 +187,7 @@ watch(() => props.planificacion, () => {
 watch(() => props.unselectedPedidosIds, addPedidosToMap, { deep: true });
 </script>
 
-<style scoped>
+<style>
 .map-container {
   height: 100vh;
   width: 100%;
@@ -169,5 +196,8 @@ watch(() => props.unselectedPedidosIds, addPedidosToMap, { deep: true });
 #map {
   height: 100%;
   width: 100%;
+}
+.leaflet-popup-content-wrapper {  
+  white-space: pre;
 }
 </style>
