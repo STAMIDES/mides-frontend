@@ -1,10 +1,11 @@
 import React, { useState, useEffect  } from 'react';
 import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Container, Grid, Paper, FormControl, RadioGroup, InputLabel, 
          Radio, IconButton, Alert,Select, MenuItem, Modal, List, ListItem, ListItemText } from '@mui/material';
-import { Add as AddIcon, GpsFixed as GpsFixedIcon  } from '@mui/icons-material';
+import { Add as AddIcon, GpsFixed as GpsFixedIcon, Settings as AdvancedIcon } from '@mui/icons-material';
 import useApi from '../network/axios';
 import { useParams, useLocation  } from 'react-router-dom';
 import { geocodeAddress } from '../utils/geocoder';
+import AdvancedGeocodeModal  from '../utils/advancedGeocodeModal';
 
 const CrearPedido = () => {
   const [formData, setFormData] = useState({
@@ -41,6 +42,7 @@ const CrearPedido = () => {
   const [geocodeOptions, setGeocodeOptions] = useState([]);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [advancedModalOpen, setAdvancedModalOpen] = useState(false)
 
   const tiposViaje = [
     "Ida y vuelta" , "Solo ida" , "Solo vuelta" 
@@ -340,12 +342,21 @@ const CrearPedido = () => {
                     fullWidth
                     required
                   />
+                  {/* Botón para geocodificación estándar */}
                   <IconButton
                     color={hasValidCoords(0) ? 'success' : 'primary'}
                     onClick={() => handleGeocode(formData.direccion_origen, 0)}
                     disabled={!formData.direccion_origen}
                   >
                     <GpsFixedIcon />
+                  </IconButton>
+
+                  {/* Botón para activar el modo avanzado */}
+                  <IconButton
+                    color="secondary"
+                    onClick={() => setAdvancedModalOpen(true)}
+                  >
+                    <AdvancedIcon />
                   </IconButton>
                 </Box>
               </Grid>
@@ -395,12 +406,21 @@ const CrearPedido = () => {
                     fullWidth
                     required
                   />
+                  {/* Botón para geocodificación estándar */}
                   <IconButton
                     color={hasValidCoords(index + 1) ? 'success' : 'primary'}
                     onClick={() => handleGeocode(destino.direccion_destino, index + 1)}
                     disabled={!destino.direccion_destino}
                   >
                     <GpsFixedIcon />
+                  </IconButton>
+
+                  {/* Botón para activar el modo avanzado */}
+                  <IconButton
+                    color="secondary"
+                    onClick={() => setAdvancedModalOpen(true)}
+                  >
+                    <AdvancedIcon />
                   </IconButton>
                 </Box>
                 </Grid>
@@ -470,12 +490,20 @@ const CrearPedido = () => {
                     required={tipoViaje === 0} 
                     disabled={tipoViaje !== 0}
                     />
+                    {/* Botón para geocodificación estándar */}
                     <IconButton
                       color={hasValidCoords(-1) ? 'success' : 'primary'}
                       onClick={() => handleGeocode(formData.direccion_final, -1)}
                       disabled={!formData.direccion_final}
                     >
                       <GpsFixedIcon />
+                    </IconButton>
+                    {/* Botón para activar el modo avanzado */}
+                    <IconButton
+                      color="secondary"
+                      onClick={() => setAdvancedModalOpen(true)}
+                    >
+                      <AdvancedIcon />
                     </IconButton>
                 </Box>
               </Grid>
@@ -543,6 +571,11 @@ const CrearPedido = () => {
           </Paper>
         </Modal>
 
+        <AdvancedGeocodeModal
+          open={advancedModalOpen}
+          onClose={() => setAdvancedModalOpen(false)}
+        />
+
         {message && (
           <Alert severity={message.type} sx={{ mb: 3 , mt: 3}}>
             {message.text}
@@ -550,7 +583,9 @@ const CrearPedido = () => {
         )}
       </Paper>
     </Container>
+    
   );
+  
 };
 
 export default CrearPedido;
