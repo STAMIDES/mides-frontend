@@ -244,7 +244,7 @@ const CrearUsuario = ({ usuario = {} }) => {
             </Grid>
             <Grid item xs={6}>
               <Button type="submit" variant="contained" color="secondary" fullWidth onClick={()=> crearPedido=true} >
-                Agregar Usuario y Crear Pedido
+                Agregar Usuario y Crear Solicitud
               </Button>
             </Grid>
           </Grid>

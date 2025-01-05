@@ -204,7 +204,7 @@ const ClienteDetalles = () => {
         </Typography>
         <Grid item xs={12} mt={2}>
           <Button variant="contained" color="primary" onClick={handleCreateOrder}>
-            Crear Pedido
+            Crear Solicitud
           </Button>
           <Button
             variant="contained"
@@ -279,7 +279,7 @@ const ClienteDetalles = () => {
         </Grid>
 
         <Typography variant="h4" gutterBottom mt={4}>
-          Historial de pedidos
+          Historial de solicitudes
         </Typography>
         <ListComponent
           title="Pedidos"
@@ -287,7 +287,7 @@ const ClienteDetalles = () => {
           columns={columnsPedidos}
           icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
           iconsLinks={['/pedidos/editar', '/pedidos/eliminar']}
-          iconsTooltip={['Editar Pedido', 'Eliminar Pedido']}
+          iconsTooltip={['Editar Solicitud', 'Eliminar Solicitud']}
           getFunction={obtenerPedidosCliente}
           pageCounter={Math.ceil(cantidadPedidos / pageSize)}
         />
