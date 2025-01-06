@@ -113,14 +113,14 @@
                   <select
                     @change="selectLugarComun('morning', vehicle.id, $event.target.value)">
                     <option value="">Lugar de salida</option>
-                    <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id">
+                    <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id" :selected="selectedVehicles['morning'].some(v => parseInt(v.lugares_comunes_id) === lugar.id)">
                       {{ lugar.nombre }}
                     </option>
                   </select>
                   <select
                     @change="selectChofer('morning', vehicle.id, $event.target.value)">
                     <option value="">Chofer</option>
-                    <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id">
+                    <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id"  :selected="selectedVehicles['morning'].some(v => parseInt(v.chofer_id) === chofer.id)">
                       {{ chofer.nombre }}
                     </option>
                   </select>
@@ -144,14 +144,14 @@
                   <select
                     @change="selectLugarComun('afternoon', vehicle.id, $event.target.value, selectedVehicles['afternoon'])">
                     <option value="">Lugar de salida</option>
-                    <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id">
+                    <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id" :selected="selectedVehicles['afternoon'].some(v => parseInt(v.lugares_comunes_id) === lugar.id)">
                       {{ lugar.nombre }}
                     </option>
                   </select>
                   <select
                     @change="selectChofer('afternoon', vehicle.id, $event.target.value)">
                     <option value="">Chofer</option>
-                    <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id">
+                    <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id" :selected="selectedVehicles['afternoon'].some(v => parseInt(v.chofer_id) === chofer.id)">
                       {{ chofer.nombre }}
                     </option>
                   </select>
@@ -159,6 +159,9 @@
                 </div>
               </div>
             </div>
+          </div>
+          <div v-if="errorPlanificacion" class="error-planificacion">
+            {{ errorPlanificacion }}
           </div>
           <div class="bottom-button">
             <button class="btn big" @click="planificar" :disabled="isPlanificando">
@@ -174,7 +177,7 @@
 
 
 <script>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import DatePicker from 'primevue/datepicker';
 
 export default {
@@ -210,7 +213,11 @@ export default {
     fetchPedidos: {
       type: Function,
       required: true
-    }
+    },
+    errorPlanificacion: {
+      type: String,
+      required: false
+    } 
   },
   emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-vehicles'],
   setup(props, { emit }) {
@@ -322,7 +329,20 @@ export default {
         isPlanificando.value = false;
       }
     });
-
+    watch(() => props.errorPlanificacion, (newValue) => {
+      if (newValue !== null) {
+        isPlanificando.value = false;
+      }
+    });
+    onMounted(() => {
+      const selecteLocaldVehicles = JSON.parse(localStorage.getItem('selectedVehicles'));
+      if (selecteLocaldVehicles) {
+        console.log('local storage selectedVehicles', selecteLocaldVehicles);
+        selectedVehicles.value = selecteLocaldVehicles;
+        emit('selected-vehicles', selecteLocaldVehicles);
+      }
+    });
+    console.log(selectedVehicles.value);
     return {
       isHidden,
       activeButton,

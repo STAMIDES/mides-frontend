@@ -10,6 +10,7 @@
       :lugaresComunes="lugaresComunes" 
       :planificacion="planificacion"
       :fetchPedidos="fetchPedidos"
+      :errorPlanificacion="errorPlanificacion"
       @date-changed="handleDateChange"
       @planificar="planificar"
       @checkbox-change-pedidos="handleCheckboxChangePedidos"
@@ -36,6 +37,7 @@ export default {
   setup() {
     const route = useRoute();
     const selectedDate = ref(new Date().toISOString().split('T')[0]);
+    const errorPlanificacion = ref(null);
     const pedidos = ref([]);
     const vehiculos = ref([]);
     const choferes = ref([]);
@@ -53,7 +55,7 @@ export default {
     });
     const turnoTarde = ref({
       start: '12:00:00',
-      end: '16:00:00'
+      end: '23:00:00'
     });
 
     const procesarPedidos = (pedidosSinProcesar) => { // Funcion ya definida en react :/ #FIXME mover a utils
@@ -185,9 +187,12 @@ export default {
       try {
         const response = await api.post(`/planificaciones`, nueva_planificacion);
         console.log('Planificacion guardada', response.data);
+        // guardar en local storage los selectedVehicles
+        localStorage.setItem('selectedVehicles', JSON.stringify(selectedVehicles.value));
         planificacion.value = response.data.planificacion
       } catch (error) {
         console.error('Error guardando planificacion:', error);
+        errorPlanificacion.value = error.response.data.detail;
       }
     };
 
@@ -238,6 +243,7 @@ export default {
         showPedidos.value = false;
      } catch (error) {
       console.error('Error during API request:', error);
+      errorPlanificacion.value = "Error al planificar";
     }
   };
 
@@ -369,7 +375,8 @@ export default {
       handleCheckboxChangePedidos,
       handleSelectedVehicles,
       showPedidos,
-      fetchPedidos
+      fetchPedidos,
+      errorPlanificacion
     };
   }
 };
