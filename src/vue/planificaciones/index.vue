@@ -14,7 +14,7 @@
       @date-changed="handleDateChange"
       @planificar="planificar"
       @checkbox-change-pedidos="handleCheckboxChangePedidos"
-      @selected-vehicles="handleSelectedVehicles"
+      @selected-turnos="handleSelectedTurnos"
     />
   </div>
 </template>
@@ -45,18 +45,7 @@ export default {
     const planificacion = ref({});
     const unselectedPedidosIds = ref([]);
     const showPedidos = ref(null);
-    const selectedVehicles = ref({
-      morning: [],
-      afternoon: []
-    });
-    const turnoManana = ref({
-      start: '08:00:00',
-      end: '12:00:00'
-    });
-    const turnoTarde = ref({
-      start: '12:00:00',
-      end: '23:00:00'
-    });
+    const turnos = ref([]);
 
     const procesarPedidos = (pedidosSinProcesar) => { // Funcion ya definida en react :/ #FIXME mover a utils
       const nuevoListado = [];
@@ -187,8 +176,8 @@ export default {
       try {
         const response = await api.post(`/planificaciones`, nueva_planificacion);
         console.log('Planificacion guardada', response.data);
-        // guardar en local storage los selectedVehicles
-        localStorage.setItem('selectedVehicles', JSON.stringify(selectedVehicles.value));
+        // guardar en local storage los turnos
+        localStorage.setItem('selectedTurnos', JSON.stringify(turnos.value));
         planificacion.value = response.data.planificacion
       } catch (error) {
         console.error('Error guardando planificacion:', error);
@@ -196,28 +185,23 @@ export default {
       }
     };
 
-    const normalizeVehicles = (vehicles, turnoTime) => {
-      return vehicles.reduce((acc, vehiculo) => {
-        const v = vehiculos.value.find(v => v.id === vehiculo.vehicle_id);
-        if (v) {
-          acc.push({
-            id: v.id,
-            capacity: v.capacidad_convencional,
-            time_window: {
-              start: turnoTime.start,
-              end: turnoTime.end
-            }
-          });
-        }
+    const crearPlanificacion = async (pedidosNormalizados) => {
+      var vehiculosNormalizados =  turnos.value.reduce((acc, turno) => {
+        turno.vehicles.forEach((vehiculo_selected)=>{
+          const v = vehiculos.value.find(v => v.id === vehiculo_selected.vehicle_id);
+          if (v) {
+            acc.push({
+              id: v.id,
+              capacity: v.capacidad_convencional,
+              time_window: {
+                start: turno.start+':00',
+                end: turno.end+':00',
+              }
+            });
+          }
+        })
         return acc;
       }, []);
-    };
-    
-    const crearPlanificacion = async (pedidosNormalizados) => {
-      var vehiculosNormalizados = [
-        ...normalizeVehicles(selectedVehicles.value.morning, turnoManana.value),
-        ...normalizeVehicles(selectedVehicles.value.afternoon, turnoTarde.value)
-      ];
 
       const problem = {
         "depot": { //FIXME: hardcodeado
@@ -269,8 +253,8 @@ export default {
     const handleCheckboxChangePedidos = (unselectedPedidos) =>{
       unselectedPedidosIds.value = unselectedPedidos;
     }
-    const handleSelectedVehicles = (v) =>{
-      selectedVehicles.value = v;
+    const handleSelectedTurnos = (t) =>{
+      turnos.value = t
     }
     const planificar = () => {
       const pedidosNormalizados = pedidos.value.reduce((acc, pedido) => {
@@ -373,7 +357,7 @@ export default {
       handleDateChange,
       planificar,
       handleCheckboxChangePedidos,
-      handleSelectedVehicles,
+      handleSelectedTurnos,
       showPedidos,
       fetchPedidos,
       errorPlanificacion

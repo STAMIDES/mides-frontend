@@ -96,70 +96,68 @@
                 </tbody>
               </table>
             </div>
-          <div v-else class="turnos-container">
-            <div class="turno morning-shift">
-              <h3>Turno mañana (7:00 - 13:00)</h3>
-              <div class="vehicles-grid">
-                <div v-for="vehicle in vehiculos" :key="vehicle.id" class="vehicle-box">
+            <div v-else class="turnos-container">
+              <div v-for="(turno, index) in turnos" :key="index" class="turno" :class="getTurnoClass(index)">
+                <div class="turno-header"> 
+                <h3>Turno {{ index + 1 }}</h3>
+                  <div v-if="turnos.length > 2">
+                    <button 
+                        class="delete-turno-btn"
+                        @click="removeTurno(index)"
+                      >
+                        ×
+                      </button>
+                  </div>
+                  </div>
+                <div class="time-inputs">
                   <input 
-                    type="checkbox" 
-                    :id="'morning-' + vehicle.id"
-                    :checked="selectedVehicles['morning'].some(v => v.vehicle_id === vehicle.id)"
-                    @change="toggleSelectionVehiculo('morning', vehicle.id)"
+                    type="time" 
+                    v-model="turno.start"
+                    class="time-input"
+                    @change="updateTurno(index)"
                   />
-                  <label :for="'morning-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
-                  <label :for="'morning-' + vehicle.id">{{ vehicle.matricula }}</label>
-                  <template v-if="selectedVehicles['morning'].some(v => v.vehicle_id === vehicle.id)">
-                  <select
-                    @change="selectLugarComun('morning', vehicle.id, $event.target.value)">
-                    <option value="">Lugar de salida</option>
-                    <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id" :selected="selectedVehicles['morning'].some(v => parseInt(v.lugares_comunes_id) === lugar.id)">
-                      {{ lugar.nombre }}
-                    </option>
-                  </select>
-                  <select
-                    @change="selectChofer('morning', vehicle.id, $event.target.value)">
-                    <option value="">Chofer</option>
-                    <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id"  :selected="selectedVehicles['morning'].some(v => parseInt(v.chofer_id) === chofer.id)">
-                      {{ chofer.nombre }}
-                    </option>
-                  </select>
-                </template>
+                  <span>-</span>
+                  <input 
+                    type="time" 
+                    v-model="turno.end"
+                    class="time-input"
+                    @change="updateTurno(index)"
+                  />
+                </div>
+                <div class="vehicles-grid">
+                  <div v-for="vehicle in vehiculos" :key="vehicle.id" class="vehicle-box">
+                    <input 
+                      type="checkbox" 
+                      :id="'turno-' + index + '-' + vehicle.id"
+                      :checked="isTurnoVehicleSelected(index, vehicle.id)"
+                      @change="toggleSelectionVehiculo(index, vehicle.id)"
+                    />
+                    <label :for="'turno-' + index + '-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
+                    <label :for="'turno-' + index + '-' + vehicle.id">{{ vehicle.matricula }}</label>
+                    <template v-if="isTurnoVehicleSelected(index, vehicle.id)">
+                      <select
+                        @change="selectLugarComun(index, vehicle.id, $event.target.value)">
+                        <option value="">Lugar de salida</option>
+                        <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id" :selected="turnos[index].vehicles.some(v => parseInt(v.lugares_comunes_id) === lugar.id)">
+                          {{ lugar.nombre }}
+                        </option>
+                      </select>
+                      <select
+                        @change="selectChofer(index, vehicle.id, $event.target.value)">
+                        <option value="">Chofer</option>
+                        <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id" :selected="turnos[index].vehicles.some(v => parseInt(v.chofer_id) === chofer.id)">
+                          {{ chofer.nombre }}
+                        </option>
+                      </select>
+                    </template>
+                  </div>
                 </div>
               </div>
+              <button class="add-turno-btn" @click="addTurno">
+                <span class="plus-icon">+</span>
+                Agregar turno
+              </button>
             </div>
-            <div class="turno afternoon-shift">
-              <h3>Turno tarde (13:00 - 20:00)</h3>
-              <div class="vehicles-grid">
-                <div v-for="vehicle in vehiculos" :key="vehicle.id" class="vehicle-box">
-                  <input 
-                    type="checkbox" 
-                    :id="'afternoon-' + vehicle.id"
-                    :checked="selectedVehicles['afternoon'].some(v => v.vehicle_id === vehicle.id)"
-                    @change="toggleSelectionVehiculo('afternoon', vehicle.id)"
-                  />
-                  <label :for="'afternoon-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
-                  <label :for="'afternoon-' + vehicle.id">{{ vehicle.matricula }}</label>
-                  <template v-if="selectedVehicles['afternoon'].some(v => v.vehicle_id === vehicle.id)">
-                  <select
-                    @change="selectLugarComun('afternoon', vehicle.id, $event.target.value, selectedVehicles['afternoon'])">
-                    <option value="">Lugar de salida</option>
-                    <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id" :selected="selectedVehicles['afternoon'].some(v => parseInt(v.lugares_comunes_id) === lugar.id)">
-                      {{ lugar.nombre }}
-                    </option>
-                  </select>
-                  <select
-                    @change="selectChofer('afternoon', vehicle.id, $event.target.value)">
-                    <option value="">Chofer</option>
-                    <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id" :selected="selectedVehicles['afternoon'].some(v => parseInt(v.chofer_id) === chofer.id)">
-                      {{ chofer.nombre }}
-                    </option>
-                  </select>
-                </template>
-                </div>
-              </div>
-            </div>
-          </div>
           <div v-if="errorPlanificacion" class="error-planificacion">
             {{ errorPlanificacion }}
           </div>
@@ -219,7 +217,7 @@ export default {
       required: false
     } 
   },
-  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-vehicles'],
+  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-turnos'],
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
@@ -231,6 +229,11 @@ export default {
       morning: [],
       afternoon: []
     });
+
+    const turnos = ref([
+      { start: '08:00', end: '12:00', vehicles: [] },
+      { start: '12:00', end: '23:00', vehicles: [] }
+    ]);
 
     const toggleSidebar = () => {
       isHidden.value = !isHidden.value;
@@ -289,36 +292,71 @@ export default {
       emit('checkbox-change-pedidos', unselectedPedidos.value);
     };
 
-    const toggleSelectionVehiculo = (period, id) => {
-      const index = selectedVehicles.value[period].findIndex(item => item.vehicle_id === id);
-      if (index === -1) {
-        selectedVehicles.value[period].push({ vehicle_id: id, lugares_comunes_id: null, chofer_id: null });
-      } else {
-        selectedVehicles.value[period].splice(index, 1);
-      }
-      emit('selected-vehicles', selectedVehicles.value);
+    const addTurno = () => {
+      const lastTurno = turnos.value[turnos.value.length - 1];
+      const newStart = lastTurno.end;
+      const endHour = parseInt(newStart.split(':')[0]) + 6;
+      const newEnd = `${endHour.toString().padStart(2, '0')}:00`;
+      turnos.value.push({ start: newStart, end: newEnd, vehicles: [] });
+      emit('selected-turnos', turnos);
+    };  
+    const removeTurno = (index) => {
+      turnos.value.splice(index, 1);
+      emit('selected-turnos', turnos);
     };
-    const selectLugarComun = (period, vehicleId, lugarComunId) => {
-      const index = selectedVehicles.value[period].findIndex(item => item.vehicle_id === vehicleId);
+
+    const updateTurno = (index) => {
+      // Ensure the changes are reflected in the parent component
+      emit('selected-turnos', turnos);
+    };
+
+    const getTurnoClass = (index) => {
+      const classes = ['turno-custom'];
+      return [...classes, `turno-${index}`];
+    };
+
+    const isTurnoVehicleSelected = (turnoIndex, vehicleId) => {
+      return turnos.value[turnoIndex].vehicles.some(v => v.vehicle_id === vehicleId);
+    };
+
+    const toggleSelectionVehiculo = (turnoIndex, vehicleId) => {
+      const turno = turnos.value[turnoIndex];
+      const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
+      
+      if (index === -1) {
+        turno.vehicles.push({ vehicle_id: vehicleId, lugares_comunes_id: null, chofer_id: null });
+      } else {
+        turno.vehicles.splice(index, 1);
+      }
+      
+      emit('selected-turnos', turnos);
+    };
+
+    const selectLugarComun = (turnoIndex, vehicleId, lugarComunId) => {
+      const turno = turnos.value[turnoIndex];
+      const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
       if (index !== -1) {
-        selectedVehicles.value[period][index].lugares_comunes_id = lugarComunId;
-        emit('selected-vehicles', selectedVehicles.value);
+        turno.vehicles[index].lugares_comunes_id = lugarComunId;
+        emit('selected-turnos', turnos.value);
       }
     };
 
-    const selectChofer = (period, vehicleId, choferId) => {
-      const index = selectedVehicles.value[period].findIndex(item => item.vehicle_id === vehicleId);
+    const selectChofer = (turnoIndex, vehicleId, choferId) => {
+      const turno = turnos.value[turnoIndex];
+      const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
       if (index !== -1) {
-        selectedVehicles.value[period][index].chofer_id = choferId;
-        emit('selected-vehicles', selectedVehicles.value);
+        turno.vehicles[index].chofer_id = choferId;
+        emit('selected-turnos', turnos.value);
       }
     };
 
     const planificar = async () => {
-      if (selectedVehicles.value.morning.length === 0 && selectedVehicles.value.afternoon.length === 0) {
+      const allEmpty = turnos.value.every(t => t.vehicles.length === 0);
+      if (allEmpty){
         alert('Debe seleccionar al menos un vehículo para planificar');
         return;
       }
+      debugger
       isPlanificando.value = true;
       emit('planificar');
     };
@@ -335,11 +373,11 @@ export default {
       }
     });
     onMounted(() => {
-      const selecteLocaldVehicles = JSON.parse(localStorage.getItem('selectedVehicles'));
-      if (selecteLocaldVehicles) {
-        console.log('local storage selectedVehicles', selecteLocaldVehicles);
-        selectedVehicles.value = selecteLocaldVehicles;
-        emit('selected-vehicles', selecteLocaldVehicles);
+      const selectedTurnos = JSON.parse(localStorage.getItem('selectedTurnos'));
+      if (selectedTurnos) {
+        console.log('local storage selectedTurnos', selectedTurnos);
+        turnos.value = selectedTurnos;
+        emit('selected-turnos', selectedTurnos);
       }
     });
     console.log(selectedVehicles.value);
@@ -362,6 +400,12 @@ export default {
       planificar,
       formatDate2,
       formatTime,
+      turnos,
+      addTurno,
+      removeTurno,
+      updateTurno,
+      getTurnoClass,
+      isTurnoVehicleSelected,
       getStatusClass
     };
   }
@@ -648,4 +692,71 @@ export default {
 .visita-address {
   color: #6c757d;
 }
+
+
+.turno-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.time-input {
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100px;
+}
+
+.delete-turno-btn {
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.add-turno-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.plus-icon {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.turno-custom {
+  border: 1px solid #ddd;
+  margin-bottom: 15px;
+}
+
+/* Generate different background colors for each shift */
+.turno-0 { background-color: #ffedcc; }
+.turno-1 { background-color: #e6f2ff; }
+.turno-2 { background-color: #f0e6ff; }
+.turno-3 { background-color: #e6ffe6; }
+.turno-4 { background-color: #ffe6e6; }
 </style>
