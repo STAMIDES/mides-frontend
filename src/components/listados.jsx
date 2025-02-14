@@ -56,11 +56,11 @@ const ListComponent = ({
                       </Typography>
                     </th>
                   ))}
-                  <th className="header-cell">
+                  { icons.length > 0 && <th className="header-cell">
                     <Typography variant="body1" className="headerText">
                       Acciones
                     </Typography>
-                  </th>
+                  </th>}
                 </tr>
               </thead>
               <tbody>
