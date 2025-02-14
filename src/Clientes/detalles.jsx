@@ -78,7 +78,8 @@ const ClienteDetalles = () => {
           fecha_programado: fechaProgramado,
           direccion_origen_y_horario: direccionOrigenYHorario,
           direccion_destino_y_horario: direccionDestinoYHorario,
-          fecha_ingresado: fechaIngresado
+          fecha_ingresado: fechaIngresado,
+          id:  pedido.id
         });
         cantidad += 1;
       }
@@ -284,10 +285,9 @@ const ClienteDetalles = () => {
         <ListComponent
           title="Pedidos"
           data={pedidosCliente}
+          detailLink='/solicitudes/'
           columns={columnsPedidos}
-          icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
-          iconsLinks={['/pedidos/editar', '/pedidos/eliminar']}
-          iconsTooltip={['Editar Solicitud', 'Eliminar Solicitud']}
+          icons={[]}
           getFunction={obtenerPedidosCliente}
           pageCounter={Math.ceil(cantidadPedidos / pageSize)}
         />
