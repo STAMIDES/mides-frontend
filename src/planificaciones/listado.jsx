@@ -9,6 +9,7 @@ import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 import moment from 'moment';
 
 const columns = [
+  { label: "Id", key: "id" },
   { label: "Planificado por", key: "creado_por" },
   { label: "Rutas", key: "rutas", borderSeparation: true, columns: [
                                 { label: "Origen", key: "direccion_origen_y_horario"},

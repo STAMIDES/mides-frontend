@@ -139,6 +139,11 @@ const CamionetasCrear = ({ camioneta = {} }) => {
                 rows={4}
               />
             </Grid>
+              {message && (
+                <Alert severity={message.type} sx={{ ml:3, mt: 3}}>
+                  {message.text}
+                </Alert>
+              )}
             <Grid item xs={12}>
               <Button 
                 type="submit" 
@@ -152,11 +157,6 @@ const CamionetasCrear = ({ camioneta = {} }) => {
             </Grid>
           </Grid>
         </form>
-        {message && (
-          <Alert severity={message.type} sx={{  mt: 3}}>
-            {message.text}
-          </Alert>
-        )}
       </Paper>
     </Container>
   );

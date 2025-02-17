@@ -20,6 +20,7 @@ const CrearUsuario = ({ usuario = {} }) => {
   const [caracteristicasTodas, setCaracteristicasTodas] = useState([]); 
   const [caracteristicas, setCaracteristicasUsuario] = useState([]);
   const [message, setMessage] = useState(null);
+  const [verUsuario, setVerUsuario] = useState(false);
   let crearPedido = false;
 
   const api = useApi();
@@ -68,6 +69,21 @@ const CrearUsuario = ({ usuario = {} }) => {
     return Object.keys(tempErrors).length === 0;
   };
   
+  const verUsuarioExistente = async (documento) => {
+    try {
+      const response = await api.get(`/clientes/doc/${documento}`);
+      const userId = response.data.clientes?.[0]?.id;
+      if (!userId) {
+        setMessage({ type: 'error', text: 'Usuario no encontrado' });
+        setVerUsuario(false);
+        return;
+      }
+      navigate(`/usuarios/${userId}`);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validarDoc() || !validarTel()) {
@@ -86,11 +102,22 @@ const CrearUsuario = ({ usuario = {} }) => {
         handleNavigation(response.data.cliente.id);
       }
       setMessage({ type: 'success', text: 'Nuevo usuario agregado exitosamente' });
+      if (verUsuario) {
+        setVerUsuario(false);
+      }
     } catch (error) {
       if (error.response && error.response.status >= 400 && error.response.status < 500) {
         setMessage({ type: 'error', text: error.response.data.detail });
+        if (error.response.data.detail === 'Ya existe un cliente con ese documento.') {
+          setVerUsuario(true);
+        }else{
+          setVerUsuario(false);
+        }
       } else {
         setMessage({ type: 'error', text: 'Error al agregar usuario. Inténtalo de nuevo más tarde.' });
+        if (verUsuario) {
+          setVerUsuario(false);
+        }
       }
     }
   };
@@ -202,6 +229,14 @@ const CrearUsuario = ({ usuario = {} }) => {
                 rows={4}
               />
             </Grid>
+             {message && (
+              <Alert severity={message.type} sx={{ ml: 3, mt: 3, width: '100%' }}>
+                {message.text}
+                {verUsuario? 
+                  <Button onClick={() => verUsuarioExistente(formData.documento)}>Ver Usuario</Button>
+                : null}
+              </Alert>
+            )}
             <Grid item xs={6}>
               <Button type="submit" variant="contained" color="primary" fullWidth>
                 Agregar Usuario
@@ -214,11 +249,6 @@ const CrearUsuario = ({ usuario = {} }) => {
             </Grid>
           </Grid>
         </form>
-        {message && (
-          <Alert severity={message.type} sx={{ mb: 3 , mt: 3}}>
-            {message.text}
-          </Alert>
-        )}
       </Paper>
     </Container>
   );

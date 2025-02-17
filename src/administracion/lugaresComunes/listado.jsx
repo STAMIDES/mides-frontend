@@ -18,11 +18,13 @@ const LugaresComunesListado = () => {
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
   const [cantidadLugaresComunes, setCantidadLugaresComunes] = useState(0); // [1
+  const [currentPage, setPage] = useState(1);
   const api = useApi();
 
   const obtenerLugaresComunes = async (page=1, search='') => {
     try {
       const offset = page * 10 - pageSize;
+      setPage(page);
       const response = await api.get(`/lugares_comunes?offset=${offset}&limit=${pageSize}&search=${search}`);
       setLugares(response.data.lugares);
       setCantidadLugaresComunes(response.data.cantidad);
@@ -37,7 +39,11 @@ const LugaresComunesListado = () => {
   const setStatus = async (id, status) => {
     try {
       const response = await api.put(`/lugares_comunes/estado/${id}?activo=${status}`);
-      obtenerLugaresComunes();
+      if (lugares.length==1 && currentPage>1){
+        obtenerLugaresComunes(currentPage-1);
+      }else{
+        obtenerLugaresComunes(currentPage);
+      }
     } catch (error) {
       console.error("Error al marcar como activo o inactivo:", error);
     }
@@ -65,6 +71,7 @@ const LugaresComunesListado = () => {
         getFunction={obtenerLugaresComunes}
         setStatus={setStatus}
         pageCounter={Math.ceil(cantidadLugaresComunes/pageSize)}
+        currentPage={currentPage}
       />
     </Container>
   );

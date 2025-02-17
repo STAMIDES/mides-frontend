@@ -18,11 +18,13 @@ const ClienteListado = () => {
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
   const [cantidadClientes, setCantidadClientes] = useState(0);
+  const [currentPage, setPage] = useState(1);
   const api = useApi();
 
   const obtenerClientes = async (page=1, search = '') => {
     try {
       const offset = page * 10 - pageSize;
+      setPage(page);
       const response = await api.get(`/clientes?offset=${offset}&limit=${pageSize}&search=${search}`);
       setClients(response.data.clientes);
       setCantidadClientes(response.data.cantidad);
@@ -37,7 +39,11 @@ const ClienteListado = () => {
   const handleDelete = async (id) => {
     try {
       const response = await api.delete(`/clientes/${id}`);
-      obtenerClientes();
+      if (clients.length==1 && currentPage>1){  
+        obtenerClientes(currentPage-1);
+      }else{
+        obtenerClientes(currentPage);
+      }
     } catch (error) {
       console.error('Error borrando cliente:', error);
     }
@@ -65,6 +71,7 @@ const ClienteListado = () => {
         getFunction={obtenerClientes}
         pageCounter={Math.ceil(cantidadClientes/pageSize)}
         onDelete={handleDelete}
+        currentPage={currentPage}
       />
     </Container>
   );

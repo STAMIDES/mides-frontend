@@ -63,13 +63,18 @@ export default {
         const paradas = pedido.paradas;
         const nombreYApellido = `${pedido.cliente.nombre}\n${pedido.cliente.apellido}`;
         paradas.sort((a, b) => a.posicion_en_pedido - b.posicion_en_pedido);
-        
+        let lastDestino
         for (let i = 0; i + 1 < paradas.length; i += 1) {
           const origen = paradas[i];
           const destino = paradas[i + 1];
-          
-          const direccionOrigenYHorario = `${origen.direccion} \n ${origen.ventana_horaria_inicio  || 'Sin horario'}`;
-          const direccionDestinoYHorario = `${destino.direccion} \n ${destino.ventana_horaria_inicio || 'Sin horario'}`;
+          var direccionOrigenYHorario;
+          var direccionDestinoYHorario;
+          if (origen===lastDestino){
+            direccionOrigenYHorario = `${origen.direccion} \n ${origen.ventana_horaria_fin || 'Sin horario'}`;
+          }else{
+            direccionOrigenYHorario = `${origen.direccion} \n ${origen.ventana_horaria_inicio  || 'Sin horario'}`;
+          }
+          direccionDestinoYHorario = `${destino.direccion} \n ${destino.ventana_horaria_inicio || 'Sin horario'}`;
           
           nuevoListado.push({
             id: pedido.id,
@@ -81,6 +86,7 @@ export default {
             latitud_destino: destino.latitud,
             longitud_destino: destino.longitud
           });
+          lastDestino = destino;
         }
       });
       return nuevoListado;
@@ -139,7 +145,7 @@ export default {
 
         nueva_planificacion.routes.forEach(p => {
             // Normalize routes
-            const vehicle = vehiculosNormalizados.find(v => v.id === Number(p.vehicle_id));
+            const vehicle = vehiculosNormalizados.find(v => v.id === Number(p.vehicle_id) && v.time_window.start === p.time_window.start && v.time_window.end === p.time_window.end);
             normalizedRutas.push({
                     id_vehiculo: p.vehicle_id,
                     hora_inicio: vehicle.time_window.start,
@@ -152,12 +158,11 @@ export default {
                           latitud: v.coordinates.latitude,
                           longitud: v.coordinates.longitude
                         },
-                        id_item: v.ride_id? v.ride_id : selectedVehicles.value.morning.find(v => v.vehicle_id.toString() === p.vehicle_id)?.lugares_comunes_id? 
-                                                                        selectedVehicles.value.morning.find(v => v.vehicle_id.toString() === p.vehicle_id)?.lugares_comunes_id :
-                                                                        selectedVehicles.value.afternoon.find(v => v.vehicle_id.toString() === p.vehicle_id)?.lugares_comunes_id,
+                        id_item: v.stop_id,
                         tipo_item: v.ride_id? "Parada" : "Lugar común",
                         hora_llegada: v.arrival_time,
-                        hora_salida: v.arrival_time
+                        hora_salida: v.arrival_time,
+                        tipo_parada: v.type
                       }
                     })
             });
@@ -178,7 +183,6 @@ export default {
     
     const guardarPlanificacion = async (nueva_planificacion) => {
       try {
-        debugger
         const response = await api.post(`/planificaciones`, nueva_planificacion);
         console.log('Planificacion guardada', response.data);
         planificacion.value = response.data.planificacion
@@ -211,8 +215,8 @@ export default {
       ];
 
       const problem = {
-        "depot": {
-          "id": "5774",
+        "depot": { //FIXME: hardcodeado
+          "id": 101,
           "address": "Dr. Martín C. Martínez 1222",
           "coordinates": {
             "latitude": -34.8704884,
@@ -271,7 +275,7 @@ export default {
             const origen = paradas[i];
             const destino = paradas[i + 1];
             let normalized ={
-                id: paradas[i].id,
+                id: pedido.id,
                 user_id: pedido.cliente_documento,
                 has_companion: pedido.acompanante,
                 weelchair_required:   true,//cliente.caracteristicas.contains(silla_de_ruedas),
@@ -280,14 +284,18 @@ export default {
                     latitude: origen.latitud,
                     longitude: origen.longitud
                   },
-                  address: origen.direccion
+                  stop_id: origen.id,
+                  address: origen.direccion,
+                  type: origen.tipo_parada? origen.tipo_parada.nombre: null
                 },
                 delivery: {
                   coordinates: {
                     latitude: destino.latitud,
                     longitude: destino.longitud
                   },
+                  stop_id: destino.id,
                   address: destino.direccion,
+                  type: destino.tipo_parada? destino.tipo_parada.nombre: null
                 }
               };//TODO: agrupar los ifs, no se hace x claridad
               if (pedido.tipo=="Solo ida"){ 
@@ -312,8 +320,8 @@ export default {
                 }else if (i + 2 == paradas.length){//last element, return
                   normalized.direction = "return";
                   normalized.pickup.time_window = {
-                    start: addTolerance(origen.ventana_horaria_inicio),
-                    end: addTolerance(origen.ventana_horaria_inicio, false),
+                    start: addTolerance(origen.ventana_horaria_fin),
+                    end: addTolerance(origen.ventana_horaria_fin, false),
                   };
                 }else{ //solo cuando va a 2 o mas lugares y vuelve a su casa
                   normalized.direction = "going"; //TODO: definir que va aca cuando tiene doble time window

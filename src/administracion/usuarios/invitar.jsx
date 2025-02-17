@@ -81,6 +81,11 @@ const OperadorInvitar = ({ usuario = {} }) => {
                 </Select>
               </FormControl>
             </Grid>
+            {message && (
+              <Alert severity={message.type} sx={{  ml:3 , mt: 3}}>
+                {message.text}
+              </Alert>
+            )}
             <Grid item xs={12}>
               <Button 
                 type="submit" 
@@ -94,11 +99,6 @@ const OperadorInvitar = ({ usuario = {} }) => {
             </Grid>
           </Grid>
         </form>
-        {message && (
-          <Alert severity={message.type} sx={{  mt: 3}}>
-            {message.text}
-          </Alert>
-        )}
       </Paper>
     </Container>
   );

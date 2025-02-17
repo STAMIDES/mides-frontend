@@ -19,11 +19,13 @@ const UsuarioListado = () => {
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
   const [cantidadChoferes, setCantidadChoferes] = useState(0); // [1
+  const [currentPage, setPage] = useState(1);
   const api = useApi();
 
   const obtenerChoferes = async (page=1, search='') => {
     try {
       const offset = page * 10 - pageSize;
+      setPage(page);
       const response = await api.get(`/choferes?offset=${offset}&limit=${pageSize}&search=${search}`);
       setChoferes(response.data.choferes);
       setCantidadChoferes(response.data.cantidad);
@@ -39,7 +41,11 @@ const UsuarioListado = () => {
   const setStatus = async (id, status) => {
     try {
       const response = await api.put(`/choferes/estado/${id}?activo=${status}`);
-      obtenerChoferes();
+      if (choferes.length==1 && currentPage>1){
+        obtenerChoferes(currentPage-1);
+      }else{
+        obtenerChoferes(currentPage);
+      }
     } catch (error) {
       console.error("Error al marcar como activo o inactivo:", error);
     }
@@ -68,6 +74,7 @@ const UsuarioListado = () => {
         getFunction={obtenerChoferes}
         setStatus={setStatus}
         pageCounter={Math.ceil(cantidadChoferes/pageSize)}
+        currentPage={currentPage}
       />
     </Container>
   );

@@ -86,8 +86,12 @@
                       />
                     </td>
                     <td>{{ pedido.id }}</td>
-                    <td>{{ pedido.direccion_origen_y_horario }}</td>
-                    <td>{{ pedido.direccion_destino_y_horario }}</td>
+                    <td style="white-space: pre-line">
+                      {{ pedido.direccion_origen_y_horario }}
+                    </td>
+                    <td style="white-space: pre-line">
+                      {{ pedido.direccion_destino_y_horario }}
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -510,7 +514,7 @@ export default {
 .truncate {
   display: block;
   width: 100%;
-  white-space: nowrap;
+  white-space: wrap;
   overflow: hidden;
   text-overflow: ellipsis; /* Add ellipsis for text overflow */
 }
