@@ -5,7 +5,13 @@ import { Add as AddIcon, GpsFixed as GpsFixedIcon, Settings as AdvancedIcon } fr
 import useApi from '../network/axios';
 import { useParams, useLocation  } from 'react-router-dom';
 import { geocodeAddress } from '../utils/geocoder';
-//import AdvancedGeocodeModal  from '../utils/advancedGeocodeModal';
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import moment from 'moment';
+
+import 'moment/locale/es';
+
 
 const CrearPedido = () => {
   const [formData, setFormData] = useState({
@@ -209,7 +215,14 @@ const CrearPedido = () => {
     }
   }, [isSubmitting, cords, direccion_final_coords]); 
 
-  const handleChange = (e) => {
+  const handleChange = (e, type = 'default') => {
+    if (type === 'date') {
+      setFormData({ 
+        ...formData, 
+        fecha_programado: e ? e.format('YYYY-MM-DD') : ''  // e is the moment object
+      });
+      return;
+    }
     const { name, value, checked } = e.target;
   
     if (name === 'direccion_origen') {
@@ -381,19 +394,25 @@ const CrearPedido = () => {
                 disabled={!!clienteId}
               />
             </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  name="fecha_programado"
-                  label="Fecha"
-                  type="date"
-                  value={formData.fecha_programado}
-                  onChange={handleChange}
-                  fullWidth
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  required
-                />
+            <Grid item xs={12}>
+                  <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={'es-UY'}>
+                    <DatePicker
+                      label="Fecha"
+                      name="fecha_programado"
+                      format="DD/MM/YYYY"
+                      onChange={(newValue) => handleChange(newValue, 'date')}
+                      slotProps={{ 
+                        textField: { 
+                          fullWidth: true,
+                          required: true,
+                          placeholder: "dd/mm/yyyy",
+                          InputLabelProps: {
+                            shrink: true,
+                          }
+                        } 
+                      }}
+                    />
+                  </LocalizationProvider>
                 </Grid>
               </Grid>
             <Paper elevation={7} sx={{ p: 4, mt: 3 }}>

@@ -78,7 +78,8 @@ const ClienteDetalles = () => {
           fecha_programado: fechaProgramado,
           direccion_origen_y_horario: direccionOrigenYHorario,
           direccion_destino_y_horario: direccionDestinoYHorario,
-          fecha_ingresado: fechaIngresado
+          fecha_ingresado: fechaIngresado,
+          id:  pedido.id
         });
         cantidad += 1;
       }
@@ -204,7 +205,7 @@ const ClienteDetalles = () => {
         </Typography>
         <Grid item xs={12} mt={2}>
           <Button variant="contained" color="primary" onClick={handleCreateOrder}>
-            Crear Pedido
+            Crear Solicitud
           </Button>
           <Button
             variant="contained"
@@ -279,15 +280,14 @@ const ClienteDetalles = () => {
         </Grid>
 
         <Typography variant="h4" gutterBottom mt={4}>
-          Historial de pedidos
+          Historial de solicitudes
         </Typography>
         <ListComponent
           title="Pedidos"
           data={pedidosCliente}
+          detailLink='/solicitudes/'
           columns={columnsPedidos}
-          icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
-          iconsLinks={['/pedidos/editar', '/pedidos/eliminar']}
-          iconsTooltip={['Editar Pedido', 'Eliminar Pedido']}
+          icons={[]}
           getFunction={obtenerPedidosCliente}
           pageCounter={Math.ceil(cantidadPedidos / pageSize)}
         />
