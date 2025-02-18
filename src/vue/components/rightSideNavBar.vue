@@ -356,7 +356,6 @@ export default {
         alert('Debe seleccionar al menos un vehículo para planificar');
         return;
       }
-      debugger
       isPlanificando.value = true;
       emit('planificar');
     };

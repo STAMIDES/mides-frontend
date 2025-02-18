@@ -47,7 +47,7 @@ const setupInterceptors = (removeAuthContext) => {
         originalRequest._retry = true;
         try {
           // Ask server to refresh the tokens (again via HttpOnly cookies)
-          await api.post('/usuarios/refresh', {}, { withCredentials: true });
+          await api.post('/usuarios/logout/refresh', {}, { withCredentials: true });
           // Retry original request
           return api(originalRequest);
         } catch (refreshError) {
