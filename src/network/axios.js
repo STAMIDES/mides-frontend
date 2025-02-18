@@ -6,6 +6,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
+  cors: true
 });
 
 const publicRoutes = [
@@ -17,27 +19,15 @@ const isPublicRoute = (url) => {
   return publicRoutes.some(route => url.includes(route));
 };
 
-const setupInterceptors = (getToken, isTokenExpired, refreshAccessToken, removeAuthContext) => {
+const setupInterceptors = (removeAuthContext) => {
+  // Intercept requests
   api.interceptors.request.use(
     async (config) => {
       if (isPublicRoute(config.url)) {
         console.log('Public route, skipping token check');
-        return config;
       }
-      try {
-        const token = await getToken();
-        if (token && !isTokenExpired(token)) {
-          config.headers.Authorization = `Bearer ${token}`;
-        } else {
-          console.log("No valid token, attempting to refresh");
-          const newToken = await refreshAccessToken();
-          config.headers.Authorization = `Bearer ${newToken}`;
-        } 
-      }catch (refreshError) {
-          console.error("Failed to refresh token:", refreshError);
-          removeAuthContext();
-          throw refreshError;
-      }
+      // Because we rely on HttpOnly cookies for authentication,
+      // no need to manually attach tokens in headers here.
       return config;
     },
     (error) => {
@@ -46,20 +36,24 @@ const setupInterceptors = (getToken, isTokenExpired, refreshAccessToken, removeA
     }
   );
 
+  // Intercept responses (for refresh logic)
   api.interceptors.response.use(
     (response) => response,
-    async (error) => {  
+    async (error) => {
       const originalRequest = error.config;
-      if (error.response?.status === 403 && !originalRequest._retry) {
+
+      // If we get a 401/403, attempt to refresh once
+      if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
         originalRequest._retry = true;
         try {
-          const newToken = await refreshAccessToken();
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          // Ask server to refresh the tokens (again via HttpOnly cookies)
+          await api.post('/usuarios/refresh', {}, { withCredentials: true });
+          // Retry original request
           return api(originalRequest);
         } catch (refreshError) {
-          console.error("Error in response interceptor:", refreshError);
+          console.error("Error refreshing token:", refreshError);
           removeAuthContext();
-          throw refreshError;
+          return Promise.reject(refreshError);
         }
       }
       return Promise.reject(error);
@@ -68,13 +62,14 @@ const setupInterceptors = (getToken, isTokenExpired, refreshAccessToken, removeA
 };
 
 const useApi = () => {
-  const { getToken, isTokenExpired, refreshAccessToken, removeAuthContext } = useAuth();
+  const { removeAuthContext } = useAuth();
 
+  // Make sure interceptors are only set once
   if (!api.interceptors.request.handlers.length && !api.interceptors.response.handlers.length) {
-    console.log('Setting up interceptors')
-    setupInterceptors(getToken, isTokenExpired, refreshAccessToken, removeAuthContext);
+    console.log('Setting up interceptors...');
+    setupInterceptors(removeAuthContext);
   }
-  
+
   return api;
 };
 

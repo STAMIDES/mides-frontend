@@ -1,147 +1,58 @@
-import React, { createContext, useState, useEffect, useContext, useRef, useCallback } from 'react';
-import { jwtDecode } from 'jwt-decode';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import axios from 'axios';
-
-const isTokenExpired = (token) => {
-  if (!token) return true;
-  const { exp } = jwtDecode(token);
-  if (!exp) return true;
-  return Date.now() >= exp * 1000;
-};
 
 const AuthContext = createContext();
 
-const refreshAxios = axios.create({
-  baseURL: 'http://localhost:8000',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(null);
-  const [refresh_token, setRefreshToken] = useState(null);
-  const [email, setUser] = useState(null);
+  const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const tokenPromiseRef = useRef(null);
 
-  const getStorageToken = useCallback((tokenKey) => {
-    const value = localStorage.getItem(tokenKey);
-    console.log(`${tokenKey} from storage:`, value);
-    if (value && !isTokenExpired(value)) {
-      return value;
-    } else {
-      return null;
+  const checkSession = useCallback(async () => {
+    try {
+      await axios.get('http://localhost:8000/usuarios/check', { withCredentials: true });
+      setIsAuthenticated(true);
+    } catch (error) {
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      setIsLoading(true);
-      const storageToken = getStorageToken('token');
-      const storageRefreshToken = getStorageToken('refresh_token');
-      const user = localStorage.getItem('user');
+    // Optionally restore "user" from localStorage,
+    // but the tokens themselves should now be in cookies only.
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(storedUser);
+    }
+    checkSession();
+  }, [checkSession]);
 
-      if (storageToken) {
-        setToken(storageToken);
-        setIsAuthenticated(true);
-      }
-      if (storageRefreshToken) {
-        setRefreshToken(storageRefreshToken);
-        if (!storageToken) {
-          await refreshAccessToken();
-        }
-      }
-      if (user) {
-        setUser(user);
-      }
-      setIsLoading(false);
-    };
-
-    initializeAuth();
-  }, [getStorageToken]);
-
-  const setAuthContext = useCallback((newToken, newRefreshToken = null, user = null) => {
-    setToken(newToken);
-    localStorage.setItem('token', newToken);
+  // Called when user logs in successfully
+  const setAuthContext = (username) => {
+    setUser(username);
+    localStorage.setItem('user', username);
     setIsAuthenticated(true);
-    if (newRefreshToken) {
-      setRefreshToken(newRefreshToken);
-      localStorage.setItem('refresh_token', newRefreshToken);
-    }
-    if (user) {
-      setUser(user);
-      localStorage.setItem('user', user);
-    }
-  }, []);
+  };
 
-  const removeAuthContext = useCallback(async () => {
-    console.log('Removing auth context');
-    setToken(null);
-    setRefreshToken(null);
+  // Called when user logs out
+  const removeAuthContext = () => {
     setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('token');
-    localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
-  }, []);
-
-  const getToken = useCallback(async () => {
-    if (tokenPromiseRef.current) {
-      return tokenPromiseRef.current;
-    }
-    return token || getStorageToken('token');
-  }, [token, refresh_token, email, getStorageToken]);
-
-  const refreshAccessToken = useCallback(async () => {
-    if (tokenPromiseRef.current) {
-      return tokenPromiseRef.current;
-    }
-
-    tokenPromiseRef.current = new Promise(async (resolve, reject) => {
-      try {
-        const refreshStorageToken = refresh_token || localStorage.getItem('refresh_token');
-        const emailStorage = email || localStorage.getItem('user');
-
-        if (!refreshStorageToken || !emailStorage) {
-          throw new Error('No refresh token available');
-        }
-
-        const response = await refreshAxios.post('/usuarios/refresh', {
-          refresh_token: refreshStorageToken,
-          email: emailStorage
-        });
-        const { access_token } = response.data;
-        setAuthContext(access_token);
-        resolve(access_token);
-      } catch (error) {
-        console.error('Error refreshing token:', error);
-        await removeAuthContext();
-        reject(error);
-      } finally {
-        tokenPromiseRef.current = null;
-      }
-    });
-
-    return tokenPromiseRef.current;
-  }, [refresh_token, email, setAuthContext, removeAuthContext]);
-
+    setIsAuthenticated(false);
+  };
 
   return (
-    <AuthContext.Provider value={{ 
-      email, 
-      token, 
-      refresh_token, 
-      setUser, 
-      setAuthContext, 
-      removeAuthContext, 
-      getToken, 
-      refreshAccessToken,
-      isTokenExpired,
-      isAuthenticated,
-      isLoading
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        isLoading,
+        setAuthContext,
+        removeAuthContext
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

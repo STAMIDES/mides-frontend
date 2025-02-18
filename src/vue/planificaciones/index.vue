@@ -221,7 +221,7 @@ export default {
       };
 
       try {
-        const response = await api.post('http://localhost:4210/optimization/v1/solve', problem);
+        const response = await api.post('http://localhost:4210/optimization/v1/solve', problem, {withCredentials: false});
         const planificacionProcesada = procesarNuevaPlanificacion(response.data, vehiculosNormalizados);
         guardarPlanificacion(planificacionProcesada)
         showPedidos.value = false;
