@@ -89,11 +89,11 @@ const CrearPedido = () => {
           updatedForm.direccion_origen = "";
           updatedForm.paradas[0].direccion_destino = formData.direccion_origen || formData.direccion_final;
           updatedForm.direccion_final = "";
-        } else { // ✅ Si cambio de "Solo vuelta" a otro tipo, reiniciar la parada 1
+        } else { // Si cambio de "Solo vuelta" a otro tipo, reiniciar la parada 1
           updatedForm.direccion_origen = formData.direccion_origen || formData.direccion_final;
           updatedForm.direccion_final = formData.direccion_final || formData.direccion_origen;
   
-          // ✅ Resetear la parada 1 si no estamos en "Solo vuelta"
+          // Resetear la parada 1 si no estamos en "Solo vuelta"
           updatedForm.paradas = [{ direccion_destino: "", ventana_horaria_inicio: "", ventana_horaria_fin: "", tipo_parada: "" }];
         }
       }
