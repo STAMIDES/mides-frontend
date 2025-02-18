@@ -1,14 +1,13 @@
-import {useState, useEffect} from 'react'
+import { useState, useEffect } from 'react';
 import { Card, CardContent, Typography, TextField, Button, Link } from '@mui/material';
 import './css.css';
 import useApi from '../network/axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-
 function LoginComponent() {
   const [error, setError] = useState(null);
-  const { token, refresh_token, setAuthContext } = useAuth();
+  const { isAuthenticated, setAuthContext } = useAuth();
   const navigate = useNavigate();
   const api = useApi();
 
@@ -20,36 +19,33 @@ function LoginComponent() {
     if (!username || !password) {
       setError('Por favor, complete todos los campos');
       return;
-    }else if (password.length < 7) {
+    } else if (password.length < 7) {
       setError('El usuario y la contraseña deben tener al menos 7 caracteres');
       return;
     }
+
     try {
-      const response = await api.post('/usuarios/login', {
-        username,
-        password,
-      });
-      
-      const { access_token, refresh_token } = response.data;
-      if (access_token && refresh_token) {
-          setAuthContext(access_token, refresh_token, username);
-      } else {
-          setError('Usuario o contraseña incorrectos');
-      }
+      // This POST will set the cookies (access/refresh tokens) via Set-Cookie headers
+      await api.post('/usuarios/login', { username, password });
+
+      setAuthContext(username);
+
+      // Navigate on success
+      navigate('/usuarios');
     } catch (error) {
-        if (error.response) {
-          setError(error.response.statusText);
-        } else {
-          setError('An unexpected error occurred');
-        }
+      if (error.response) {
+        setError(error.response.statusText);
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
   };
+
   useEffect(() => {
-    if (token && refresh_token){
-      console.log('Token:', token, 'Refresh Token:', refresh_token)
-      navigate('/usuarios'); 
+    if (isAuthenticated) {
+      navigate('/usuarios');
     }
-  }, [ token, refresh_token]);
+  }, [isAuthenticated, navigate]);
 
   return (
     <Card className="login-card">

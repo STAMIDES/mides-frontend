@@ -35,15 +35,8 @@ const SideNavBar = () => {
   };
   const logout = async () => {
     try {
-      if (email && refresh_token) {
-        await api.post('usuarios/logout', { 
-          email: email, 
-          refresh_token: refresh_token 
-        });
+        await api.post('usuarios/logout');
         removeAuthContext();
-      }else{
-        removeAuthContext();
-      }
     } catch (error) {
       console.error('Error during logout:', error);
     } }
