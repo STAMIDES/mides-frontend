@@ -1,7 +1,7 @@
 import React, { useState, useEffect  } from 'react';
 import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Container, Grid, Paper, FormControl, RadioGroup, InputLabel, 
          Radio, IconButton, Alert,Select, MenuItem, Modal, List, ListItem, ListItemText } from '@mui/material';
-import { Add as AddIcon, GpsFixed as GpsFixedIcon  } from '@mui/icons-material';
+import { Add as AddIcon, GpsFixed as GpsFixedIcon, Settings as AdvancedIcon } from '@mui/icons-material';
 import useApi from '../network/axios';
 import { useParams, useLocation  } from 'react-router-dom';
 import { geocodeAddress } from '../utils/geocoder';
@@ -48,6 +48,7 @@ const CrearPedido = () => {
   const [geocodeOptions, setGeocodeOptions] = useState([]);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  //const [advancedModalOpen, setAdvancedModalOpen] = useState(false)
 
   const tiposViaje = [
     "Ida y vuelta" , "Solo ida" , "Solo vuelta" 
@@ -76,21 +77,96 @@ const CrearPedido = () => {
     return cords[index]?.lat !== null && cords[index]?.lng !== null;
   };
 
+  const handleTipoViajeChange = (e) => {
+    const newTipoViaje = parseInt(e.target.value, 10);
+    setTipoViaje(newTipoViaje);
+  
+    setFormData(prevState => {
+      let updatedForm = { ...prevState };
+  
+      if (clienteId) {
+        if (newTipoViaje === 2) { // Solo vuelta
+          updatedForm.direccion_origen = "";
+          updatedForm.paradas[0].direccion_destino = formData.direccion_origen || formData.direccion_final;
+          updatedForm.direccion_final = "";
+        } else { // Si cambio de "Solo vuelta" a otro tipo, reiniciar la parada 1
+          updatedForm.direccion_origen = formData.direccion_origen || formData.direccion_final;
+          updatedForm.direccion_final = formData.direccion_final || formData.direccion_origen;
+  
+          // Resetear la parada 1 si no estamos en "Solo vuelta"
+          updatedForm.paradas = [{ direccion_destino: "", ventana_horaria_inicio: "", ventana_horaria_fin: "", tipo_parada: "" }];
+        }
+      }
+  
+      return updatedForm;
+    });
+  
+    setCords(prevCords => {
+      let updatedCords = [...prevCords];
+      if (newTipoViaje === 2) {
+        setDireccionFinalCoords(updatedCords[0] || { lat: null, lng: null });
+        updatedCords[0] = { lat: null, lng: null };
+      } else {
+        updatedCords[0] = updatedCords[0] || { lat: null, lng: null };
+        setDireccionFinalCoords(updatedCords[0]);
+      }
+      return updatedCords;
+    });
+  };
+  
   useEffect(() => {
-  if (clienteId) {
-    console.log("Fetching client data...")
-    api.get(`clientes/${clienteId}`)
-    .then(response => {
-      const cliente = response.data;
-      console.log("Client data fetched:", cliente);
-      setFormData({ ...formData, nombre:cliente.nombre, apellido:cliente.apellido, 
-        cliente_documento: cliente.documento.toString()});
-    })
-      .catch(error => {
-        console.error("There was an error fetching the client data!", error);
-      });
-  }}, [clienteId]);
-
+    if (clienteId) {
+      console.log("Fetching client data...");
+      api.get(`clientes/${clienteId}`)
+        .then(response => {
+          const cliente = response.data;
+          console.log("Client data fetched:", cliente);
+  
+          setFormData(prevState => {
+            let updatedForm = { 
+              ...prevState,
+              nombre: cliente.nombre,
+              apellido: cliente.apellido,
+              cliente_documento: cliente.documento.toString(),
+            };
+  
+            if (cliente.direccion) {
+              // Si es un viaje solo de vuelta, la dirección del cliente va en destino
+              if (tipoViaje === 2) {
+                updatedForm.direccion_origen = "";
+                updatedForm.paradas[0].direccion_destino = cliente.direccion;
+                updatedForm.direccion_final = "";
+              } else {
+                updatedForm.direccion_origen = cliente.direccion;
+                updatedForm.direccion_final = cliente.direccion;
+              }
+            }
+  
+            return updatedForm;
+          });
+  
+          if (cliente.latitud && cliente.longitud) {
+            if (tipoViaje === 2) {
+              // Si es un viaje solo de vuelta, las coordenadas del cliente van en destino
+              setCords([{ lat: null, lng: null }]);
+              setCords(prevCords => {
+                let newCords = [...prevCords];
+                newCords[0] = { lat: cliente.latitud, lng: cliente.longitud };
+                return newCords;
+              });
+              setDireccionFinalCoords({ lat: null, lng: null });
+            } else {
+              setCords([{ lat: cliente.latitud, lng: cliente.longitud }]);
+              setDireccionFinalCoords({ lat: cliente.latitud, lng: cliente.longitud });
+            }
+          }
+        })
+        .catch(error => {
+          console.error("There was an error fetching the client data!", error);
+        });
+    }
+  }, [clienteId, tipoViaje]);
+  
   useEffect(() => {
     api.get('tipos_paradas')
       .then(response => {
@@ -148,18 +224,13 @@ const CrearPedido = () => {
       return;
     }
     const { name, value, checked } = e.target;
-
-    // Limpiamos las coordenadas solo si es necesario
+  
     if (name === 'direccion_origen') {
-      setCords((prevCords) => {
-        const newCords = [...prevCords];
-        newCords[0] = { lat: null, lng: null }; // Reset coords for direccion_origen
-        return newCords;
-      });
+      setCords([{ lat: null, lng: null }]);
     }
   
     if (name === 'direccion_final') {
-      setDireccionFinalCoords({ lat: null, lng: null }); // Reset coords for direccion_final
+      setDireccionFinalCoords({ lat: null, lng: null });
     }
   
     setFormData({ ...formData, [name]: name === 'acompañante' || name === 'prioridad' ? checked : value });
@@ -286,7 +357,7 @@ const CrearPedido = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 1 }}>
+    <Container maxWidth="m" sx={{ mt: 1 }}>
       <Paper elevation={7} sx={{ p: 4 }}>
         <Typography variant="h4" gutterBottom>Agregar Nueva Solicitud</Typography>
         <form onSubmit={handleSubmit}>
@@ -350,7 +421,7 @@ const CrearPedido = () => {
                   row
                   name="tipoViaje"
                   value={tipoViaje}
-                  onChange={(e) => setTipoViaje(parseInt(e.target.value, 10))}
+                  onChange={handleTipoViajeChange}
                 >
                   {tiposViaje.map((tipo, index) => (
                       <FormControlLabel
@@ -373,6 +444,7 @@ const CrearPedido = () => {
                     fullWidth
                     required
                   />
+                  {/* Botón para geocodificación estándar */}
                   <IconButton
                     color={hasValidCoords(0) ? 'success' : 'primary'}
                     onClick={() => handleGeocode(formData.direccion_origen, 0)}
@@ -380,6 +452,14 @@ const CrearPedido = () => {
                   >
                     <GpsFixedIcon />
                   </IconButton>
+
+                  {/* Botón para activar el modo avanzado */}
+                  {/* <IconButton
+                    color="secondary"
+                    onClick={() => setAdvancedModalOpen(true)}
+                  >
+                    <AdvancedIcon />
+                  </IconButton> */}
                 </Box>
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -387,7 +467,7 @@ const CrearPedido = () => {
                   name="ventana_horaria_inicio"
                   label="Hora de partida del origen"
                   type="time"
-                  value={formData.ventana_horaria_inicio}
+                  value={formData.ventana_horaria_inicio || "08:00"}
                   onChange={handleChange}
                   fullWidth
                   InputLabelProps={{
@@ -428,6 +508,7 @@ const CrearPedido = () => {
                     fullWidth
                     required
                   />
+                  {/* Botón para geocodificación estándar */}
                   <IconButton
                     color={hasValidCoords(index + 1) ? 'success' : 'primary'}
                     onClick={() => handleGeocode(destino.direccion_destino, index + 1)}
@@ -435,15 +516,23 @@ const CrearPedido = () => {
                   >
                     <GpsFixedIcon />
                   </IconButton>
+
+                  {/* Botón para activar el modo avanzado */}
+                  {/* <IconButton
+                    color="secondary"
+                    onClick={() => setAdvancedModalOpen(true)}
+                  >
+                    <AdvancedIcon />
+                  </IconButton> */}
                 </Box>
                 </Grid>
 
-                <Grid item xs={12} sm={2}>
+                <Grid item xs={12} sm={2.5}>
                   <TextField
                     name="ventana_horaria_inicio"
                     label="Hora de llegada al destino"
                     type="time"
-                    value={destino.ventana_horaria_inicio}
+                    value={destino.ventana_horaria_inicio || "08:00"}
                     onChange={(e) => handleParadaChange(index, e)}
                     fullWidth
                     InputLabelProps={{
@@ -452,12 +541,12 @@ const CrearPedido = () => {
                     style={{visibility: tipoViaje !== 2 ? "visible" : "hidden"}}
                   />
                 </Grid>
-                <Grid item xs={12} sm={2}>
+                <Grid item xs={12} sm={2.5}>
                   <TextField
                     name="ventana_horaria_fin"
                     label="Hora de partida del destino"
                     type="time"
-                    value={destino.ventana_horaria_fin}
+                    value={destino.ventana_horaria_fin || "09:00"}
                     onChange={(e) => handleParadaChange(index, e)}
                     fullWidth
                     InputLabelProps={{
@@ -503,6 +592,7 @@ const CrearPedido = () => {
                     required={tipoViaje === 0} 
                     disabled={tipoViaje !== 0}
                     />
+                    {/* Botón para geocodificación estándar */}
                     <IconButton
                       color={hasValidCoords(-1) ? 'success' : 'primary'}
                       onClick={() => handleGeocode(formData.direccion_final, -1)}
@@ -510,6 +600,13 @@ const CrearPedido = () => {
                     >
                     {tipoViaje === 0 && <GpsFixedIcon />}
                     </IconButton>
+                    {/* Botón para activar el modo avanzado */}
+                    {/* <IconButton
+                      color="secondary"
+                      onClick={() => setAdvancedModalOpen(true)}
+                    >
+                      <AdvancedIcon />
+                    </IconButton> */}
                 </Box>
               </Grid>
             </Grid>
@@ -580,10 +677,17 @@ const CrearPedido = () => {
           </Paper>
         </Modal>
 
+        {/* <AdvancedGeocodeModal
+          open={advancedModalOpen}
+          onClose={() => setAdvancedModalOpen(false)}
+        /> */}
+
         
       </Paper>
     </Container>
+    
   );
+  
 };
 
 export default CrearPedido;

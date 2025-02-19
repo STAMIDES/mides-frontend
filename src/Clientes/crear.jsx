@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Box, TextField, Button, Typography, Select, MenuItem, Container, FormLabel, FormGroup, FormControlLabel, Alert,
-  Checkbox, Grid, Paper, FormControl, InputLabel } from '@mui/material';
+  Checkbox, Grid, Paper, FormControl, InputLabel, IconButton, Modal, List, ListItem, ListItemText } from '@mui/material';
+  import {GpsFixed as GpsFixedIcon} from '@mui/icons-material';
 import useApi from '../network/axios';
 import { useNavigate } from 'react-router-dom';
+import { geocodeAddress } from '../utils/geocoder';
 
 const CrearUsuario = ({ usuario = {} }) => {
   const [formData, setFormData] = useState({
     documento: '',
     nombre: '',
     apellido: '',
+    direccion: '',
+    latitud: null,
+    longitud: null,
     telefono: '',
     email: '',
     caracteristicas: [],
@@ -20,6 +25,8 @@ const CrearUsuario = ({ usuario = {} }) => {
   const [caracteristicasTodas, setCaracteristicasTodas] = useState([]); 
   const [caracteristicas, setCaracteristicasUsuario] = useState([]);
   const [message, setMessage] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [geocodeOptions, setGeocodeOptions] = useState([]);
   const [verUsuario, setVerUsuario] = useState(false);
   let crearPedido = false;
 
@@ -28,8 +35,17 @@ const CrearUsuario = ({ usuario = {} }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+    if (name === "direccion") {
+        setFormData({ 
+            ...formData, 
+            direccion: value, 
+            latitud: null, 
+            longitud: null 
+        });
+    } else {
+        setFormData({ ...formData, [name]: value });
+    }
+};
 
   const obtenerCaracteristicas = async () => {
     try {
@@ -44,6 +60,37 @@ const CrearUsuario = ({ usuario = {} }) => {
     obtenerCaracteristicas();
   }, []);
 
+  const handleGeocode = async () => {
+    if (!formData.direccion.trim()) return;
+
+    try {
+        const results = await geocodeAddress(formData.direccion);
+        
+        if (results.length === 1) {
+            // Si solo hay un resultado, lo seleccionamos automáticamente
+            handleSelectGeocode(0, results[0]);
+        } else if (results.length > 1) {
+            // Si hay múltiples resultados, abrir el modal
+            setGeocodeOptions(results);
+            setModalOpen(true);
+        } else {
+            setMessage({ type: "error", text: "No se pudo obtener la ubicación" });
+        }
+    } catch (error) {
+        console.error("Error al geodecodificar:", error);
+        setMessage({ type: "error", text: "No se pudo obtener la ubicación" });
+    }
+  };
+
+  const handleSelectGeocode = (index, option) => {
+    setFormData({
+        ...formData,
+        direccion: option.display_name,
+        latitud: option.lat,
+        longitud: option.lng,
+    });
+    setModalOpen(false);
+  };
 
   const handleNavigation = (id) => {
     navigate(`/solicitudes/crear?usuarioId=${id}`);
@@ -171,13 +218,16 @@ const CrearUsuario = ({ usuario = {} }) => {
               />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                name="direccion"
-                label="Dirección"
-                value={formData.direccion}
-                onChange={handleChange}
-                fullWidth
-              />
+              <Grid container spacing={1} alignItems="center">
+                <Grid item xs={10}>
+                  <TextField name="direccion" label="Dirección" value={formData.direccion} onChange={handleChange} fullWidth />
+                </Grid>
+                <Grid item xs={2}>
+                  <IconButton color={formData.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!formData.direccion}>
+                      <GpsFixedIcon />
+                  </IconButton>
+                </Grid>
+              </Grid>
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -250,6 +300,31 @@ const CrearUsuario = ({ usuario = {} }) => {
           </Grid>
         </form>
       </Paper>
+
+      {/* Modal para selección de direcciones geodecodificadas */}
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
+        <Paper sx={{ padding: 2, width: 400, margin: 'auto', marginTop: '20vh' }}>
+          <Typography variant="h6">Selecciona una dirección</Typography>
+          <List>
+            {geocodeOptions.map((option, index) => (
+              <ListItem 
+                button 
+                key={index} 
+                component="button"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSelectGeocode(index, option);
+                }}
+              >
+                <ListItemText primary={option.display_name} />
+              </ListItem>
+            ))}
+          </List>
+        </Paper>
+      </Modal>
+
     </Container>
   );
 };
