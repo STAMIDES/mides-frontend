@@ -357,7 +357,7 @@ const CrearPedido = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 1 }}>
+    <Container maxWidth="m" sx={{ mt: 1 }}>
       <Paper elevation={7} sx={{ p: 4 }}>
         <Typography variant="h4" gutterBottom>Agregar Nueva Solicitud</Typography>
         <form onSubmit={handleSubmit}>
@@ -467,7 +467,7 @@ const CrearPedido = () => {
                   name="ventana_horaria_inicio"
                   label="Hora de partida del origen"
                   type="time"
-                  value={formData.ventana_horaria_inicio}
+                  value={formData.ventana_horaria_inicio || "08:00"}
                   onChange={handleChange}
                   fullWidth
                   InputLabelProps={{
@@ -527,12 +527,12 @@ const CrearPedido = () => {
                 </Box>
                 </Grid>
 
-                <Grid item xs={12} sm={2}>
+                <Grid item xs={12} sm={2.5}>
                   <TextField
                     name="ventana_horaria_inicio"
                     label="Hora de llegada al destino"
                     type="time"
-                    value={destino.ventana_horaria_inicio}
+                    value={destino.ventana_horaria_inicio || "08:00"}
                     onChange={(e) => handleParadaChange(index, e)}
                     fullWidth
                     InputLabelProps={{
@@ -541,12 +541,12 @@ const CrearPedido = () => {
                     style={{visibility: tipoViaje !== 2 ? "visible" : "hidden"}}
                   />
                 </Grid>
-                <Grid item xs={12} sm={2}>
+                <Grid item xs={12} sm={2.5}>
                   <TextField
                     name="ventana_horaria_fin"
                     label="Hora de partida del destino"
                     type="time"
-                    value={destino.ventana_horaria_fin}
+                    value={destino.ventana_horaria_fin || "09:00"}
                     onChange={(e) => handleParadaChange(index, e)}
                     fullWidth
                     InputLabelProps={{
