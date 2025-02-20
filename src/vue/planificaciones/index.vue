@@ -11,6 +11,7 @@
       :planificacion="planificacion"
       :fetchPedidos="fetchPedidos"
       :errorPlanificacion="errorPlanificacion"
+      :estadoError="estadoError"
       @date-changed="handleDateChange"
       @planificar="planificar"
       @checkbox-change-pedidos="handleCheckboxChangePedidos"
@@ -38,6 +39,7 @@ export default {
     const route = useRoute();
     const selectedDate = ref(new Date().toISOString().split('T')[0]);
     const errorPlanificacion = ref(null);
+    const estadoError = ref(null);
     const pedidos = ref([]);
     const vehiculos = ref([]);
     const choferes = ref([]);
@@ -180,8 +182,8 @@ export default {
         localStorage.setItem('selectedTurnos', JSON.stringify(turnos.value));
         planificacion.value = response.data.planificacion
       } catch (error) {
-        console.error('Error guardando planificacion:', error);
-        errorPlanificacion.value = error.response.data.detail;
+        errorPlanificacion.value++
+        estadoError.value = error.response.data.detail;
       }
     };
 
@@ -216,7 +218,7 @@ export default {
             "end": "23:00:00"
           }
         },
-        "vehicles": vehiculosNormalizados,
+         "vehicles": vehiculosNormalizados,
         "ride_requests": pedidosNormalizados
       };
 
@@ -225,10 +227,10 @@ export default {
         const planificacionProcesada = procesarNuevaPlanificacion(response.data, vehiculosNormalizados);
         guardarPlanificacion(planificacionProcesada)
         showPedidos.value = false;
-     } catch (error) {
-      console.error('Error during API request:', error);
-      errorPlanificacion.value = "Error al planificar";
-    }
+      }catch (error) {
+        errorPlanificacion.value++
+        estadoError.value = "Error al planificar";
+      }
   };
 
 
@@ -360,7 +362,8 @@ export default {
       handleSelectedTurnos,
       showPedidos,
       fetchPedidos,
-      errorPlanificacion
+      errorPlanificacion,
+      estadoError
     };
   }
 };

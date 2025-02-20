@@ -158,8 +158,8 @@
                 Agregar turno
               </button>
             </div>
-          <div v-if="errorPlanificacion" class="error-planificacion">
-            {{ errorPlanificacion }}
+          <div v-if="estadoError" class="error-planificacion">
+            {{ estadoError }}
           </div>
           <div class="bottom-button">
             <button class="btn big" @click="planificar" :disabled="isPlanificando">
@@ -213,9 +213,9 @@ export default {
       required: true
     },
     errorPlanificacion: {
-      type: String,
-      required: false
-    } 
+    },
+    estadoError: {
+    },
   },
   emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-turnos'],
   setup(props, { emit }) {
@@ -298,16 +298,16 @@ export default {
       const endHour = parseInt(newStart.split(':')[0]) + 6;
       const newEnd = `${endHour.toString().padStart(2, '0')}:00`;
       turnos.value.push({ start: newStart, end: newEnd, vehicles: [] });
-      emit('selected-turnos', turnos);
+      emit('selected-turnos', turnos.value);
     };  
     const removeTurno = (index) => {
       turnos.value.splice(index, 1);
-      emit('selected-turnos', turnos);
+      emit('selected-turnos', turnos.value);
     };
 
     const updateTurno = (index) => {
       // Ensure the changes are reflected in the parent component
-      emit('selected-turnos', turnos);
+      emit('selected-turnos', turnos.value);
     };
 
     const getTurnoClass = (index) => {
@@ -329,7 +329,7 @@ export default {
         turno.vehicles.splice(index, 1);
       }
       
-      emit('selected-turnos', turnos);
+      emit('selected-turnos', turnos.value);
     };
 
     const selectLugarComun = (turnoIndex, vehicleId, lugarComunId) => {
@@ -367,10 +367,9 @@ export default {
       }
     });
     watch(() => props.errorPlanificacion, (newValue) => {
-      if (newValue !== null) {
-        isPlanificando.value = false;
-      }
+      isPlanificando.value = false;
     });
+
     onMounted(() => {
       const selectedTurnos = JSON.parse(localStorage.getItem('selectedTurnos'));
       if (selectedTurnos) {
