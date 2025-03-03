@@ -66,11 +66,7 @@ const CrearUsuario = ({ usuario = {} }) => {
     try {
         const results = await geocodeAddress(formData.direccion);
         
-        if (results.length === 1) {
-            // Si solo hay un resultado, lo seleccionamos automáticamente
-            handleSelectGeocode(0, results[0]);
-        } else if (results.length > 1) {
-            // Si hay múltiples resultados, abrir el modal
+        if (results.length > 0) {
             setGeocodeOptions(results);
             setModalOpen(true);
         } else {
@@ -85,7 +81,6 @@ const CrearUsuario = ({ usuario = {} }) => {
   const handleSelectGeocode = (index, option) => {
     setFormData({
         ...formData,
-        direccion: option.display_name,
         latitud: option.lat,
         longitud: option.lng,
     });

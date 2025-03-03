@@ -107,9 +107,14 @@ const CrearPedido = () => {
         setDireccionFinalCoords(updatedCords[0] || { lat: null, lng: null });
         updatedCords[0] = { lat: null, lng: null };
       } else {
-        updatedCords[0] = updatedCords[0] || { lat: null, lng: null };
-        setDireccionFinalCoords(updatedCords[0]);
-      }
+        updatedCords[0] = prevCords[0] || { lat: null, lng: null };
+
+        if (newTipoViaje === 0) {
+            setDireccionFinalCoords(prevCords[0] || { lat: null, lng: null });
+        } else {
+            setDireccionFinalCoords({ lat: null, lng: null });
+        }
+    }
       return updatedCords;
     });
   };
@@ -145,21 +150,28 @@ const CrearPedido = () => {
             return updatedForm;
           });
   
-          if (cliente.latitud && cliente.longitud) {
-            if (tipoViaje === 2) {
-              // Si es un viaje solo de vuelta, las coordenadas del cliente van en destino
-              setCords([{ lat: null, lng: null }]);
-              setCords(prevCords => {
-                let newCords = [...prevCords];
-                newCords[0] = { lat: cliente.latitud, lng: cliente.longitud };
-                return newCords;
-              });
-              setDireccionFinalCoords({ lat: null, lng: null });
-            } else {
-              setCords([{ lat: cliente.latitud, lng: cliente.longitud }]);
-              setDireccionFinalCoords({ lat: cliente.latitud, lng: cliente.longitud });
+          setCords(prevCords => {
+            let updatedCords = [...prevCords];
+        
+            if (cliente.latitud && cliente.longitud) {
+                if (tipoViaje === 2) { 
+                    // Solo vuelta: las coordenadas del cliente van en la primera parada (destino)
+                    updatedCords[0] = { lat: null, lng: null }; // Vacía origen
+                    setDireccionFinalCoords({ lat: null, lng: null }); // Vacía dirección final
+                    updatedCords[1] = { lat: cliente.latitud, lng: cliente.longitud }; // Asigna coordenadas a la primera parada
+                } else if (tipoViaje === 0) { 
+                    // Ida y vuelta: las coordenadas del cliente van en origen y en final
+                    updatedCords[0] = { lat: cliente.latitud, lng: cliente.longitud }; // Origen
+                    setDireccionFinalCoords({ lat: cliente.latitud, lng: cliente.longitud }); // Final
+                } else if (tipoViaje === 1) { 
+                    // Solo ida: las coordenadas del cliente van en origen, pero no en final
+                    updatedCords[0] = { lat: cliente.latitud, lng: cliente.longitud }; // Origen
+                    setDireccionFinalCoords({ lat: null, lng: null }); // Final se mantiene vacío
+                }
             }
-          }
+        
+            return updatedCords;
+        });
         })
         .catch(error => {
           console.error("There was an error fetching the client data!", error);
