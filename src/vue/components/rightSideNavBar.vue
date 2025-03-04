@@ -322,9 +322,9 @@ export default {
     const toggleSelectionVehiculo = (turnoIndex, vehicleId) => {
       const turno = turnos.value[turnoIndex];
       const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
-      
+
       if (index === -1) {
-        turno.vehicles.push({ vehicle_id: vehicleId, lugares_comunes_id: null, chofer_id: null });
+        turno.vehicles.push({ vehicle_id: vehicleId, lugares_comunes_id: null, chofer_id: null, vehicleIdWithTurnoIndex: `${vehicleId}${turnoIndex}` });
       } else {
         turno.vehicles.splice(index, 1);
       }

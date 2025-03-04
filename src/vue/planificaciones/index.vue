@@ -138,11 +138,20 @@ export default {
 
         nueva_planificacion.routes.forEach(p => {
             // Normalize routes
-            const vehicle = vehiculosNormalizados.find(v => v.id === Number(p.vehicle_id) && v.time_window.start === p.time_window.start && v.time_window.end === p.time_window.end);
+            const arrival_time_start_depot = p.visits[0].arrival_time;
+            const arrival_time_end_depot = p.visits[p.visits.length - 1].arrival_time;
+            const turno = turnos.value.find(t => 
+              t.vehicles.some(v => v.vehicleIdWithTurnoIndex === p.vehicle_id)
+            );
+            if (!turno){
+              throw new Error('Turno no encontrado para el vehiculo ' + p.vehicle_id);
+            }
+
+            const vehicle = turno.vehicles.find(v => v.vehicleIdWithTurnoIndex === p.vehicle_id);
             normalizedRutas.push({
-                    id_vehiculo: p.vehicle_id,
-                    hora_inicio: vehicle.time_window.start,
-                    hora_fin: vehicle.time_window.end,
+                    id_vehiculo: vehicle.vehicle_id,
+                    hora_inicio: arrival_time_start_depot,
+                    hora_fin: arrival_time_end_depot,
                     geometria: p.geometry,
                     visitas: p.visits.map(v=>{
                       return {
@@ -160,10 +169,13 @@ export default {
                     })
             });
             if (normalizedTurnos.length==0 || !normalizedTurnos.find(t => t.hora_inicio === p.start_time && t.hora_fin === p.end_time)) {
-                normalizedTurnos.push({
-                    hora_inicio: vehicle.time_window.start,
-                    hora_fin: vehicle.time_window.end,
-                });
+              // find the vehicle with the same id as the one in the planificacion on the turnos
+              
+              let normalizedTurno = {
+                hora_inicio: turno.start,
+                hora_fin: turno.end,
+              }
+              normalizedTurnos.push(normalizedTurno);
             }
         });
         const normalizedPlanificacion = {
@@ -186,19 +198,57 @@ export default {
         estadoError.value = error.response.data.detail;
       }
     };
+    function addMinutesToTime(time, minutesToAdd) {
+      let [hours, minutes] = time.split(':').map(Number);
+      
+      // Add the minutes
+      minutes += minutesToAdd;
+      
+      // Handle overflow of minutes into hours
+      hours += Math.floor(minutes / 60);
+      minutes = minutes % 60;
+      
+      // Handle overflow of hours (e.g., 24 -> 00)
+      hours = hours % 24;
+      
+      // Format the time back to "hh:mm" string
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    } 
 
     const crearPlanificacion = async (pedidosNormalizados) => {
       var vehiculosNormalizados =  turnos.value.reduce((acc, turno) => {
         turno.vehicles.forEach((vehiculo_selected)=>{
           const v = vehiculos.value.find(v => v.id === vehiculo_selected.vehicle_id);
           if (v) {
+            const start_tolerance = addMinutesToTime(turno.start, 30);
+            const end_tolerance = addMinutesToTime(turno.end, 30);
             acc.push({
-              id: v.id,
+              id: vehiculo_selected.vehicleIdWithTurnoIndex, 
               capacity: v.capacidad_convencional,
-              time_window: {
-                start: turno.start+':00',
-                end: turno.end+':00',
-              }
+              depot_start: { //FIXME: hardcodeado
+                id: 101,
+                address: "Dr. Martín C. Martínez 1222",
+                coordinates: {
+                  latitude: -34.8704884,
+                  longitude: -56.1401427
+                },
+                time_window: {
+                  start: turno.start+':00',
+                  end: start_tolerance+':00',
+                }
+              },
+              depot_end: { //FIXME: hardcodeado
+                id: 101,
+                address: "Dr. Martín C. Martínez 1222",
+                coordinates: {
+                  latitude: -34.8704884,
+                  longitude: -56.1401427
+                },
+                time_window: {
+                  start: turno.end+':00',
+                  end: end_tolerance+':00',
+                }
+              },
             });
           }
         })
@@ -206,19 +256,7 @@ export default {
       }, []);
 
       const problem = {
-        "depot": { //FIXME: hardcodeado
-          "id": 101,
-          "address": "Dr. Martín C. Martínez 1222",
-          "coordinates": {
-            "latitude": -34.8704884,
-            "longitude": -56.1401427
-          },
-          "time_window": {
-            "start": "08:00:00",
-            "end": "23:00:00"
-          }
-        },
-         "vehicles": vehiculosNormalizados,
+        "vehicles": vehiculosNormalizados,
         "ride_requests": pedidosNormalizados
       };
 
@@ -228,6 +266,7 @@ export default {
         guardarPlanificacion(planificacionProcesada)
         showPedidos.value = false;
       }catch (error) {
+        console.log('The error was:', error);
         errorPlanificacion.value++
         estadoError.value = "Error al planificar";
       }
