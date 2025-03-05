@@ -219,6 +219,7 @@ export default {
       var vehiculosNormalizados =  turnos.value.reduce((acc, turno) => {
         turno.vehicles.forEach((vehiculo_selected)=>{
           const v = vehiculos.value.find(v => v.id === vehiculo_selected.vehicle_id);
+          const lc = lugaresComunes.value.find(l => l.id === Number(vehiculo_selected.lugares_comunes_id));
           if (v) {
             const start_tolerance = addMinutesToTime(turno.start, 30);
             const end_tolerance = addMinutesToTime(turno.end, 30);
@@ -227,10 +228,10 @@ export default {
               capacity: v.capacidad_convencional,
               depot_start: { //FIXME: hardcodeado
                 id: 101,
-                address: "Dr. Martín C. Martínez 1222",
+                address: lc.nombre,
                 coordinates: {
-                  latitude: -34.8704884,
-                  longitude: -56.1401427
+                  latitude: lc.latitud,
+                  longitude: lc.longitud
                 },
                 time_window: {
                   start: turno.start+':00',
@@ -239,10 +240,10 @@ export default {
               },
               depot_end: { //FIXME: hardcodeado
                 id: 101,
-                address: "Dr. Martín C. Martínez 1222",
+                address:  lc.nombre,
                 coordinates: {
-                  latitude: -34.8704884,
-                  longitude: -56.1401427
+                  latitude: lc.latitud,
+                  longitude: lc.longitud
                 },
                 time_window: {
                   start: turno.end+':00',
@@ -279,7 +280,6 @@ export default {
     };
 
     const addTolerance = (time, substract=true) => {
-
       let date = new Date(`1970-01-01T${time}Z`);
 
       if (substract){
