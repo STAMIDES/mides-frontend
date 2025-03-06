@@ -36,6 +36,22 @@ const PedidoListado = () => {
     obtenerPedidos(currentPage, date);
   }, [date, currentPage]);
 
+  const handleDelete = (pedido) => {
+    try{
+      if (pedido.estado !== 'Pendiente') {
+        return alert('La solicitud debe estar en estado pendiente para poder ser eliminada');
+      }
+      const response = api.delete(`/pedidos/${pedido.id}`);
+      if (pedidos.length==1 && currentPage>1){  
+        obtenerPedidos(currentPage-1);
+      }else{
+        obtenerPedidos(currentPage);
+      }
+    } catch (error) {
+      console.error('Error borrando cliente:', error);
+    }
+  };
+
   const procesarPedidos = (pedidosSinProcesar) => {
     const nuevoListado = [];
     pedidosSinProcesar.sort((a, b) => new Date(a.fecha_programado) - new Date(b.fecha_programado));
@@ -62,7 +78,8 @@ const PedidoListado = () => {
                 nombre_y_apellido: nombreYApellido,
                 usuario_documento: usuario_documento,
                 direccion_origen_y_horario: direccionOrigenYHorario,
-                direccion_destino_y_horario: direccionDestinoYHorario
+                direccion_destino_y_horario: direccionDestinoYHorario,
+                estado: pedido.estado
             });
             lastDestino = destino;
         }
@@ -107,9 +124,9 @@ const PedidoListado = () => {
         filterComponentProps={{ date: date, handleDateChange: handleDateChange }}
         data={pedidos} 
         columns={columns} 
-        icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={[ "/pedidos/editar",  "/pedidos/eliminar"]} 
-        iconsTooltip={[ "Editar Solicitud", "Eliminar Solicitud"]}
+        icons={[ <DeleteIcon />]}
+        iconsTooltip={[ "Eliminar Solicitud"]}
+        onDelete={handleDelete}
         getFunction={obtenerPedidos}
         currentPage={currentPage}
         pageCounter={Math.ceil(cantidadPedidos/pageSize)}

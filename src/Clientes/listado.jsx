@@ -36,9 +36,9 @@ const ClienteListado = () => {
       }
     }
   };
-  const handleDelete = async (id) => {
+  const handleDelete = async (cliente) => {
     try {
-      const response = await api.delete(`/clientes/${id}`);
+      const response = await api.delete(`/clientes/${cliente.id}`);
       if (clients.length==1 && currentPage>1){  
         obtenerClientes(currentPage-1);
       }else{

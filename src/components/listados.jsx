@@ -28,7 +28,7 @@ const ListComponent = ({
 
   const handleDeleteConfirm = () => {
     if (itemToDelete) {
-      onDelete(itemToDelete.id);
+      onDelete(itemToDelete);
     }
     setDeleteConfirmOpen(false);
   };
