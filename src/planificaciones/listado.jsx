@@ -65,6 +65,22 @@ const PlanificacionListado = () => {
     }
   };
 
+  const handleDelete = (planificacion) => {
+    try{
+      if (planificacion.estado !== 'Pendiente') {
+        return alert('La solicitud debe estar en estado pendiente para poder ser eliminada');
+      }
+      const response = api.delete(`/planificacions/${planificacion.id}`);
+      if (planificaciones.length==1 && currentPage>1){  
+        obtenerPlanificaciones(currentPage-1, date);
+      }else{
+        obtenerPlanificaciones(currentPage, date);
+      }
+    } catch (error) {
+      console.error('Error borrando cliente:', error);
+    }
+  };
+  
   const handleDateChange = (newDate) => {
     if (moment(newDate, "DD-MM-YYYY", true).isValid()) {
       setDate(moment(newDate, "YYYY-MM-DD"));
@@ -84,9 +100,9 @@ const PlanificacionListado = () => {
         filterComponentProps={{ date: date, handleDateChange: handleDateChange }}
         data={planificaciones} 
         columns={columns} 
-        icons={[<ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={[ "/planificaciones/editar",  "/planificaciones/eliminar"]} 
-        iconsTooltip={[ "Editar Planificación", "Eliminar Planificación"]}
+        icons={[<DeleteIcon />]}
+        iconsTooltip={[ "Eliminar Planificación"]}
+        onDelete={handleDelete}
         getFunction={obtenerPlanificaciones}
         currentPage={currentPage}
         pageCounter={Math.ceil(cantidadPlanificaciones/pageSize)}

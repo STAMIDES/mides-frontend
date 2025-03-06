@@ -43,9 +43,9 @@ const PedidoListado = () => {
       }
       const response = api.delete(`/pedidos/${pedido.id}`);
       if (pedidos.length==1 && currentPage>1){  
-        obtenerPedidos(currentPage-1);
+        obtenerPedidos(currentPage-1, date);
       }else{
-        obtenerPedidos(currentPage);
+        obtenerPedidos(currentPage, date);
       }
     } catch (error) {
       console.error('Error borrando cliente:', error);
