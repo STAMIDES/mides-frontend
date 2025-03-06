@@ -89,7 +89,7 @@ const PedidoDetalles = () => {
         fetchPedido();
       } else if (dialogMode === 'delete') {
         if (pedido.estado !== 'Pendiente') {
-          return alert('La solicitud debe estar en estado pendiente para poder eliminar');
+          return alert('La solicitud debe estar en estado pendiente para poder ser eliminada');
         }
         await api.delete(`pedidos/${id}`);
         setSuccess("Solicitud eliminado exitosamente");

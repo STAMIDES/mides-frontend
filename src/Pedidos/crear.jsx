@@ -21,13 +21,13 @@ const CrearPedido = () => {
     direccion_origen: '', 
     direccion_origen_tipo: '',
     direccion_final: '',
-    ventana_horaria_inicio: '',
+    ventana_horaria_inicio: '08:00',
     fecha_programado: '',
     paradas: [
       {
         direccion_destino: '',
-        ventana_horaria_inicio: '',
-        ventana_horaria_fin: '',
+        ventana_horaria_inicio:  '08:00',
+        ventana_horaria_fin:  '09:00',
         tipo_parada: '',
       },
     ],
