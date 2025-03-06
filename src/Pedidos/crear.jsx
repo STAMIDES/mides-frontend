@@ -479,7 +479,7 @@ const CrearPedido = () => {
                   name="ventana_horaria_inicio"
                   label="Hora de partida del origen"
                   type="time"
-                  value={formData.ventana_horaria_inicio || "08:00"}
+                  value={formData.ventana_horaria_inicio}
                   onChange={handleChange}
                   fullWidth
                   InputLabelProps={{
@@ -544,7 +544,7 @@ const CrearPedido = () => {
                     name="ventana_horaria_inicio"
                     label="Hora de llegada al destino"
                     type="time"
-                    value={destino.ventana_horaria_inicio || "08:00"}
+                    value={destino.ventana_horaria_inicio}
                     onChange={(e) => handleParadaChange(index, e)}
                     fullWidth
                     InputLabelProps={{
@@ -558,7 +558,7 @@ const CrearPedido = () => {
                     name="ventana_horaria_fin"
                     label="Hora de partida del destino"
                     type="time"
-                    value={destino.ventana_horaria_fin || "09:00"}
+                    value={destino.ventana_horaria_fin}
                     onChange={(e) => handleParadaChange(index, e)}
                     fullWidth
                     InputLabelProps={{
