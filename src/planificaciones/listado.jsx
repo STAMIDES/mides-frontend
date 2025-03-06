@@ -67,9 +67,7 @@ const PlanificacionListado = () => {
 
   const handleDelete = (planificacion) => {
     try{
-      if (planificacion.estado !== 'Pendiente') {
-        return alert('La solicitud debe estar en estado pendiente para poder ser eliminada');
-      }
+      // TODO:: Agregar algun tipo de freno, el usuario no deberia poder cualquier planificacion
       const response = api.delete(`/planificacions/${planificacion.id}`);
       if (planificaciones.length==1 && currentPage>1){  
         obtenerPlanificaciones(currentPage-1, date);
