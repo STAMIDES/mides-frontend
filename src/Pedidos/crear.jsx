@@ -21,13 +21,13 @@ const CrearPedido = () => {
     direccion_origen: '', 
     direccion_origen_tipo: '',
     direccion_final: '',
-    ventana_horaria_inicio: '08:00',
+    ventana_horaria_inicio: '',
     fecha_programado: '',
     paradas: [
       {
         direccion_destino: '',
-        ventana_horaria_inicio:  '08:00',
-        ventana_horaria_fin:  '09:00',
+        ventana_horaria_inicio:  '',
+        ventana_horaria_fin:  '',
         tipo_parada: '',
       },
     ],
@@ -291,7 +291,6 @@ const CrearPedido = () => {
       posicion_en_pedido: 0}];
     let counter = 0;
     for (const parada of formData.paradas){
-      console.log(formData)
       counter = counter + 1;
       if (tipoViaje===0){
         retParadas.push({direccion: parada.direccion_destino,
@@ -486,7 +485,6 @@ const CrearPedido = () => {
                     shrink: true,
                   }}
                   style={{visibility: tipoViaje === 2 ? "visible" : "hidden"}}
-
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -554,7 +552,7 @@ const CrearPedido = () => {
                   />
                 </Grid>
                 <Grid item xs={12} sm={2.5}>
-                  <TextField
+                <TextField
                     name="ventana_horaria_fin"
                     label="Hora de partida del destino"
                     type="time"
