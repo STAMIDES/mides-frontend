@@ -59,6 +59,19 @@ const UsuarioListado = () => {
     obtenerChoferes(1, searchTerm);
   };
 
+  const handleDelete = async (chofer) => {
+    try {
+      await api.delete(`/choferes/${chofer.id}`);
+      if (choferes.length === 1 && currentPage > 1) {  
+        obtenerChoferes(currentPage - 1);
+      } else {
+        obtenerChoferes(currentPage);
+      }
+    } catch (error) {
+      console.error('Error borrando chofer:', error);
+    }
+  };
+
   return (
     <Container>
       <Header createLink="./crear" createMessage="Crear" onSearch={handleSearch}/>
@@ -73,6 +86,7 @@ const UsuarioListado = () => {
         iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Chofer"]}
         getFunction={obtenerChoferes}
         setStatus={setStatus}
+        onDelete={handleDelete}
         pageCounter={Math.ceil(cantidadChoferes/pageSize)}
         currentPage={currentPage}
       />
