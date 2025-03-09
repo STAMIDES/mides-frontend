@@ -56,6 +56,19 @@ const LugaresComunesListado = () => {
     obtenerLugaresComunes(1, searchTerm);
   };
 
+  const handleDelete = async (lugar) => {
+    try {
+      await api.delete(`/lugares_comunes/${lugar.id}`);
+      if (lugares.length === 1 && currentPage > 1) {  
+        obtenerLugaresComunes(currentPage - 1);
+      } else {
+        obtenerLugaresComunes(currentPage);
+      }
+    } catch (error) {
+      console.error('Error borrando lugar común:', error);
+    }
+  };
+
   return (
     <Container>
       <Header createLink="./crear" createMessage="Crear" onSearch={handleSearch}/>
@@ -66,10 +79,11 @@ const LugaresComunesListado = () => {
         columns={columns} 
         createLink="/lugares_comunes/crear" 
         icons={[ <ToggleOffIcon/>, <ToggleOnIcon/>, <DeleteIcon />]}
-        iconsLinks={["", "", "/lugares_comunes/eliminar?lugar_comun_id="]}
+        iconsLinks={["", "", ""]}
         iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Lugar Comun"]}
         getFunction={obtenerLugaresComunes}
         setStatus={setStatus}
+        onDelete={handleDelete}
         pageCounter={Math.ceil(cantidadLugaresComunes/pageSize)}
         currentPage={currentPage}
       />
