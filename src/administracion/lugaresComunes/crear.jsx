@@ -17,6 +17,7 @@ const LugaresComunesCrear = ({ lugar_comun = {} }) => {
   const [message, setMessage] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [geocodeOptions, setGeocodeOptions] = useState([]);
+  const [errors, setErrors] = useState({});
   const api = useApi();
 
   const handleChange = (e) => {
@@ -37,26 +38,26 @@ const LugaresComunesCrear = ({ lugar_comun = {} }) => {
 
   const handleGeocode = async () => {
     if (!formData.direccion.trim()) return;
-
+  
     try {
       const results = await geocodeAddress(formData.direccion);
-      
+  
       if (results.length === 1) {
-        // Si solo hay un resultado, lo seleccionamos automáticamente
         handleSelectGeocode(0, results[0]);
+        setErrors(prevErrors => ({ ...prevErrors, direccion: "" }));
       } else if (results.length > 1) {
-        // Si hay múltiples resultados, abrir el modal
         setGeocodeOptions(results);
         setModalOpen(true);
+        setErrors(prevErrors => ({ ...prevErrors, direccion: "" }));
       } else {
-        setMessage({ type: "error", text: "No se pudo obtener la ubicación" });
+        setErrors(prevErrors => ({ ...prevErrors, direccion: "No se encontraron resultados para la dirección ingresada." }));
       }
     } catch (error) {
       console.error("Error al geodecodificar:", error);
-      setMessage({ type: "error", text: "No se pudo obtener la ubicación" });
+      setErrors(prevErrors => ({ ...prevErrors, direccion: "Error en la geocodificación, intenta nuevamente." }));
     }
   };
-
+  
   const handleSelectGeocode = (index, option) => {
     setFormData({
       ...formData,
@@ -99,7 +100,17 @@ const LugaresComunesCrear = ({ lugar_comun = {} }) => {
             <Grid item xs={12}>
               <Grid container spacing={1} alignItems="center">
                 <Grid item xs={10}>
-                  <TextField name="direccion" label="Dirección" value={formData.direccion} onChange={handleChange} fullWidth required />
+                <TextField 
+                  name="direccion" 
+                  label="Dirección" 
+                  value={formData.direccion} 
+                  onChange={handleChange} 
+                  fullWidth 
+                  required 
+                  error={!!errors.direccion} 
+                  helperText={errors.direccion} 
+                />
+
                 </Grid>
                 <Grid item xs={2}>
                   <IconButton color={formData.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!formData.direccion}>

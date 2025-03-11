@@ -69,18 +69,21 @@ const CrearUsuario = ({ usuario = {} }) => {
         if (results.length > 0) {
             setGeocodeOptions(results);
             setModalOpen(true);
+            setErrors(prevErrors => ({ ...prevErrors, direccion: "" }));
         } else {
-            setMessage({ type: "error", text: "No se pudo obtener la ubicación" });
+            setErrors(prevErrors => ({ ...prevErrors, direccion: "No se encontraron resultados para la dirección ingresada." }));
         }
     } catch (error) {
         console.error("Error al geodecodificar:", error);
-        setMessage({ type: "error", text: "No se pudo obtener la ubicación" });
+        setErrors(prevErrors => ({ ...prevErrors, direccion: "Error en la geocodificación, intenta nuevamente." }));
     }
-  };
+};
+
 
   const handleSelectGeocode = (index, option) => {
     setFormData({
         ...formData,
+        direccion: option.display_name,
         latitud: option.lat,
         longitud: option.lng,
     });
@@ -215,7 +218,16 @@ const CrearUsuario = ({ usuario = {} }) => {
             <Grid item xs={12}>
               <Grid container spacing={1} alignItems="center">
                 <Grid item xs={10}>
-                  <TextField name="direccion" label="Dirección" value={formData.direccion} onChange={handleChange} fullWidth />
+                <TextField 
+                  name="direccion" 
+                  label="Dirección" 
+                  value={formData.direccion} 
+                  onChange={handleChange} 
+                  fullWidth 
+                  error={!!errors.direccion} 
+                  helperText={errors.direccion} 
+                />
+
                 </Grid>
                 <Grid item xs={2}>
                   <IconButton color={formData.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!formData.direccion}>

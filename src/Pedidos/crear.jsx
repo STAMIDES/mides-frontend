@@ -330,28 +330,60 @@ const CrearPedido = () => {
         setGeocodeOptions(opciones);
         setSelectedAddressIndex(index);
         handleOpenModal();
+        setErrors(prevErrors => ({
+          ...prevErrors,
+          [index === -1 ? "direccion_final" : index === 0 ? "direccion_origen" : `parada_${index - 1}`]: ""
+        }));
       } else {
-        setMessage({ type: 'error', text: 'No se encontraron opciones de geocodificación para la dirección.' });
+        setErrors(prevErrors => ({
+          ...prevErrors,
+          [index === -1 ? "direccion_final" : index === 0 ? "direccion_origen" : `parada_${index - 1}`]: "No se encontraron resultados para la dirección ingresada."
+        }));
       }
     } catch (error) {
-      setMessage({ type: 'error', text: error.message });
+      setErrors(prevErrors => ({
+        ...prevErrors,
+        [index === -1 ? "direccion_final" : index === 0 ? "direccion_origen" : `parada_${index - 1}`]: "Error en la geocodificación, intenta nuevamente."
+      }));
     }
   };
 
   const handleSelectGeocode = (index, coordenadas) => {
-    if (selectedAddressIndex === -1) {
-      setDireccionFinalCoords(coordenadas);
-    } else {
-      setCords((prevCords) => {
-        let newCords = [...prevCords];
-        newCords[selectedAddressIndex] = coordenadas;
-        return newCords;
-      });
-    }
-  
+    setFormData((prevData) => {
+        let updatedData = { ...prevData };
+
+        if (index === -1) {
+            // Si es la dirección final
+            updatedData.direccion_final = coordenadas.display_name;
+            setDireccionFinalCoords(coordenadas);
+        } else if (index === 0) {
+            // Si es la dirección de origen
+            updatedData.direccion_origen = coordenadas.display_name;
+            setCords((prevCords) => {
+                let newCords = [...prevCords];
+                newCords[0] = coordenadas;
+                return newCords;
+            });
+        } else {
+            // Si es una parada intermedia
+            updatedData.paradas = prevData.paradas.map((parada, i) =>
+                i === index - 1 ? { ...parada, direccion_destino: coordenadas.display_name } : parada
+            );
+
+            setCords((prevCords) => {
+                let newCords = [...prevCords];
+                newCords[index] = coordenadas;
+                return newCords;
+            });
+        }
+
+        return updatedData;
+    });
+
     setSelectedAddressIndex(null);
     handleCloseModal();
-  };
+};
+
 
   const getTipoViaje = () => {
     return tiposViaje[parseInt(tipoViaje, 10)];
@@ -359,13 +391,49 @@ const CrearPedido = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+  
+    let validationErrors = [];
+
     if (!validarDoc()) {
+      return;
+    }
+  
+    if (!formData.fecha_programado) {
+      validationErrors.push('Debes seleccionar una fecha programada.');
+    } else {
+      const selectedYear = parseInt(formData.fecha_programado.split('-')[0], 10);
+      if (selectedYear < 2025) {
+        validationErrors.push('La fecha debe ser en el año 2025 o posterior.');
+      }
+    }
+  
+    formData.paradas.forEach((parada, index) => {
+      if (tipoViaje !== 2 && !parada.ventana_horaria_inicio) { 
+        validationErrors.push(`Debes ingresar la hora de llegada al destino en la parada ${index + 1}.`);
+      }
+  
+      if (tipoViaje === 0 && !parada.ventana_horaria_fin) { 
+        validationErrors.push(`Debes ingresar la hora de partida del destino en la parada ${index + 1}.`);
+      }
+  
+      if (tipoViaje !== 2 && !parada.tipo_parada) { 
+        validationErrors.push(`Debes seleccionar un tipo de parada en la parada ${index + 1}.`);
+      }
+    });
+  
+    if (!areCoordinatesComplete()) {
+      validationErrors.push('Debes geocodificar todas las direcciones antes de continuar.');
+    }
+  
+    if (validationErrors.length > 0) {
+      setMessage({ type: 'error', text: validationErrors.join(' ') });
       return;
     }
   
     setIsSubmitting(true);
   };
+  
+  
 
   return (
     <Container maxWidth="m" sx={{ mt: 1 }}>
@@ -454,6 +522,8 @@ const CrearPedido = () => {
                     onChange={handleChange}
                     fullWidth
                     required
+                    error={!!errors.direccion_origen}
+                    helperText={errors.direccion_origen}
                   />
                   {/* Botón para geocodificación estándar */}
                   <IconButton
@@ -517,6 +587,8 @@ const CrearPedido = () => {
                     onChange={(e) => handleParadaChange(index, e)}
                     fullWidth
                     required
+                    error={!!errors[`parada_${index}`]}
+                    helperText={errors[`parada_${index}`]}
                   />
                   {/* Botón para geocodificación estándar */}
                   <IconButton
@@ -601,6 +673,8 @@ const CrearPedido = () => {
                     style={{ display: tipoViaje === 0 ? "flex" : "none" }}
                     required={tipoViaje === 0} 
                     disabled={tipoViaje !== 0}
+                    error={!!errors.direccion_final}
+                    helperText={errors.direccion_final}
                     />
                     {/* Botón para geocodificación estándar */}
                     <IconButton
@@ -656,7 +730,7 @@ const CrearPedido = () => {
               variant="contained" 
               color="primary" 
               fullWidth 
-              disabled={!areCoordinatesComplete()}
+              onClick={handleSubmit}
             >
                 Agregar Solicitud
             </Button>
