@@ -47,6 +47,19 @@ const ComionetasListado = () => {
     obtenerCamionetas(1, searchTerm);
   };
 
+  const handleDelete = async (camioneta) => {
+    try {
+      await api.delete(`/vehiculos/${camioneta.id}`);
+      if (camionetas.length === 1 && currentPage > 1) {  
+        obtenerCamionetas(currentPage - 1);
+      } else {
+        obtenerCamionetas(currentPage);
+      }
+    } catch (error) {
+      console.error('Error borrando camioneta:', error);
+    }
+  };
+
   const setStatus = async (id, status) => {
     try {
       const response = await api.put(`/vehiculos/estado/${id}?activo=${status}`);
@@ -70,10 +83,11 @@ const ComionetasListado = () => {
         columns={columns} 
         createLink="/camionetas/crear" 
         icons={[ <ToggleOffIcon/>, <ToggleOnIcon/>, <DeleteIcon />]}
-        iconsLinks={[ "","", "/camionetas/eliminar?camioneta_id="]}
+        iconsLinks={[ "","", ""]}
         iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Camioneta"]}
         getFunction={obtenerCamionetas}
         setStatus={setStatus}
+        onDelete={handleDelete}
         pageCounter={Math.ceil(cantidadCamionetas/pageSize)}
         currentPage={currentPage}
       />
