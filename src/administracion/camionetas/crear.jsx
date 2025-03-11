@@ -7,7 +7,6 @@ const CamionetasCrear = ({ camioneta = {} }) => {
     matricula: '',
     capacidad_convencional: '',
     capacidad_silla_de_ruedas: '',
-    chofer_habitual: '',
     caracteristicas: [],
     descripcion: '',
     ...camioneta
@@ -97,16 +96,6 @@ const CamionetasCrear = ({ camioneta = {} }) => {
                 fullWidth
                 type='number'
                 required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="chofer_habitual"
-                label="Chofer habitual"
-                value={formData.chofer_habitual}
-                onChange={handleChange}
-                fullWidth
-                multiline
               />
             </Grid>
             <Grid item xs={12}>

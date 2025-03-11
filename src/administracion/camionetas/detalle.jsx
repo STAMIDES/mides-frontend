@@ -90,10 +90,6 @@ const CamionetaDetalles = () => {
             <Typography variant="h6">Capacidad Silla de Ruedas:</Typography>
             <Typography>{camioneta.capacidad_silla_de_ruedas}</Typography>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <Typography variant="h6">Documento Chofer Habitual:</Typography>
-            <Typography>{camioneta.documento_chofer_habitual}</Typography>
-          </Grid>
           <Grid item xs={12}>
             <Typography variant="h6">Descripción:</Typography>
             <Typography>{camioneta.descripcion}</Typography>
@@ -130,14 +126,6 @@ const CamionetaDetalles = () => {
               label="Capacidad Silla de Ruedas"
               fullWidth
               value={camionetaEditor.capacidad_silla_de_ruedas}
-              onChange={handleInputChange}
-          />
-          <TextField
-              margin="dense"
-              name="documento_chofer_habitual"
-              label="Documento Chofer Habitual"
-              fullWidth
-              value={camionetaEditor.documento_chofer_habitual}
               onChange={handleInputChange}
           />
           <TextField
