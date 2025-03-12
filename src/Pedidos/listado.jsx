@@ -21,6 +21,7 @@ const PedidoListado = () => {
   const defaultValue = today.toISOString().slice(0, 10);
   const [date, setDate] = useState(moment(defaultValue, "YYYY-MM-DD"));
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [pageSize, setPageSize] = useState(10);
   const [cantidadPedidos, setCantidadPedidos] = useState(0);
   const [currentPage, setPage] = useState(1);
@@ -33,8 +34,8 @@ const PedidoListado = () => {
   });
   
   useEffect(() => {
-    obtenerPedidos(currentPage, date);
-  }, [date, currentPage]);
+    obtenerPedidos(currentPage, date, searchTerm);
+  }, [date, currentPage, searchTerm]);
 
   const handleDelete = (pedido) => {
     try{
@@ -111,7 +112,7 @@ const PedidoListado = () => {
     }
   };
   const handleSearch = (searchTerm) => {
-    obtenerPedidos(1, date, searchTerm);
+    setSearchTerm(searchTerm);
   };
 
   return (
