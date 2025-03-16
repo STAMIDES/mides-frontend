@@ -71,6 +71,7 @@ export default {
               paradasProcesadas.push(parada);
           }
           coords.push([paradas[cantParadas-1].latitud, paradas[cantParadas-1].longitud]);
+          paradasProcesadas.push(direccionDestinoYHorario);
           nuevoListado.push({
               id: pedido.id,
               tipo: pedido.tipo,

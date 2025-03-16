@@ -63,14 +63,19 @@ const addPedidosToMap = () => {
     }
     const originLatLng = pedido.coords[0];
     const destinationLatLng = pedido.coords[pedido.coords.length - 1];
-  
-    L.marker(originLatLng)
+    if (originLatLng[0] === destinationLatLng[0] && originLatLng[1] === destinationLatLng[1]){
+      L.marker(originLatLng)
+      .addTo(map)
+      .bindPopup(`Origen: ${pedido.direccion_origen_y_horario} \n----- \nDestino: ${pedido.direccion_destino_y_horario}`);
+    }else{
+      L.marker(originLatLng)
       .addTo(map)
       .bindPopup(`Origen: ${pedido.direccion_origen_y_horario}`);
-    
-    L.marker(destinationLatLng)
+
+      L.marker(destinationLatLng)
       .addTo(map)
       .bindPopup(`Destino: ${pedido.direccion_destino_y_horario}`);
+    }
     if (pedido.tipo !== 'Ida y vuelta'){
       L.polyline([originLatLng, destinationLatLng], { 
         color: 'blue',
@@ -95,6 +100,12 @@ const addPedidosToMap = () => {
         .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
         prevLatLng = intermediaLatLng;
       }
+      L.polyline([prevLatLng, destinationLatLng], { 
+          color: 'blue',
+          weight: 3,
+          opacity: 0.7 
+        }).addTo(map)
+        .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
     }
   });
 };
