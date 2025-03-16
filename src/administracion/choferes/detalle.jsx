@@ -62,7 +62,7 @@ const ChoferDetalles = () => {
   console.log("Chofer data:", chofer);
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
+    <>
       <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column'}}>
         <div className='header-container'>
           <Typography variant="h4" gutterBottom>
@@ -154,7 +154,7 @@ const ChoferDetalles = () => {
               </Button>
           </DialogActions>
       </Dialog>
-    </Container>
+    </>
   );
 };
 

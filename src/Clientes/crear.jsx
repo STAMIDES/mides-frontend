@@ -178,7 +178,7 @@ const CrearUsuario = ({ usuario = {} }) => {
   };
   console.log(caracteristicasTodas[0])
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
+    <>
       <Paper elevation={3} sx={{ p: 4 }}> 
         <Typography variant="h4" gutterBottom>Agregar Nuevo Usuario</Typography>
         <form onSubmit={handleSubmit}>
@@ -331,8 +331,7 @@ const CrearUsuario = ({ usuario = {} }) => {
           </List>
         </Paper>
       </Modal>
-
-    </Container>
+    </>
   );
 };
 

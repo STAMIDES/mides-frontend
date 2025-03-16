@@ -89,7 +89,7 @@ const LugaresComunesCrear = ({ lugar_comun = {} }) => {
 
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
+    <>
       <Paper elevation={3} sx={{ p: 4 }}>
         <Typography variant="h4" gutterBottom>Crear Lugar Común</Typography>
         <form onSubmit={handleSubmit}>
@@ -161,7 +161,7 @@ const LugaresComunesCrear = ({ lugar_comun = {} }) => {
           </List>
         </Paper>
       </Modal>
-    </Container>
+    </>
   );
 };
 

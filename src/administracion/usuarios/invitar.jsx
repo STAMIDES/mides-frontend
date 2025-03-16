@@ -37,7 +37,7 @@ const OperadorInvitar = ({ usuario = {} }) => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
+    <>
       <Paper elevation={3} sx={{ p: 4 }}>
         <Typography variant="h4" gutterBottom>Invitación para nuevo operador de la aplicación</Typography>
         <Typography variant="body1" gutterBottom sx={{ mb: 3 }}>Al confirmar, se enviará un correo electrónico con un enlace al nuevo operador</Typography>
@@ -100,7 +100,7 @@ const OperadorInvitar = ({ usuario = {} }) => {
           </Grid>
         </form>
       </Paper>
-    </Container>
+    </>
   );
 };
 

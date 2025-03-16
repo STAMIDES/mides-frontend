@@ -4,15 +4,17 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
 import useApi from '../network/axios';
 import MenuIcon from '@mui/icons-material/Menu';
-import CloseIcon from '@mui/icons-material/Close';
 import KeyboardArrowLeftOutlinedIcon from '@mui/icons-material/KeyboardArrowLeftOutlined';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+
 const SideNavBar = () => {
   const navigate = useNavigate();
-  const { refresh_token, email, removeAuthContext } = useAuth();
+  const { removeAuthContext } = useAuth();
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [isMouseOverSubmenu, setIsMouseOverSubmenu] = useState(false);
   const [hideSideBar, setHideSideBar] = useState(false);
+  const [activeItem, setActiveItem] = useState("");
 
   const api = useApi();
   const location = useLocation();
@@ -24,7 +26,11 @@ const SideNavBar = () => {
     } else {
       setHideSideBar(false);
     }
-  }, [pathVuePlanification]);
+    
+    // Set active item based on current path
+    const currentPath = location.pathname.split('/')[1];
+    setActiveItem(currentPath || "");
+  }, [pathVuePlanification, location.pathname]);
 
   const toggleSideBar = () => {
     setHideSideBar(!hideSideBar);
@@ -33,13 +39,15 @@ const SideNavBar = () => {
   const handleLogoClick = () => {
     navigate("/");
   };
+  
   const logout = async () => {
     try {
-        await api.post('usuarios/logout');
-        removeAuthContext();
+      await api.post('usuarios/logout');
+      removeAuthContext();
     } catch (error) {
       console.error('Error during logout:', error);
-    } }
+    }
+  };
   
   const handleAdminMouseEnter = (event) => {
     setAnchorEl(event.currentTarget);
@@ -51,6 +59,7 @@ const SideNavBar = () => {
       setAdminMenuOpen(false);
     }
   };
+  
   const handleSubmenuMouseEnter = () => {
     setIsMouseOverSubmenu(true);
   };
@@ -61,140 +70,249 @@ const SideNavBar = () => {
   };
 
   const menuItems = [
-    "Usuarios",
-    "Solicitudes",
-    "Planificaciones"
+    { name: "Usuarios", path: "usuarios" },
+    { name: "Solicitudes", path: "solicitudes" },
+    { name: "Planificaciones", path: "planificaciones" }
   ];
 
   const adminSubItems = [
-    "Operadores",
-    "Choferes",
-    "Camionetas",
-    "Lugares Comunes"
+    { name: "Operadores", path: "operadores" },
+    { name: "Choferes", path: "choferes" },
+    { name: "Camionetas", path: "camionetas" },
+    { name: "Lugares Comunes", path: "lugares_comunes" }
   ];
 
   return (
     <>
-      {pathVuePlanification && (
-        <IconButton
-          onClick={toggleSideBar}
-          sx={{
-            position: 'fixed',
-            top: '1rem',
-            left: hideSideBar ? '3rem' : '13rem',
-            zIndex: 1301,
-            color: 'white',
-            bgcolor: 'grey.900',
-            '&:hover': {
-              bgcolor: 'grey.800',
-            },
-          }}
-        >
-          {hideSideBar ? <MenuIcon /> : <KeyboardArrowLeftOutlinedIcon />}
-        </IconButton>
-      )}
-      <Box
-        display={hideSideBar ? "none" : "flex"}
-        zIndex={1300}
-        flexDirection="column"
-        justifyContent="space-between"
-        alignItems="center"
-        bgcolor="grey.900"
-        width="12rem"
-        height="100vh"
-        position="fixed"
-        top='0'
-        left='0'
+    {pathVuePlanification && (
+      <IconButton
+        onClick={toggleSideBar}
         sx={{
-          transition: 'all 0.3s',
-          transform: hideSideBar ? 'translateX(-100%)' : 'translateX(0)',
+          position: 'fixed',
+          top: '1rem',
+          left: hideSideBar ? '1rem' : '14rem',
+          zIndex: 1301,
+          color: 'white',
+          bgcolor: '#1e1e2d',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+          transition: 'left 0.3s',
+          height: '40px',
+          width: '40px',
+          '&:hover': {
+            bgcolor: '#2c2c3e',
+          },
         }}
       >
-        <Box display="flex" flexDirection="column" alignItems="center" style={{ marginTop: '2rem'}}>
+        {hideSideBar ? <MenuIcon /> : <KeyboardArrowLeftOutlinedIcon />}
+      </IconButton>
+      )}
+      <Box
+        sx={{
+          zIndex: 1300,
+          display: hideSideBar ? "none" : "flex",
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          bgcolor: '#1e1e2d',
+          width: '220px',
+          height: '100vh',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          transition: 'transform 0.3s ease-in-out',
+          transform: hideSideBar ? 'translateX(-100%)' : 'translateX(0)',
+          boxShadow: '2px 0 10px rgba(0,0,0,0.2)',
+        }}
+      >
+        <Box 
+          sx={{ 
+            display: "flex", 
+            flexDirection: "column", 
+            alignItems: "center", 
+            width: "100%", 
+            mt: 3 
+          }}
+        >
           <Avatar
-            src="/src/imgs/logo_mides.png"
+            src="/src/imgs/logo_mides_blanco.png"
             alt="Logo"
-            sx={{ width: 56, height: 56, cursor: "pointer", mb: 4 }}
+            sx={{ 
+              width: 70, 
+              height: 70, 
+              cursor: "pointer", 
+              mb: 4,
+              transition: "transform 0.3s",
+              "&:hover": {
+                transform: "scale(1.05)"
+              }
+            }}
             onClick={handleLogoClick}
           />
-          {menuItems.map((item) => (
-            <Link key={item} to={item.toLowerCase()} style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
+          
+          <Box sx={{ width: "100%", px: 1 }}>
+            {menuItems.map((item) => {
+              const isActive = activeItem === item.path;
+              return (
+                <Link 
+                  key={item.name} 
+                  to={`/${item.path}`} 
+                  style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      py: 1.2,
+                      px: 2,
+                      mb: 1,
+                      color: isActive ? "#fff" : "rgba(255, 255, 255, 0.8)",
+                      borderRadius: "8px",
+                      backgroundColor: isActive ? "rgba(102, 108, 255, 0.9)" : "transparent",
+                      transition: "all 0.2s",
+                      "&:hover": {
+                        backgroundColor: isActive ? "rgba(102, 108, 255, 0.9)" : "rgba(255, 255, 255, 0.1)",
+                        transform: "translateX(5px)"
+                      }
+                    }}
+                  >
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        fontWeight: isActive ? 600 : 400,
+                        fontSize: "0.95rem",
+                      }}
+                    >
+                      {item.name}
+                    </Typography>
+                  </Box>
+                </Link>
+              );
+            })}
+            
+            <Box
+              onMouseEnter={handleAdminMouseEnter}
+              onMouseLeave={handleAdminMouseLeave}
+              width="100%"
+              sx={{ position: "relative" }}
+            >
               <Box
-                textAlign="left"
-                py={1}
-                px={2}
-                mb={2}
-                color="white"
-                borderRadius={1}
-                transition="background-color 0.3s"
                 sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  py: 1.2,
+                  px: 2,
+                  mb: 1,
+                  color: activeItem.startsWith("administracion") ? "#fff" : "rgba(255, 255, 255, 0.8)",
+                  borderRadius: "8px",
+                  backgroundColor: activeItem.startsWith("administracion") ? "rgba(102, 108, 255, 0.9)" : "transparent",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
                   "&:hover": {
-                    backgroundColor: "rgba(255, 255, 255, 0.1)"
-                  },
-                  "&:active": {
-                    backgroundColor: "rgba(255, 255, 255, 0.2)"
+                    backgroundColor: activeItem.startsWith("administracion") ? "rgba(102, 108, 255, 0.9)" : "rgba(255, 255, 255, 0.1)",
+                    transform: "translateX(5px)"
                   }
                 }}
               >
-                <Typography variant="h6">{item}</Typography>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    fontWeight: activeItem.startsWith("administracion") ? 600 : 400,
+                    fontSize: "0.95rem"
+                  }}
+                >
+                  Administración
+                </Typography>
+                <ArrowForwardIosIcon 
+                  sx={{ 
+                    fontSize: "0.75rem", 
+                    transition: "transform 0.3s",
+                    transform: adminMenuOpen ? "rotate(90deg)" : "rotate(0)"
+                  }} 
+                />
               </Box>
-            </Link>
-          ))}
-        <Box
-          onMouseEnter={handleAdminMouseEnter}
-          onMouseLeave={handleAdminMouseLeave}
-          width="100%"
-        >
-          <Box
-            textAlign="left"
-            py={1}
-            px={2}
-            mb={2}
-            color="white"
-            borderRadius={1}
-            transition="background-color 0.3s"
-            sx={{
-              cursor: "pointer",
+              <Popper 
+                open={adminMenuOpen} 
+                anchorEl={anchorEl} 
+                placement="right-start"
+                onMouseEnter={handleSubmenuMouseEnter} 
+                onMouseLeave={handleSubmenuMouseLeave}
+                sx={{ zIndex: 1400 }}
+              >
+                <Box 
+                  sx={{ 
+                    bgcolor: "#2a2a3c", 
+                    color: "white", 
+                    borderRadius: "8px", 
+                    py: 1,
+                    boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
+                    overflow: "hidden",
+                    width: "180px",
+                    mt: -1
+                  }}
+                >
+                  <List sx={{ p: 0 }}>
+                    {adminSubItems.map((subItem) => {
+                      const subPath = `administracion/${subItem.path}`;
+                      const isSubActive = location.pathname.includes(subPath);
+                      
+                      return (
+                        <Link 
+                          key={subItem.name} 
+                          to={`/${subPath}`} 
+                          style={{ textDecoration: 'none', color: 'inherit' }}
+                        >
+                          <ListItem 
+                            sx={{
+                              transition: "all 0.2s",
+                              backgroundColor: isSubActive ? "rgba(102, 108, 255, 0.5)" : "transparent",
+                              "&:hover": {
+                                backgroundColor: isSubActive ? "rgba(102, 108, 255, 0.7)" : "rgba(255, 255, 255, 0.1)",
+                                paddingLeft: "20px"
+                              },
+                              py: 0.5
+                            }}
+                          >
+                            <ListItemText 
+                              primary={subItem.name} 
+                              primaryTypographyProps={{ 
+                                fontSize: "0.9rem",
+                                fontWeight: isSubActive ? 500 : 400
+                              }} 
+                            />
+                          </ListItem>
+                        </Link>
+                      );
+                    })}
+                  </List>
+                </Box>
+              </Popper>
+            </Box>
+          </Box>
+        </Box>
+        
+        <Box sx={{ width: "100%", p: 2 }}>
+          <Button
+            variant="contained"
+            onClick={logout}
+            fullWidth
+            sx={{ 
+              mb: 2,
+              py: 1,
+              textTransform: "none",
+              backgroundColor: "rgba(255, 76, 76, 0.8)",
+              borderRadius: "8px",
+              transition: "all 0.3s",
+              boxShadow: "none",
               "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.1)"
+                backgroundColor: "rgba(255, 76, 76, 1)",
+                boxShadow: "0 4px 12px rgba(255, 76, 76, 0.3)"
               },
-              "&:active": {
-                backgroundColor: "rgba(255, 255, 255, 0.2)"
-              }
             }}
           >
-            <Typography variant="h6">Administración</Typography>
-          </Box>
-          <Popper 
-            open={adminMenuOpen} 
-            anchorEl={anchorEl} 
-            placement="right-start"
-            onMouseEnter={handleSubmenuMouseEnter} 
-            onMouseLeave={handleSubmenuMouseLeave}
-            style={{ zIndex: 1300 }}
-          >
-            <Box bgcolor="grey.800" color="white" borderRadius={1} p={1} boxShadow={5}>
-              <List component="nav">
-                {adminSubItems.map((subItem) => (
-                  <Link key={subItem} to={"administracion/"+subItem.toLowerCase().replace(' ', '_')} style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}>
-                    <ListItem button>
-                      <ListItemText primary={subItem} />
-                    </ListItem>
-                  </Link>
-                ))}
-              </List>
-            </Box>
-          </Popper>
+            Cerrar Sesión
+          </Button>
         </Box>
-        </Box>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={logout}
-          sx={{ mt: 2, mb: 2 }}
-        >
-          Cerrar Sesión
-        </Button>
       </Box>
     </>
   );

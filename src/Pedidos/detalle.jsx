@@ -135,7 +135,7 @@ const PedidoDetalles = () => {
   };
   console.log(pedido.fecha_programado)
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
+    <>
       <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column'}}>
         {/* Existing header and content remains the same */}
         <div className='header-container' style={{ width: '100%' }}>
@@ -325,7 +325,7 @@ const PedidoDetalles = () => {
           </DialogActions>
         </Dialog>
       </Paper>
-    </Container>
+    </>
   );
 };
 

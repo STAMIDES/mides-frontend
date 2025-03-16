@@ -436,7 +436,7 @@ const CrearPedido = () => {
   
 
   return (
-    <Container maxWidth="m" sx={{ mt: 1 }}>
+    <>
       <Paper elevation={7} sx={{ p: 4 }}>
         <Typography variant="h4" gutterBottom>Agregar Nueva Solicitud</Typography>
         <form onSubmit={handleSubmit}>
@@ -768,8 +768,7 @@ const CrearPedido = () => {
 
         
       </Paper>
-    </Container>
-    
+    </>
   );
   
 };
