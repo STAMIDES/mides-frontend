@@ -87,13 +87,13 @@
                       />
                     </td>
                     <td>{{ pedido.id }}</td>
-                    <td style="white-space: pre-line">
+                    <td class="td-wrapper">
                       {{ pedido.direccion_origen_y_horario }}
                     </td>
-                    <td style="white-space: pre-line">
+                    <td class="td-wrapper">
                       {{ pedido.paradas_intermedias }}
                     </td>
-                    <td style="white-space: pre-line">
+                    <td class="td-wrapper">
                       {{ pedido.direccion_destino_y_horario }}
                     </td>
                   </tr>
@@ -427,7 +427,7 @@ export default {
   top: 0;
   right: 0;
   height: 100vh;
-  width: 400px;
+  width: 430px;
   background-color: #f8f8f8;
   transition: transform 0.3s ease-in-out;
   display: flex;
@@ -513,6 +513,8 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  height: 100%;
+  overflow: auto;
 }
 
 .pedidos-table {
@@ -525,11 +527,25 @@ export default {
   padding: 8px;
   text-align: left;
   border-bottom: 1px solid #ddd;
+    /* Ensure cells take up the full width */
+    width: 20%;
+    box-sizing: border-box;
 }
 
 .pedidos-table tr:hover {
   background-color: #f1f1f1;
 }
+
+/* Added styles for wrapping text and preventing overflow */
+.td-wrapper {
+    overflow-wrap: break-word;  /* Modern property */
+    word-wrap: break-word;      /* Older browsers */
+    hyphens: auto;             /* Optional: Enable hyphenation */
+    max-width: 0;             /* Required for overflow-wrap to work in table cells */
+    min-width: 0;            /* Required for overflow-wrap on some mobile view */
+
+}
+
 .turnos-container {
   display: flex;
   flex-direction: column;
