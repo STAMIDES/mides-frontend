@@ -61,24 +61,41 @@ const addPedidosToMap = () => {
     if (props.unselectedPedidosIds.includes(pedido.id)) {
       return;
     }
-
-    const originLatLng = [pedido.latitud_origen, pedido.longitud_origen];
-    const destinationLatLng = [pedido.latitud_destino, pedido.longitud_destino];
-
+    const originLatLng = pedido.coords[0];
+    const destinationLatLng = pedido.coords[pedido.coords.length - 1];
+  
     L.marker(originLatLng)
       .addTo(map)
       .bindPopup(`Origen: ${pedido.direccion_origen_y_horario}`);
-
+    
     L.marker(destinationLatLng)
       .addTo(map)
       .bindPopup(`Destino: ${pedido.direccion_destino_y_horario}`);
-
-    L.polyline([originLatLng, destinationLatLng], { 
-      color: 'blue',
-      weight: 3,
-      opacity: 0.7 
-    }).addTo(map)
-      .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
+    if (pedido.tipo !== 'Ida y vuelta'){
+      L.polyline([originLatLng, destinationLatLng], { 
+        color: 'blue',
+        weight: 3,
+        opacity: 0.7 
+      }).addTo(map)
+        .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
+    }else{
+      let prevLatLng = originLatLng;
+      for (let i = 1; i + 1< pedido.coords.length; i += 1) {
+        const intermediaLatLng = pedido.coords[i];
+        
+        L.marker(intermediaLatLng)
+        .addTo(map)
+        .bindPopup(`Parada intermedia: ${pedido.paradasProcesadas[i]}`);
+        
+        L.polyline([prevLatLng, intermediaLatLng], { 
+          color: 'blue',
+          weight: 3,
+          opacity: 0.7 
+        }).addTo(map)
+        .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
+        prevLatLng = intermediaLatLng;
+      }
+    }
   });
 };
 

@@ -69,6 +69,7 @@
                     <th></th>
                     <th>ID</th>
                     <th>Origen y Horario</th>
+                    <th>Paradas Intermedias</th>
                     <th>Destino y Horario</th>
                   </tr>
                 </thead>
@@ -88,6 +89,9 @@
                     <td>{{ pedido.id }}</td>
                     <td style="white-space: pre-line">
                       {{ pedido.direccion_origen_y_horario }}
+                    </td>
+                    <td style="white-space: pre-line">
+                      {{ pedido.paradas_intermedias }}
                     </td>
                     <td style="white-space: pre-line">
                       {{ pedido.direccion_destino_y_horario }}

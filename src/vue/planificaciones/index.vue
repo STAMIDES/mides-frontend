@@ -49,41 +49,43 @@ export default {
     const showPedidos = ref(null);
     const turnos = ref([]);
 
-    const procesarPedidos = (pedidosSinProcesar) => { // Funcion ya definida en react :/ #FIXME mover a utils
+    
+    const procesarPedidos = (pedidosSinProcesar) => {
       const nuevoListado = [];
       pedidosSinProcesar.sort((a, b) => new Date(a.fecha_programado) - new Date(b.fecha_programado));
       pedidosSinProcesar.forEach(pedido => {
-        const paradas = pedido.paradas;
-        const nombreYApellido = `${pedido.cliente.nombre}\n${pedido.cliente.apellido}`;
-        paradas.sort((a, b) => a.posicion_en_pedido - b.posicion_en_pedido);
-        let lastDestino
-        for (let i = 0; i + 1 < paradas.length; i += 1) {
-          const origen = paradas[i];
-          const destino = paradas[i + 1];
-          var direccionOrigenYHorario;
-          var direccionDestinoYHorario;
-          if (origen===lastDestino){
-            direccionOrigenYHorario = `${origen.direccion} \n ${origen.ventana_horaria_fin || 'Sin horario'}`;
-          }else{
-            direccionOrigenYHorario = `${origen.direccion} \n ${origen.ventana_horaria_inicio  || 'Sin horario'}`;
+          const nombreYApellido = `${pedido.cliente.nombre}\n${pedido.cliente.apellido}`;
+          const paradas = pedido.paradas;
+          paradas.sort((a, b) => a.posicion_en_pedido - b.posicion_en_pedido);
+          var direccionOrigenYHorario = `${paradas[0].direccion} \n ${paradas[0].ventana_horaria_inicio || 'Sin horario'}`;
+
+          var coords = [[paradas[0].latitud, paradas[0].longitud]];
+          var paradasProcesadas = [direccionOrigenYHorario]
+          var cantParadas = paradas.length;
+          var direccionDestinoYHorario = `${paradas[cantParadas-1].direccion} \n ${paradas[cantParadas-1].ventana_horaria_inicio || 'Sin horario'}`;
+          var paradasIntermedias = '';
+          for (let i = 1; i +1 < cantParadas ; i += 1) {
+              var parada = '*' + paradas[i].direccion + '\n Llegada: ' + paradas[i].ventana_horaria_inicio + '\n Salida: ' + paradas[i].ventana_horaria_fin + '\n\n' ;
+              paradasIntermedias += parada ;
+              coords.push([paradas[i].latitud, paradas[i].longitud]);
+              paradasProcesadas.push(parada);
           }
-          direccionDestinoYHorario = `${destino.direccion} \n ${destino.ventana_horaria_inicio || 'Sin horario'}`;
-          
+          coords.push([paradas[cantParadas-1].latitud, paradas[cantParadas-1].longitud]);
           nuevoListado.push({
-            id: pedido.id,
-            nombre_y_apellido: nombreYApellido,
-            direccion_origen_y_horario: direccionOrigenYHorario,
-            direccion_destino_y_horario: direccionDestinoYHorario,
-            latitud_origen: origen.latitud,
-            longitud_origen: origen.longitud,
-            latitud_destino: destino.latitud,
-            longitud_destino: destino.longitud
+              id: pedido.id,
+              tipo: pedido.tipo,
+              nombre_y_apellido: nombreYApellido,
+              usuario_documento: pedido.cliente_documento,
+              direccion_origen_y_horario: direccionOrigenYHorario,
+              paradas_intermedias: paradasIntermedias,
+              direccion_destino_y_horario: direccionDestinoYHorario,
+              paradasProcesadas: paradasProcesadas,
+              coords: coords
           });
-          lastDestino = destino;
-        }
       });
+      console.log(nuevoListado);
       return nuevoListado;
-    };
+    }
     
     const processedPedidos = computed(() => procesarPedidos(pedidos.value));
 
