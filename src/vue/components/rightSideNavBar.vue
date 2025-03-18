@@ -35,9 +35,16 @@
                   <div v-for="(visita, vIndex) in ruta.visitas" :key="vIndex" class="visita-row">
                     <div class="visita-time">{{ formatTime(visita.hora_llegada) }}</div>
                     <div class="visita-status-wrapper" :class="getStatusClass(visita.estado)">
-                      <div class="visita-status-circle" :class="getStatusClass(visita.estado)"/>
+                      <div class="visita-status-circle" :class="getStatusClass(visita.estado)"></div>
                     </div>
-                    <div class="visita-address">{{ visita.item.direccion }}</div>
+                    <div class="visita-address">
+                      <span v-if="visita.tipo_item === 'Lugar común'">
+                        Lugar Comun: {{ visita.item.nombre }}
+                      </span>
+                      <span v-else>
+                        {{ visita.item.direccion }}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
