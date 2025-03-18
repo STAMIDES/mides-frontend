@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-const MapaUbicacion = ({ lat, lng }) => {
+const MapaUbicacion = ({ lat, lng, height = "300px" }) => {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
 
@@ -26,7 +26,7 @@ const MapaUbicacion = ({ lat, lng }) => {
     }
   }, [lat, lng]);
 
-  return <div id="map" style={{ height: "300px", width: "100%" }}></div>;
+  return <div id="map" style={{ height: height, width: "100%" }}></div>;
 };
 
 export default MapaUbicacion;

@@ -208,134 +208,73 @@ const handleSelectGeocode = (index, option) => {
   console.log(caracteristicasTodas[0])
   return (
     <>
-      <Paper elevation={3} sx={{ p: 4 }}> 
-        <Typography variant="h4" gutterBottom>Agregar Nuevo Usuario</Typography>
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                name="nombre"
-                label="Nombre"
-                value={formData.nombre}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                name="apellido"
-                label="Apellido"
-                value={formData.apellido}
-                onChange={handleChange}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="documento"
-                label="Documento"
-                value={formData.documento}
-                onChange={handleChange}
-                fullWidth
-                required
-                error={!!errors.documento}
-                helperText={errors.documento}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Grid container spacing={1} alignItems="center">
-                <Grid item xs={10}>
-                <TextField 
-                  name="direccion" 
-                  label="Dirección" 
-                  value={formData.direccion} 
-                  onChange={handleChange} 
-                  fullWidth 
-                  error={!!errors.direccion} 
-                  helperText={errors.direccion} 
-                />
-
+      <Grid container spacing={2} sx={{ height: '99vh' }}>
+        {/* 📍 Formulario a la izquierda */}
+        <Grid item xs={8} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Paper elevation={3} sx={{ p: 4, flexGrow: 1 }}>
+            <Typography variant="h4" gutterBottom>Agregar Nuevo Usuario</Typography>
+            <form>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <TextField name="nombre" label="Nombre" value={formData.nombre} onChange={handleChange} fullWidth required />
                 </Grid>
-                <Grid item xs={2}>
-                  <IconButton color={formData.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!formData.direccion}>
-                      <GpsFixedIcon />
-                  </IconButton>
+                <Grid item xs={12} sm={6}>
+                  <TextField name="apellido" label="Apellido" value={formData.apellido} onChange={handleChange} fullWidth required />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField name="documento" label="Documento" value={formData.documento} onChange={handleChange} fullWidth required error={!!errors.documento} helperText={errors.documento} />
+                </Grid>
+                <Grid item xs={12}>
+                  <Grid container spacing={1} alignItems="center">
+                    <Grid item xs={10}>
+                      <TextField name="direccion" label="Dirección" value={formData.direccion} onChange={handleChange} fullWidth required error={!!errors.direccion} helperText={errors.direccion} />
+                    </Grid>
+                    <Grid item xs={2}>
+                      <IconButton color={formData.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!formData.direccion}>
+                        <GpsFixedIcon />
+                      </IconButton>
+                    </Grid>
+                  </Grid>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField name="telefono" label="Teléfono" value={formData.telefono} onChange={handleChange} fullWidth error={!!errors.telefono} helperText={errors.telefono} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField name="email" label="Email" value={formData.email} onChange={handleChange} fullWidth />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField name="observaciones" label="Observaciones" value={formData.observaciones} onChange={handleChange} fullWidth multiline rows={4} />
+                </Grid>
+                {message && (
+                  <Grid item xs={12}>
+                    <Alert severity={message.type}>{message.text}</Alert>
+                  </Grid>
+                )}
+                <Grid item xs={6}>
+                  <Button type="submit" variant="contained" color="primary" fullWidth>
+                    Agregar Usuario
+                  </Button>
+                </Grid>
+                <Grid item xs={6}>
+                  <Button type="submit" variant="contained" color="secondary" fullWidth onClick={()=> crearPedido=true}>
+                    Agregar Usuario y Crear Solicitud
+                  </Button>
                 </Grid>
               </Grid>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                name="telefono"
-                label="Teléfono"
-                value={formData.telefono}
-                onChange={handleChange}
-                fullWidth
-                error={!!errors.telefono}
-                helperText={errors.telefono}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                name="email"
-                label="Email"
-                value={formData.email}
-                onChange={handleChange}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl component="fieldset">
-                <FormLabel component="legend">Caracteristicas</FormLabel>
-                <FormGroup row>
-                  {caracteristicasTodas.map((value, index) => (
-                    <FormControlLabel
-                      key={value.id}
-                      control={
-                        <Checkbox
-                          checked={caracteristicas.includes(value.id)}
-                          onChange={() => handleCheckboxChange(value.id)}
-                        />
-                      }
-                      label={value.nombre}
-                    />
-                  ))}
-                </FormGroup>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="observaciones"
-                label="Observaciones"
-                value={formData.observaciones}
-                onChange={handleChange}
-                fullWidth
-                multiline
-                rows={4}
-              />
-            </Grid>
-             {message && (
-              <Alert severity={message.type} sx={{ ml: 3, mt: 3, width: '100%' }}>
-                {message.text}
-                {verUsuario? 
-                  <Button onClick={() => verUsuarioExistente(formData.documento)}>Ver Usuario</Button>
-                : null}
-              </Alert>
-            )}
-            <Grid item xs={6}>
-              <Button type="submit" variant="contained" color="primary" fullWidth>
-                Agregar Usuario
-              </Button>
-            </Grid>
-            <Grid item xs={6}>
-              <Button type="submit" variant="contained" color="secondary" fullWidth onClick={()=> crearPedido=true} >
-                Agregar Usuario y Crear Solicitud
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Paper>
+            </form>
+          </Paper>
+        </Grid>
+
+        {/* 🗺️ Mapa a la derecha */}
+        <Grid item xs={4} sx={{ height: '100%' }}>
+          <Paper elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ flexGrow: 1, width: '100%', height: '100%' }}>
+              <MapaUbicacion lat={formData.latitud} lng={formData.longitud} height="100%" />
+            </Box>
+          </Paper>
+        </Grid>
+
+      </Grid>
 
       {/* Modal para selección de direcciones geodecodificadas */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
