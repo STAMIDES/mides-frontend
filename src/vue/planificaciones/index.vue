@@ -227,7 +227,7 @@ export default {
               id: vehiculo_selected.vehicleIdWithTurnoIndex, 
               capacity: v.capacidad_convencional,
               depot_start: { //FIXME: hardcodeado
-                id: 101,
+                id: lc.id,
                 address: lc.nombre,
                 coordinates: {
                   latitude: lc.latitud,
@@ -239,7 +239,7 @@ export default {
                 }
               },
               depot_end: { //FIXME: hardcodeado
-                id: 101,
+                id: lc.id,
                 address:  lc.nombre,
                 coordinates: {
                   latitude: lc.latitud,
