@@ -42,10 +42,7 @@ const LugaresComunesCrear = ({ lugar_comun = {} }) => {
     try {
       const results = await geocodeAddress(formData.direccion);
   
-      if (results.length === 1) {
-        handleSelectGeocode(0, results[0]);
-        setErrors(prevErrors => ({ ...prevErrors, direccion: "" }));
-      } else if (results.length > 1) {
+      if (results.length > 0) {
         setGeocodeOptions(results);
         setModalOpen(true);
         setErrors(prevErrors => ({ ...prevErrors, direccion: "" }));
@@ -58,16 +55,52 @@ const LugaresComunesCrear = ({ lugar_comun = {} }) => {
     }
   };
   
+  
   const handleSelectGeocode = (index, option) => {
-    setFormData({
-      ...formData,
-      direccion: option.display_name,
-      latitud: option.lat,
-      longitud: option.lng,
+    setFormData((prevData) => {
+      let updatedData = { ...prevData };
+  
+      // Obtener la dirección ingresada por el usuario
+      let direccionOriginal = prevData.direccion.trim();
+      let direccionGeocoder = option.display_name.trim();
+      let nuevaDireccion = direccionGeocoder;
+  
+      // 🔹 Intentar extraer el número de puerta correcto
+      const partesDireccionUsuario = direccionOriginal.split(" ");
+      let numeroUsuario = null;
+  
+      for (let i = partesDireccionUsuario.length - 1; i >= 0; i--) {
+        if (!isNaN(partesDireccionUsuario[i])) {
+          numeroUsuario = partesDireccionUsuario[i]; // Último número en la dirección ingresada es el número de puerta
+          break;
+        }
+      }
+  
+      // 🔹 Detectar múltiples números en la dirección del geocoder
+      const geocoderMatch = direccionGeocoder.match(/^([\d,]+)\s(.+)$/);
+      if (geocoderMatch) {
+        const numeros = geocoderMatch[1].split(",").map(num => num.trim()); // Extraemos los números de puerta
+        const restoDireccion = geocoderMatch[2].trim(); // Resto de la dirección
+        const nombreCalle = restoDireccion.split(",")[0]; // Primera parte después de los números
+        const restosSinCalle = restoDireccion.replace(nombreCalle, "").trim(); // Dirección sin la calle principal
+  
+        if (numeroUsuario && numeros.includes(numeroUsuario)) {
+          // Si el número ingresado por el usuario está en la lista, lo usamos
+          nuevaDireccion = `${nombreCalle} ${numeroUsuario}${restosSinCalle}`;
+        }
+      }
+  
+      // 🔹 Guardar la dirección corregida
+      updatedData.direccion = nuevaDireccion;
+      updatedData.latitud = option.lat;
+      updatedData.longitud = option.lng;
+  
+      return updatedData;
     });
+  
     setModalOpen(false);
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.latitud === null || formData.longitud === null) {

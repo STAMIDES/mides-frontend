@@ -14,12 +14,14 @@ import {
   TextField,
   FormControlLabel,
   Checkbox,
-  Chip
+  Chip, IconButton, Modal, List, ListItem, ListItemText, Box
 } from '@mui/material';
+import { GpsFixed as GpsFixedIcon } from '@mui/icons-material';
 import useApi from '../network/axios';
 import ListComponent from '../components/listados';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
+import { geocodeAddress } from '../utils/geocoder';
 
 import './css/detalles.css';
 
@@ -41,6 +43,9 @@ const ClienteDetalles = () => {
   const [caracteristicasTodas, setCaracteristicasTodas] = useState([]); 
   const [handleDelete, setHandleDelete] = useState(false);
   const [handleActivate, setHandleActivate] = useState(false);
+  const [geocodeOptions, setGeocodeOptions] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const obtenerCaracteristicas = async () => {
@@ -165,6 +170,64 @@ const ClienteDetalles = () => {
     editarCliente();
     setOpenEditDialog(false);
   };
+
+  const handleGeocode = async () => {
+    if (!clienteEditor.direccion.trim()) return;
+  
+    try {
+      const results = await geocodeAddress(clienteEditor.direccion);
+  
+      if (results.length > 0) {
+        setGeocodeOptions(results);
+        setModalOpen(true);
+        setErrors(prevErrors => ({ ...prevErrors, direccion: "" }));
+      } else {
+        setErrors(prevErrors => ({ ...prevErrors, direccion: "No se encontraron resultados para la dirección ingresada." }));
+      }
+    } catch (error) {
+      console.error("Error al geocodificar:", error);
+      setErrors(prevErrors => ({ ...prevErrors, direccion: "Error en la geocodificación, intenta nuevamente." }));
+    }
+  };
+  
+  const handleSelectGeocode = (index, option) => {
+    let direccionOriginal = clienteEditor.direccion.trim();
+    let direccionGeocoder = option.display_name.trim();
+    let nuevaDireccion = direccionGeocoder;
+  
+    // Extraer número de la dirección del usuario
+    const partesDireccionUsuario = direccionOriginal.split(" ");
+    let numeroUsuario = null;
+  
+    for (let i = partesDireccionUsuario.length - 1; i >= 0; i--) {
+      if (!isNaN(partesDireccionUsuario[i])) {
+        numeroUsuario = partesDireccionUsuario[i]; // Último número detectado es el número de puerta
+        break;
+      }
+    }
+  
+    // Extraer números de la dirección del geocoder
+    const geocoderMatch = direccionGeocoder.match(/^([\d,]+)\s(.+)$/);
+    if (geocoderMatch) {
+      const numeros = geocoderMatch[1].split(",").map(num => num.trim());
+      const restoDireccion = geocoderMatch[2].trim();
+      const nombreCalle = restoDireccion.split(",")[0];
+      const restosSinCalle = restoDireccion.replace(nombreCalle, "").trim();
+  
+      if (numeroUsuario && numeros.includes(numeroUsuario)) {
+        nuevaDireccion = `${nombreCalle} ${numeroUsuario}${restosSinCalle}`;
+      }
+    }
+  
+    setClienteEditor({
+      ...clienteEditor,
+      direccion: nuevaDireccion,
+      latitud: option.lat,
+      longitud: option.lng,
+    });
+    setModalOpen(false);
+  };
+  
 
   const onDelete = async () => {
     try {
@@ -314,14 +377,21 @@ const ClienteDetalles = () => {
             value={clienteEditor.apellido}
             onChange={handleInputChange}
           />
-          <TextField
-            margin="dense"
-            name="direccion"
-            label="Dirección"
-            fullWidth
-            value={clienteEditor.direccion}
-            onChange={handleInputChange}
-          />
+          <Box display="flex" alignItems="center">
+            <TextField
+              margin="dense"
+              name="direccion"
+              label="Dirección"
+              fullWidth
+              value={clienteEditor.direccion}
+              onChange={handleInputChange}
+              error={!!errors.direccion}
+              helperText={errors.direccion}
+            />
+            <IconButton color={clienteEditor.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!clienteEditor.direccion} sx={{ ml: 1 }}>
+              <GpsFixedIcon />
+            </IconButton>
+          </Box>
           <TextField
             margin="dense"
             name="documento"
@@ -421,6 +491,29 @@ const ClienteDetalles = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
+        <Paper sx={{ padding: 2, width: 400, margin: 'auto', marginTop: '20vh' }}>
+          <Typography variant="h6">Selecciona una dirección</Typography>
+          <List>
+            {geocodeOptions.map((option, index) => (
+              <ListItem 
+                button 
+                key={index} 
+                component="button"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSelectGeocode(index, option);
+                }}
+              >
+                <ListItemText primary={option.display_name} />
+              </ListItem>
+            ))}
+          </List>
+        </Paper>
+      </Modal>
     </>
   );
 };

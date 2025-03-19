@@ -13,7 +13,7 @@ const SOAP_URL = '/api/ServiciosMUI/ServiciosDireccionGeorreferencia?wsdl';
 export const geocodeAddress = async (address) => {
   console.log(`Geocificando (simple): ${address}`);
   const formattedAddress = address.replace(/\s+/g, '+');
-  const url = `${SIMPLE_GEOCODER_URL}?street=${formattedAddress}&country=Uruguay&format=jsonv2`;
+  const url = `${SIMPLE_GEOCODER_URL}?street=${formattedAddress}&city=Montevideo&country=Uruguay&format=jsonv2`;
 
   try {
     const response = await axios.get(url);

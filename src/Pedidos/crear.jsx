@@ -348,41 +348,78 @@ const CrearPedido = () => {
     }
   };
 
-  const handleSelectGeocode = (index, coordenadas) => {
+  const handleSelectGeocode = (index, option) => {
     setFormData((prevData) => {
-        let updatedData = { ...prevData };
-
-        if (index === -1) {
-            // Si es la dirección final
-            updatedData.direccion_final = coordenadas.display_name;
-            setDireccionFinalCoords(coordenadas);
-        } else if (index === 0) {
-            // Si es la dirección de origen
-            updatedData.direccion_origen = coordenadas.display_name;
-            setCords((prevCords) => {
-                let newCords = [...prevCords];
-                newCords[0] = coordenadas;
-                return newCords;
-            });
-        } else {
-            // Si es una parada intermedia
-            updatedData.paradas = prevData.paradas.map((parada, i) =>
-                i === index - 1 ? { ...parada, direccion_destino: coordenadas.display_name } : parada
-            );
-
-            setCords((prevCords) => {
-                let newCords = [...prevCords];
-                newCords[index] = coordenadas;
-                return newCords;
-            });
+      let updatedData = { ...prevData };
+  
+      // Obtener la dirección ingresada por el usuario según el índice
+      let direccionOriginal = "";
+      if (index === -1) {
+        direccionOriginal = prevData.direccion_final.trim();
+      } else if (index === 0) {
+        direccionOriginal = prevData.direccion_origen.trim();
+      } else {
+        direccionOriginal = prevData.paradas[index - 1].direccion_destino.trim();
+      }
+  
+      let direccionGeocoder = option.display_name.trim();
+      let nuevaDireccion = direccionGeocoder;
+  
+      // 🔹 Intentar extraer el número de puerta correcto
+      const partesDireccionUsuario = direccionOriginal.split(" ");
+      let numeroUsuario = null;
+  
+      for (let i = partesDireccionUsuario.length - 1; i >= 0; i--) {
+        if (!isNaN(partesDireccionUsuario[i])) {
+          numeroUsuario = partesDireccionUsuario[i]; // El último número en la dirección ingresada es el número de puerta
+          break;
         }
-
-        return updatedData;
+      }
+  
+      // 🔹 Detectar múltiples números en la dirección del geocoder
+      const geocoderMatch = direccionGeocoder.match(/^([\d,]+)\s(.+)$/);
+      if (geocoderMatch) {
+        const numeros = geocoderMatch[1].split(",").map(num => num.trim()); // Extraemos los números de puerta
+        const restoDireccion = geocoderMatch[2].trim(); // Resto de la dirección
+        const nombreCalle = restoDireccion.split(",")[0]; // Primera parte después de los números
+        const restosSinCalle = restoDireccion.replace(nombreCalle, "").trim(); // Dirección sin la calle principal
+  
+        if (numeroUsuario && numeros.includes(numeroUsuario)) {
+          // Si el número ingresado por el usuario está en la lista, lo usamos
+          nuevaDireccion = `${nombreCalle} ${numeroUsuario}${restosSinCalle}`;
+        }
+      }
+  
+      // 🔹 Guardar la dirección corregida en el estado adecuado
+      if (index === -1) {
+        updatedData.direccion_final = nuevaDireccion;
+        setDireccionFinalCoords({ lat: option.lat, lng: option.lng });
+      } else if (index === 0) {
+        updatedData.direccion_origen = nuevaDireccion;
+        setCords((prevCords) => {
+          let newCords = [...prevCords];
+          newCords[0] = { lat: option.lat, lng: option.lng };
+          return newCords;
+        });
+      } else {
+        updatedData.paradas = prevData.paradas.map((parada, i) =>
+          i === index - 1 ? { ...parada, direccion_destino: nuevaDireccion } : parada
+        );
+  
+        setCords((prevCords) => {
+          let newCords = [...prevCords];
+          newCords[index] = { lat: option.lat, lng: option.lng };
+          return newCords;
+        });
+      }
+  
+      return updatedData;
     });
-
+  
     setSelectedAddressIndex(null);
     handleCloseModal();
-};
+  };
+  
 
 
   const getTipoViaje = () => {
@@ -751,7 +788,7 @@ const CrearPedido = () => {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    handleSelectGeocode(index, option);
+                    handleSelectGeocode(selectedAddressIndex, option);
                   }}
                 >
                   <ListItemText primary={option.display_name} />

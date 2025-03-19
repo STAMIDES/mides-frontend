@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Paper, Typography, Button, Grid, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
+import { Paper, Typography, Button, Grid, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Modal, List,
+         ListItem, ListItemText, Box } from '@mui/material';
+import { GpsFixed as GpsFixedIcon } from '@mui/icons-material';
 import useApi from '../../network/axios';
+import { geocodeAddress } from '../../utils/geocoder';
 import '../css/detalle.css';
 
 const LugaresComunDetalles = () => {
@@ -9,6 +12,9 @@ const LugaresComunDetalles = () => {
   const [lugarComun, setLugarComun] = useState(null);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [lugarComunEditor, setLugarComunEditor] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [geocodeOptions, setGeocodeOptions] = useState([]);
+  const [errors, setErrors] = useState({});
 
   const api = useApi();
   useEffect(() => {
@@ -47,6 +53,63 @@ const LugaresComunDetalles = () => {
   if (!lugarComun) {
     return <Typography>Loading...</Typography>;
   }
+
+  const handleGeocode = async () => {
+    if (!lugarComunEditor.direccion.trim()) return;
+  
+    try {
+      const results = await geocodeAddress(lugarComunEditor.direccion);
+  
+      if (results.length > 0) {
+        setGeocodeOptions(results);
+        setModalOpen(true);
+        setErrors(prevErrors => ({ ...prevErrors, direccion: "" }));
+      } else {
+        setErrors(prevErrors => ({ ...prevErrors, direccion: "No se encontraron resultados para la dirección ingresada." }));
+      }
+    } catch (error) {
+      console.error("Error al geodecodificar:", error);
+      setErrors(prevErrors => ({ ...prevErrors, direccion: "Error en la geocodificación, intenta nuevamente." }));
+    }
+  };
+  
+  const handleSelectGeocode = (index, option) => {
+    let direccionOriginal = lugarComunEditor.direccion.trim();
+    let direccionGeocoder = option.display_name.trim();
+    let nuevaDireccion = direccionGeocoder;
+  
+    // Extraer número de la dirección ingresada por el usuario
+    const partesDireccionUsuario = direccionOriginal.split(" ");
+    let numeroUsuario = null;
+    for (let i = partesDireccionUsuario.length - 1; i >= 0; i--) {
+      if (!isNaN(partesDireccionUsuario[i])) {
+        numeroUsuario = partesDireccionUsuario[i];
+        break;
+      }
+    }
+  
+    // Extraer números de la dirección del geocoder
+    const geocoderMatch = direccionGeocoder.match(/^([\d,]+)\s(.+)$/);
+    if (geocoderMatch) {
+      const numeros = geocoderMatch[1].split(",").map(num => num.trim());
+      const restoDireccion = geocoderMatch[2].trim();
+      const nombreCalle = restoDireccion.split(",")[0];
+      const restosSinCalle = restoDireccion.replace(nombreCalle, "").trim();
+  
+      if (numeroUsuario && numeros.includes(numeroUsuario)) {
+        nuevaDireccion = `${nombreCalle} ${numeroUsuario}${restosSinCalle}`;
+      }
+    }
+  
+    setLugarComunEditor({
+      ...lugarComunEditor,
+      direccion: nuevaDireccion,
+      latitud: option.lat,
+      longitud: option.lng,
+    });
+  
+    setModalOpen(false);
+  };
 
   const handleEdit = () => {
     console.log("Editing lugar común", lugarComun.id);
@@ -100,14 +163,26 @@ const LugaresComunDetalles = () => {
               value={lugarComunEditor.nombre}
               onChange={handleInputChange}
           />
-          <TextField
+          <Box display="flex" alignItems="center">
+            <TextField
               margin="dense"
               name="direccion"
               label="Dirección"
               fullWidth
               value={lugarComunEditor.direccion}
               onChange={handleInputChange}
-          />
+              error={!!errors.direccion}
+              helperText={errors.direccion}
+            />
+            <IconButton
+              color={lugarComunEditor.latitud ? "success" : "primary"}
+              onClick={handleGeocode}
+              disabled={!lugarComunEditor.direccion}
+              sx={{ ml: 1 }}
+            >
+              <GpsFixedIcon />
+            </IconButton>
+          </Box>
           <TextField
               margin="dense"
               name="observaciones"
@@ -126,6 +201,29 @@ const LugaresComunDetalles = () => {
             </Button>
         </DialogActions>
       </Dialog>
+
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
+        <Paper sx={{ padding: 2, width: 400, margin: 'auto', marginTop: '20vh' }}>
+          <Typography variant="h6">Selecciona una dirección</Typography>
+          <List>
+            {geocodeOptions.map((option, index) => (
+              <ListItem
+                button
+                key={index}
+                component="button"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSelectGeocode(index, option);
+                }}
+              >
+                <ListItemText primary={option.display_name} />
+              </ListItem>
+            ))}
+          </List>
+        </Paper>
+      </Modal>
     </>
   );
 };
