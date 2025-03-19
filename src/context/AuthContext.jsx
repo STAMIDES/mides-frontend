@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import axios from 'axios';
+import { isPublicPath } from '../network/axios';
 
 const AuthContext = createContext();
 
@@ -10,6 +11,9 @@ export const AuthProvider = ({ children }) => {
 
   const checkSession = useCallback(async () => {
     try {
+      if (isPublicPath(window.location.pathname)) {
+        return;
+      }
       await axios.get('http://localhost:8000/usuarios/check', { withCredentials: true });
       setIsAuthenticated(true);
     } catch (error) {
