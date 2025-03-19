@@ -10,20 +10,41 @@ const api = axios.create({
   cors: true
 });
 
-const publicRoutes = [
+const publicEndPoint = [
   '/usuarios/login',
+  '/usuarios/forgot-password',
+  '/usuarios/validate-reset-token',
+  '/usuarios/reset-password',
   '/usuarios/registro'
 ];
+const publicPath = [
+  '/cuenta/*'
+];
 
-const isPublicRoute = (url) => {
-  return publicRoutes.some(route => url.includes(route));
+const isPublicEndPoint = (url) => {
+  console.log(url);
+  return publicEndPoint.some(route => url.includes(route));
+};
+
+export const isPublicPath = (url) => {
+  console.log(url);
+  return publicPath.some(route => {
+    // For wildcards, we need to split and check differently
+    if (route.includes('*')) {
+      // Split the route at "*" and check if the URL starts with the part before "*"
+      const routePrefix = route.split('*')[0];
+      return url.startsWith(routePrefix);
+    }
+    // For routes without wildcards, continue using includes
+    return url.includes(route);
+  });
 };
 
 const setupInterceptors = (removeAuthContext) => {
   // Intercept requests
   api.interceptors.request.use(
     async (config) => {
-      if (isPublicRoute(config.url)) {
+      if (isPublicEndPoint(config.url)) {
         console.log('Public route, skipping token check');
       }
       // Because we rely on HttpOnly cookies for authentication,

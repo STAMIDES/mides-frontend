@@ -17,7 +17,7 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import useApi from '../network/axios';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink  } from 'react-router-dom';
 
 function LoginComponent() {
   const [error, setError] = useState(null);
@@ -247,15 +247,16 @@ function LoginComponent() {
             }}
           >
             <Link
-              href="#"
-              sx={{
-                color: 'rgba(102, 108, 255, 0.9)',
-                textDecoration: 'none',
-                '&:hover': {
-                  textDecoration: 'underline'
-                }
-              }}
-            >
+                component={RouterLink}  
+                to="/cuenta/recuperar-password"
+                sx={{
+                  color: 'rgba(102, 108, 255, 0.9)',
+                  textDecoration: 'none',
+                  '&:hover': {
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
               ¿Olvidaste la contraseña?
             </Link>
           </Box>
