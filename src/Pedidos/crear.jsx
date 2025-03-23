@@ -9,7 +9,7 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import moment from 'moment';
-
+import MapaUbicacion from '../components/mapaUbicacion';
 import 'moment/locale/es';
 
 
@@ -474,308 +474,325 @@ const CrearPedido = () => {
 
   return (
     <>
-      <Paper elevation={7} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom>Agregar Nueva Solicitud</Typography>
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                name="nombre"
-                label="Nombre"
-                fullWidth
-                value={formData.nombre}
-                required
-                disabled={!!clienteId}
-                />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                name="apellido"
-                label="Apellido"
-                value={formData.apellido}
-                fullWidth
-                required
-                disabled={!!clienteId}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="cliente_documento"
-                label="Documento"
-                fullWidth
-                value={formData.cliente_documento}
-                required
-                error={!!errors.cliente_documento}
-                helperText={errors.cliente_documento}
-                disabled={!!clienteId}
-              />
-            </Grid>
-            <Grid item xs={12}>
-                  <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={'es-UY'}>
-                    <DatePicker
-                      label="Fecha"
-                      name="fecha_programado"
-                      format="DD/MM/YYYY"
-                      onChange={(newValue) => handleChange(newValue, 'date')}
-                      slotProps={{ 
-                        textField: { 
-                          fullWidth: true,
-                          required: true,
-                          placeholder: "dd/mm/yyyy",
-                          InputLabelProps: {
-                            shrink: true,
-                          }
-                        } 
-                      }}
-                    />
-                  </LocalizationProvider>
-                </Grid>
-              </Grid>
-            <Paper elevation={7} sx={{ p: 4, mt: 3 }}>
-              <FormControl component="fieldset" >
-                <RadioGroup
-                  row
-                  name="tipoViaje"
-                  value={tipoViaje}
-                  onChange={handleTipoViajeChange}
-                >
-                  {tiposViaje.map((tipo, index) => (
-                      <FormControlLabel
-                        key={index}
-                        value={index}
-                        control={<Radio />}
-                        label={tipo}
-                      />
-                    ))}
-                </RadioGroup>
-              </FormControl>
-              <Grid container spacing={3} mt={1}>
-              <Grid item xs={12} sm={4}>
-                <Box display="flex" alignItems="center">
+      <Grid container spacing={2} sx={{ height: '99vh' }}>
+        {/* 📍 Formulario a la izquierda */}
+        <Grid item xs={8} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Paper elevation={7} sx={{ p: 4 }}>
+            <Typography variant="h4" gutterBottom>Agregar Nueva Solicitud</Typography>
+            <form onSubmit={handleSubmit}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
                   <TextField
-                    name="direccion_origen"
-                    label="Dirección de Origen"
-                    value={formData.direccion_origen}
-                    onChange={handleChange}
+                    name="nombre"
+                    label="Nombre"
+                    fullWidth
+                    value={formData.nombre}
+                    required
+                    disabled={!!clienteId}
+                    />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="apellido"
+                    label="Apellido"
+                    value={formData.apellido}
                     fullWidth
                     required
-                    error={!!errors.direccion_origen}
-                    helperText={errors.direccion_origen}
-                  />
-                  {/* Botón para geocodificación estándar */}
-                  <IconButton
-                    color={hasValidCoords(0) ? 'success' : 'primary'}
-                    onClick={() => handleGeocode(formData.direccion_origen, 0)}
-                    disabled={!formData.direccion_origen}
-                  >
-                    <GpsFixedIcon />
-                  </IconButton>
-
-                  {/* Botón para activar el modo avanzado */}
-                  {/* <IconButton
-                    color="secondary"
-                    onClick={() => setAdvancedModalOpen(true)}
-                  >
-                    <AdvancedIcon />
-                  </IconButton> */}
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  name="ventana_horaria_inicio"
-                  label="Hora de partida del origen"
-                  type="time"
-                  value={formData.ventana_horaria_inicio}
-                  onChange={handleChange}
-                  fullWidth
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  style={{visibility: tipoViaje === 2 ? "visible" : "hidden"}}
+                    disabled={!!clienteId}
                   />
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <FormControl fullWidth style={{ visibility: tipoViaje === 2 ? "visible" : "hidden" }}>
-                      <InputLabel id={'tipo-parada-label'}>Tipo de Parada</InputLabel>
-                      <Select
-                        labelId={'tipo-parada-label'}
-                        name="direccion_origen_tipo"
-                        value={formData.direccion_origen_tipo}
-                        onChange={(e) => handleChange(e)}
-                      >
-                        {tiposParadas.map((tipo) => (
-                          <MenuItem key={tipo.id} value={tipo.id}>
-                            {tipo.nombre}
-                          </MenuItem>
+                <Grid item xs={12}>
+                  <TextField
+                    name="cliente_documento"
+                    label="Documento"
+                    fullWidth
+                    value={formData.cliente_documento}
+                    required
+                    error={!!errors.cliente_documento}
+                    helperText={errors.cliente_documento}
+                    disabled={!!clienteId}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                      <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={'es-UY'}>
+                        <DatePicker
+                          label="Fecha"
+                          name="fecha_programado"
+                          format="DD/MM/YYYY"
+                          onChange={(newValue) => handleChange(newValue, 'date')}
+                          slotProps={{ 
+                            textField: { 
+                              fullWidth: true,
+                              required: true,
+                              placeholder: "dd/mm/yyyy",
+                              InputLabelProps: {
+                                shrink: true,
+                              }
+                            } 
+                          }}
+                        />
+                      </LocalizationProvider>
+                    </Grid>
+                  </Grid>
+                <Paper elevation={7} sx={{ p: 4, mt: 3 }}>
+                  <FormControl component="fieldset" >
+                    <RadioGroup
+                      row
+                      name="tipoViaje"
+                      value={tipoViaje}
+                      onChange={handleTipoViajeChange}
+                    >
+                      {tiposViaje.map((tipo, index) => (
+                          <FormControlLabel
+                            key={index}
+                            value={index}
+                            control={<Radio />}
+                            label={tipo}
+                          />
                         ))}
-                      </Select>
-                    </FormControl>
-                </Grid>
-
-            </Grid>
-            {formData.paradas.map((destino, index) => (
-              <Grid container spacing={3} key={index} sx={{ mt: 3 }} style={{ display: index !== 0 && tipoViaje !== 0 ? "none" : "flex" }}>
-                <Grid item xs={12} sm={4}>
-                <Box display="flex" alignItems="center">
-                  <TextField
-                    name="direccion_destino"
-                    label="Dirección de Destino"
-                    value={destino.direccion_destino}
-                    onChange={(e) => handleParadaChange(index, e)}
-                    fullWidth
-                    required
-                    error={!!errors[`parada_${index}`]}
-                    helperText={errors[`parada_${index}`]}
-                  />
-                  {/* Botón para geocodificación estándar */}
-                  <IconButton
-                    color={hasValidCoords(index + 1) ? 'success' : 'primary'}
-                    onClick={() => handleGeocode(destino.direccion_destino, index + 1)}
-                    disabled={!destino.direccion_destino}
-                  >
-                    <GpsFixedIcon />
-                  </IconButton>
-
-                  {/* Botón para activar el modo avanzado */}
-                  {/* <IconButton
-                    color="secondary"
-                    onClick={() => setAdvancedModalOpen(true)}
-                  >
-                    <AdvancedIcon />
-                  </IconButton> */}
-                </Box>
-                </Grid>
-
-                <Grid item xs={12} sm={2.5}>
-                  <TextField
-                    name="ventana_horaria_inicio"
-                    label="Hora de llegada al destino"
-                    type="time"
-                    value={destino.ventana_horaria_inicio}
-                    onChange={(e) => handleParadaChange(index, e)}
-                    fullWidth
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    style={{visibility: tipoViaje !== 2 ? "visible" : "hidden"}}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={2.5}>
-                <TextField
-                    name="ventana_horaria_fin"
-                    label="Hora de partida del destino"
-                    type="time"
-                    value={destino.ventana_horaria_fin}
-                    onChange={(e) => handleParadaChange(index, e)}
-                    fullWidth
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    style={{visibility: tipoViaje === 0   ? "visible" : "hidden"}}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={3}>
-                  <FormControl fullWidth style={{ visibility: tipoViaje !== 2 ? "visible" : "hidden" }}>
-                    <InputLabel id={'tipo-parada-label'}>Tipo de Parada</InputLabel>
-                    <Select
-                      labelId={'tipo-parada-label'}
-                      value={destino.tipo_parada}
-                      name="tipo_parada"
-                      onChange={(e) => handleParadaChange(index,e)}
-                    >
-                      {tiposParadas.map((tipo) => (
-                        <MenuItem key={tipo.id} value={tipo.id}>
-                          {tipo.nombre}
-                        </MenuItem>
-                      ))}
-                    </Select>
+                    </RadioGroup>
                   </FormControl>
+                  <Grid container spacing={3} mt={1}>
+                  <Grid item xs={12} sm={4}>
+                    <Box display="flex" alignItems="center">
+                      <TextField
+                        name="direccion_origen"
+                        label="Dirección de Origen"
+                        value={formData.direccion_origen}
+                        onChange={handleChange}
+                        fullWidth
+                        required
+                        error={!!errors.direccion_origen}
+                        helperText={errors.direccion_origen}
+                      />
+                      {/* Botón para geocodificación estándar */}
+                      <IconButton
+                        color={hasValidCoords(0) ? 'success' : 'primary'}
+                        onClick={() => handleGeocode(formData.direccion_origen, 0)}
+                        disabled={!formData.direccion_origen}
+                      >
+                        <GpsFixedIcon />
+                      </IconButton>
+
+                      {/* Botón para activar el modo avanzado */}
+                      {/* <IconButton
+                        color="secondary"
+                        onClick={() => setAdvancedModalOpen(true)}
+                      >
+                        <AdvancedIcon />
+                      </IconButton> */}
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      name="ventana_horaria_inicio"
+                      label="Hora de partida del origen"
+                      type="time"
+                      value={formData.ventana_horaria_inicio}
+                      onChange={handleChange}
+                      fullWidth
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      style={{visibility: tipoViaje === 2 ? "visible" : "hidden"}}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <FormControl fullWidth style={{ visibility: tipoViaje === 2 ? "visible" : "hidden" }}>
+                          <InputLabel id={'tipo-parada-label'}>Tipo de Parada</InputLabel>
+                          <Select
+                            labelId={'tipo-parada-label'}
+                            name="direccion_origen_tipo"
+                            value={formData.direccion_origen_tipo}
+                            onChange={(e) => handleChange(e)}
+                          >
+                            {tiposParadas.map((tipo) => (
+                              <MenuItem key={tipo.id} value={tipo.id}>
+                                {tipo.nombre}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                    </Grid>
+
                 </Grid>
-              </Grid>
-            ))}
-            <Box display="flex" justifyContent="center" sx={{ mt: 3, display: tipoViaje === 0 ? "flex" : "none" }}>
-              <IconButton color="primary" onClick={addParada}>
-                <AddIcon />
-              </IconButton>
-            </Box>
-            <Grid container spacing={3} mt={1}>
-              <Grid item xs={12} sm={4}>
-                <Box display="flex" alignItems="center">
+                {formData.paradas.map((destino, index) => (
+                  <Grid container spacing={3} key={index} sx={{ mt: 3 }} style={{ display: index !== 0 && tipoViaje !== 0 ? "none" : "flex" }}>
+                    <Grid item xs={12} sm={4}>
+                    <Box display="flex" alignItems="center">
+                      <TextField
+                        name="direccion_destino"
+                        label="Dirección de Destino"
+                        value={destino.direccion_destino}
+                        onChange={(e) => handleParadaChange(index, e)}
+                        fullWidth
+                        required
+                        error={!!errors[`parada_${index}`]}
+                        helperText={errors[`parada_${index}`]}
+                      />
+                      {/* Botón para geocodificación estándar */}
+                      <IconButton
+                        color={hasValidCoords(index + 1) ? 'success' : 'primary'}
+                        onClick={() => handleGeocode(destino.direccion_destino, index + 1)}
+                        disabled={!destino.direccion_destino}
+                      >
+                        <GpsFixedIcon />
+                      </IconButton>
+
+                      {/* Botón para activar el modo avanzado */}
+                      {/* <IconButton
+                        color="secondary"
+                        onClick={() => setAdvancedModalOpen(true)}
+                      >
+                        <AdvancedIcon />
+                      </IconButton> */}
+                    </Box>
+                    </Grid>
+
+                    <Grid item xs={12} sm={2.5}>
+                      <TextField
+                        name="ventana_horaria_inicio"
+                        label="Hora de llegada al destino"
+                        type="time"
+                        value={destino.ventana_horaria_inicio}
+                        onChange={(e) => handleParadaChange(index, e)}
+                        fullWidth
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        style={{visibility: tipoViaje !== 2 ? "visible" : "hidden"}}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={2.5}>
+                    <TextField
+                        name="ventana_horaria_fin"
+                        label="Hora de partida del destino"
+                        type="time"
+                        value={destino.ventana_horaria_fin}
+                        onChange={(e) => handleParadaChange(index, e)}
+                        fullWidth
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        style={{visibility: tipoViaje === 0   ? "visible" : "hidden"}}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={3}>
+                      <FormControl fullWidth style={{ visibility: tipoViaje !== 2 ? "visible" : "hidden" }}>
+                        <InputLabel id={'tipo-parada-label'}>Tipo de Parada</InputLabel>
+                        <Select
+                          labelId={'tipo-parada-label'}
+                          value={destino.tipo_parada}
+                          name="tipo_parada"
+                          onChange={(e) => handleParadaChange(index,e)}
+                        >
+                          {tiposParadas.map((tipo) => (
+                            <MenuItem key={tipo.id} value={tipo.id}>
+                              {tipo.nombre}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                ))}
+                <Box display="flex" justifyContent="center" sx={{ mt: 3, display: tipoViaje === 0 ? "flex" : "none" }}>
+                  <IconButton color="primary" onClick={addParada}>
+                    <AddIcon />
+                  </IconButton>
+                </Box>
+                <Grid container spacing={3} mt={1}>
+                  <Grid item xs={12} sm={4}>
+                    <Box display="flex" alignItems="center">
+                      <TextField
+                        name="direccion_final"
+                        label="Dirección final"
+                        value={formData.direccion_final}
+                        onChange={handleChange}
+                        fullWidth
+                        style={{ display: tipoViaje === 0 ? "flex" : "none" }}
+                        required={tipoViaje === 0} 
+                        disabled={tipoViaje !== 0}
+                        error={!!errors.direccion_final}
+                        helperText={errors.direccion_final}
+                        />
+                        {/* Botón para geocodificación estándar */}
+                        <IconButton
+                          color={hasValidCoords(-1) ? 'success' : 'primary'}
+                          onClick={() => handleGeocode(formData.direccion_final, -1)}
+                          disabled={!formData.direccion_final}
+                        >
+                        {tipoViaje === 0 && <GpsFixedIcon />}
+                        </IconButton>
+                        {/* Botón para activar el modo avanzado */}
+                        {/* <IconButton
+                          color="secondary"
+                          onClick={() => setAdvancedModalOpen(true)}
+                        >
+                          <AdvancedIcon />
+                        </IconButton> */}
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Paper>
+              <Grid container spacing={3} sx={{ mt: 3 }} >
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    name="prioridad"
+                    label="Prioridad"
+                    control={<Checkbox checked={formData.prioridad} onChange={handleChange} />}
+                  />
+                  <FormControlLabel
+                    name="acompañante"
+                    label="Lleva acompañante"
+                    control={<Checkbox checked={formData.acompañante} onChange={handleChange} />}
+                  />
+                </Grid>
+                <Grid item xs={12}>
                   <TextField
-                    name="direccion_final"
-                    label="Dirección final"
-                    value={formData.direccion_final}
+                    name="observaciones"
+                    label="Observaciones"
+                    value={formData.observaciones}
                     onChange={handleChange}
                     fullWidth
-                    style={{ display: tipoViaje === 0 ? "flex" : "none" }}
-                    required={tipoViaje === 0} 
-                    disabled={tipoViaje !== 0}
-                    error={!!errors.direccion_final}
-                    helperText={errors.direccion_final}
-                    />
-                    {/* Botón para geocodificación estándar */}
-                    <IconButton
-                      color={hasValidCoords(-1) ? 'success' : 'primary'}
-                      onClick={() => handleGeocode(formData.direccion_final, -1)}
-                      disabled={!formData.direccion_final}
-                    >
-                    {tipoViaje === 0 && <GpsFixedIcon />}
-                    </IconButton>
-                    {/* Botón para activar el modo avanzado */}
-                    {/* <IconButton
-                      color="secondary"
-                      onClick={() => setAdvancedModalOpen(true)}
-                    >
-                      <AdvancedIcon />
-                    </IconButton> */}
-                </Box>
+                    multiline
+                    rows={4}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                {message && (
+                    <Alert severity={message.type} sx={{ mb: 3 }}>
+                      {message.text}
+                    </Alert>
+                  )}
+                <Button 
+                  type="submit" 
+                  variant="contained" 
+                  color="primary" 
+                  fullWidth 
+                  onClick={handleSubmit}
+                >
+                    Agregar Solicitud
+                </Button>
               </Grid>
-            </Grid>
+              </Grid>
+            </form>
           </Paper>
-          <Grid container spacing={3} sx={{ mt: 3 }} >
-            <Grid item xs={12}>
-              <FormControlLabel
-                name="prioridad"
-                label="Prioridad"
-                control={<Checkbox checked={formData.prioridad} onChange={handleChange} />}
+        </Grid>
+        {/* 🗺️ Mapa a la derecha */}
+        <Grid item xs={4} sx={{ height: '100%' }}>
+          <Paper elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ flexGrow: 1, width: '100%', height: '100%' }}>
+              <MapaUbicacion 
+                latitudes={[cords[0]?.lat, ...cords.slice(1).map(c => c?.lat), direccion_final_coords?.lat]} 
+                longitudes={[cords[0]?.lng, ...cords.slice(1).map(c => c?.lng), direccion_final_coords?.lng]} 
+                height="100%" 
               />
-              <FormControlLabel
-                name="acompañante"
-                label="Lleva acompañante"
-                control={<Checkbox checked={formData.acompañante} onChange={handleChange} />}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="observaciones"
-                label="Observaciones"
-                value={formData.observaciones}
-                onChange={handleChange}
-                fullWidth
-                multiline
-                rows={4}
-              />
-            </Grid>
-            <Grid item xs={12}>
-            {message && (
-                <Alert severity={message.type} sx={{ mb: 3 }}>
-                  {message.text}
-                </Alert>
-              )}
-            <Button 
-              type="submit" 
-              variant="contained" 
-              color="primary" 
-              fullWidth 
-              onClick={handleSubmit}
-            >
-                Agregar Solicitud
-            </Button>
-          </Grid>
-          </Grid>
-        </form>
-
-        <Modal open={modalOpen} onClose={handleCloseModal}>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+      <Modal open={modalOpen} onClose={handleCloseModal}>
           <Paper sx={{ padding: 2, width: 400, margin: 'auto', marginTop: '20vh' }}>
             <Typography variant="h6">Selecciona una dirección</Typography>
             <List>
@@ -796,15 +813,11 @@ const CrearPedido = () => {
               ))}
             </List>
           </Paper>
-        </Modal>
-
-        {/* <AdvancedGeocodeModal
-          open={advancedModalOpen}
-          onClose={() => setAdvancedModalOpen(false)}
-        /> */}
-
-        
-      </Paper>
+      </Modal>
+      {/* <AdvancedGeocodeModal
+        open={advancedModalOpen}
+        onClose={() => setAdvancedModalOpen(false)}
+      /> */}
     </>
   );
   
