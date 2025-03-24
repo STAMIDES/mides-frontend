@@ -213,7 +213,7 @@ const handleSelectGeocode = (index, option) => {
         <Grid item xs={8} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Paper elevation={3} sx={{ p: 4, flexGrow: 1 }}>
             <Typography variant="h4" gutterBottom>Agregar Nuevo Usuario</Typography>
-            <form>
+            <form onSubmit={handleSubmit}>
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
                   <TextField name="nombre" label="Nombre" value={formData.nombre} onChange={handleChange} fullWidth required />
@@ -243,12 +243,34 @@ const handleSelectGeocode = (index, option) => {
                   <TextField name="email" label="Email" value={formData.email} onChange={handleChange} fullWidth />
                 </Grid>
                 <Grid item xs={12}>
+                  <FormControl component="fieldset">
+                    <FormLabel component="legend">Caracteristicas</FormLabel>
+                    <FormGroup row>
+                      {caracteristicasTodas.map((value, index) => (
+                        <FormControlLabel
+                          key={value.id}
+                          control={
+                            <Checkbox
+                              checked={caracteristicas.includes(value.id)}
+                              onChange={() => handleCheckboxChange(value.id)}
+                            />
+                          }
+                          label={value.nombre}
+                        />
+                      ))}
+                    </FormGroup>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
                   <TextField name="observaciones" label="Observaciones" value={formData.observaciones} onChange={handleChange} fullWidth multiline rows={4} />
                 </Grid>
                 {message && (
-                  <Grid item xs={12}>
-                    <Alert severity={message.type}>{message.text}</Alert>
-                  </Grid>
+                  <Alert severity={message.type} sx={{ ml: 3, mt: 3, width: '100%' }}>
+                    {message.text}
+                    {verUsuario? 
+                      <Button onClick={() => verUsuarioExistente(formData.documento)}>Ver Usuario</Button>
+                    : null}
+                  </Alert>
                 )}
                 <Grid item xs={6}>
                   <Button type="submit" variant="contained" color="primary" fullWidth>
@@ -269,7 +291,11 @@ const handleSelectGeocode = (index, option) => {
         <Grid item xs={4} sx={{ height: '100%' }}>
           <Paper elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ flexGrow: 1, width: '100%', height: '100%' }}>
-              <MapaUbicacion lat={formData.latitud} lng={formData.longitud} height="100%" />
+            <MapaUbicacion 
+              latitudes={formData.latitud !== null ? [formData.latitud] : []}
+              longitudes={formData.longitud !== null ? [formData.longitud] : []}
+              height="100%" 
+            />
             </Box>
           </Paper>
         </Grid>
