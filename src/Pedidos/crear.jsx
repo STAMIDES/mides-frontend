@@ -101,22 +101,34 @@ const CrearPedido = () => {
       return updatedForm;
     });
   
-    setCords(prevCords => {
-      let updatedCords = [...prevCords];
+    setCords(() => {
       if (newTipoViaje === 2) {
-        setDireccionFinalCoords(updatedCords[0] || { lat: null, lng: null });
-        updatedCords[0] = { lat: null, lng: null };
+        // Solo vuelta: origen vacío, parada (destino) vacía, final vacío
+        return [
+          { lat: null, lng: null }, // origen
+          { lat: null, lng: null }  // parada
+        ];
+      } else if (newTipoViaje === 0) {
+        // Ida y vuelta: origen + parada + final
+        return [
+          cords[0] || { lat: null, lng: null },  // origen
+          { lat: null, lng: null }               // parada (limpiar por si quedó algo viejo)
+        ];
       } else {
-        updatedCords[0] = prevCords[0] || { lat: null, lng: null };
-
-        if (newTipoViaje === 0) {
-            setDireccionFinalCoords(prevCords[0] || { lat: null, lng: null });
-        } else {
-            setDireccionFinalCoords({ lat: null, lng: null });
-        }
-    }
-      return updatedCords;
+        // Solo ida: origen + parada
+        return [
+          cords[0] || { lat: null, lng: null }   // origen
+        ];
+      }
     });
+    
+    if (newTipoViaje === 0) {
+      // Solo mostrar dirección final si es "ida y vuelta"
+      setDireccionFinalCoords(cords[0] || { lat: null, lng: null });
+    } else {
+      setDireccionFinalCoords({ lat: null, lng: null });
+    }
+    
   };
   
   useEffect(() => {
@@ -238,7 +250,11 @@ const CrearPedido = () => {
     const { name, value, checked } = e.target;
   
     if (name === 'direccion_origen') {
-      setCords([{ lat: null, lng: null }]);
+      setCords((prev) => {
+        const nuevo = [...prev];
+        nuevo[0] = { lat: null, lng: null };
+        return nuevo;
+      });
     }
   
     if (name === 'direccion_final') {
@@ -784,8 +800,16 @@ const CrearPedido = () => {
           <Paper elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ flexGrow: 1, width: '100%', height: '100%' }}>
               <MapaUbicacion 
-                latitudes={[cords[0]?.lat, ...cords.slice(1).map(c => c?.lat), direccion_final_coords?.lat]} 
-                longitudes={[cords[0]?.lng, ...cords.slice(1).map(c => c?.lng), direccion_final_coords?.lng]} 
+                latitudes={
+                  [cords[0], ...cords.slice(1), direccion_final_coords]
+                    .map(c => c?.lat)
+                    .filter(lat => lat !== null && lat !== undefined && !isNaN(lat))
+                }
+                longitudes={
+                  [cords[0], ...cords.slice(1), direccion_final_coords]
+                    .map(c => c?.lng)
+                    .filter(lng => lng !== null && lng !== undefined && !isNaN(lng))
+                }
                 height="100%" 
               />
             </Box>
