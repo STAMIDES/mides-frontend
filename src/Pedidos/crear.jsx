@@ -81,6 +81,34 @@ const CrearPedido = () => {
     const newTipoViaje = parseInt(e.target.value, 10);
     setTipoViaje(newTipoViaje);
   
+    // 🔹 Calcular nuevas coordenadas ANTES de hacer el set
+    let nuevasCoords = [];
+    if (newTipoViaje === 2) {
+      nuevasCoords = [
+        { lat: null, lng: null }, // origen
+        { lat: null, lng: null }  // parada
+      ];
+    } else if (newTipoViaje === 0) {
+      nuevasCoords = [
+        cords[0] || { lat: null, lng: null }, // origen
+        { lat: null, lng: null }              // parada
+      ];
+    } else {
+      nuevasCoords = [
+        cords[0] || { lat: null, lng: null }  // origen
+      ];
+    }
+  
+    // 🔹 Actualizar coords y final en el orden correcto
+    setCords(nuevasCoords);
+  
+    if (newTipoViaje === 0) {
+      setDireccionFinalCoords(nuevasCoords[0] || { lat: null, lng: null });
+    } else {
+      setDireccionFinalCoords({ lat: null, lng: null });
+    }
+  
+    // 🔹 Actualizar formulario
     setFormData(prevState => {
       let updatedForm = { ...prevState };
   
@@ -89,47 +117,17 @@ const CrearPedido = () => {
           updatedForm.direccion_origen = "";
           updatedForm.paradas[0].direccion_destino = formData.direccion_origen || formData.direccion_final;
           updatedForm.direccion_final = "";
-        } else { // Si cambio de "Solo vuelta" a otro tipo, reiniciar la parada 1
+        } else {
           updatedForm.direccion_origen = formData.direccion_origen || formData.direccion_final;
           updatedForm.direccion_final = formData.direccion_final || formData.direccion_origen;
-  
-          // Resetear la parada 1 si no estamos en "Solo vuelta"
           updatedForm.paradas = [{ direccion_destino: "", ventana_horaria_inicio: "", ventana_horaria_fin: "", tipo_parada: "" }];
         }
       }
   
       return updatedForm;
     });
-  
-    setCords(() => {
-      if (newTipoViaje === 2) {
-        // Solo vuelta: origen vacío, parada (destino) vacía, final vacío
-        return [
-          { lat: null, lng: null }, // origen
-          { lat: null, lng: null }  // parada
-        ];
-      } else if (newTipoViaje === 0) {
-        // Ida y vuelta: origen + parada + final
-        return [
-          cords[0] || { lat: null, lng: null },  // origen
-          { lat: null, lng: null }               // parada (limpiar por si quedó algo viejo)
-        ];
-      } else {
-        // Solo ida: origen + parada
-        return [
-          cords[0] || { lat: null, lng: null }   // origen
-        ];
-      }
-    });
-    
-    if (newTipoViaje === 0) {
-      // Solo mostrar dirección final si es "ida y vuelta"
-      setDireccionFinalCoords(cords[0] || { lat: null, lng: null });
-    } else {
-      setDireccionFinalCoords({ lat: null, lng: null });
-    }
-    
   };
+  
   
   useEffect(() => {
     if (clienteId) {
@@ -799,19 +797,20 @@ const CrearPedido = () => {
         <Grid item xs={4} sx={{ height: '100%' }}>
           <Paper elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ flexGrow: 1, width: '100%', height: '100%' }}>
-              <MapaUbicacion 
-                latitudes={
-                  [cords[0], ...cords.slice(1), direccion_final_coords]
-                    .map(c => c?.lat)
-                    .filter(lat => lat !== null && lat !== undefined && !isNaN(lat))
-                }
-                longitudes={
-                  [cords[0], ...cords.slice(1), direccion_final_coords]
-                    .map(c => c?.lng)
-                    .filter(lng => lng !== null && lng !== undefined && !isNaN(lng))
-                }
-                height="100%" 
-              />
+            <MapaUbicacion 
+  {...(() => {
+    const allCoords = [cords[0], ...cords.slice(1), direccion_final_coords];
+    const validCoords = allCoords.filter(
+      c => c && typeof c.lat === 'number' && typeof c.lng === 'number' && !isNaN(c.lat) && !isNaN(c.lng)
+    );
+    return {
+      latitudes: validCoords.map(c => c.lat),
+      longitudes: validCoords.map(c => c.lng),
+      height: "100%"
+    };
+  })()}
+/>
+
             </Box>
           </Paper>
         </Grid>
