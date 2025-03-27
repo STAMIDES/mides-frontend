@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { TextField, Button, Typography, Container, Grid, Paper, Alert, IconButton, Modal, List, ListItem, ListItemText } from '@mui/material';
+import { TextField, Button, Typography, Box, Grid, Paper, Alert, IconButton, Modal, List, ListItem, ListItemText } from '@mui/material';
 import { GpsFixed as GpsFixedIcon } from '@mui/icons-material';
 import useApi from '../../network/axios';
 import { geocodeAddress } from '../../utils/geocoder';
+import MapaUbicacion from '../../components/mapaUbicacion';
+
 
 const LugaresComunesCrear = ({ lugar_comun = {} }) => {
   const [formData, setFormData] = useState({
@@ -123,53 +125,70 @@ const LugaresComunesCrear = ({ lugar_comun = {} }) => {
 
   return (
     <>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom>Crear Lugar Común</Typography>
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField name="nombre" label="Nombre" value={formData.nombre} onChange={handleChange} fullWidth required />
-            </Grid>
-            <Grid item xs={12}>
-              <Grid container spacing={1} alignItems="center">
-                <Grid item xs={10}>
-                <TextField 
-                  name="direccion" 
-                  label="Dirección" 
-                  value={formData.direccion} 
-                  onChange={handleChange} 
-                  fullWidth 
-                  required 
-                  error={!!errors.direccion} 
-                  helperText={errors.direccion} 
-                />
-
+      <Grid container spacing={2} sx={{ height: '99vh' }}>
+        {/* Formulario a la izquierda */}
+        <Grid item xs={8} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Paper elevation={3} sx={{ p: 4, flexGrow: 1 }}>
+            <Typography variant="h4" gutterBottom>Crear Lugar Común</Typography>
+            <form onSubmit={handleSubmit}>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField name="nombre" label="Nombre" value={formData.nombre} onChange={handleChange} fullWidth required />
                 </Grid>
-                <Grid item xs={2}>
-                  <IconButton color={formData.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!formData.direccion}>
-                    <GpsFixedIcon />
-                  </IconButton>
+                <Grid item xs={12}>
+                  <Grid container spacing={1} alignItems="center">
+                    <Grid item xs={10}>
+                    <TextField 
+                      name="direccion" 
+                      label="Dirección" 
+                      value={formData.direccion} 
+                      onChange={handleChange} 
+                      fullWidth 
+                      required 
+                      error={!!errors.direccion} 
+                      helperText={errors.direccion} 
+                    />
+
+                    </Grid>
+                    <Grid item xs={2}>
+                      <IconButton color={formData.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!formData.direccion}>
+                        <GpsFixedIcon />
+                      </IconButton>
+                    </Grid>
+                  </Grid>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField name="observaciones" label="Observaciones" value={formData.observaciones} onChange={handleChange} fullWidth multiline rows={4} />
+                </Grid>
+
+                {message && (
+                  <Grid item xs={12}>
+                    <Alert severity={message.type}>{message.text}</Alert>
+                  </Grid>
+                )}
+
+                <Grid item xs={12}>
+                  <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 3, py: 1.5 }}>
+                    Crear
+                  </Button>
                 </Grid>
               </Grid>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField name="observaciones" label="Observaciones" value={formData.observaciones} onChange={handleChange} fullWidth multiline rows={4} />
-            </Grid>
-
-            {message && (
-              <Grid item xs={12}>
-                <Alert severity={message.type}>{message.text}</Alert>
-              </Grid>
-            )}
-
-            <Grid item xs={12}>
-              <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 3, py: 1.5 }}>
-                Crear
-              </Button>
-            </Grid>
-          </Grid>
-        </form>
-      </Paper>
+            </form>
+          </Paper>
+        </Grid>
+        {/* Mapa a la derecha */}
+        <Grid item xs={4} sx={{ height: '100%' }}>
+          <Paper elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ flexGrow: 1, width: '100%', height: '100%' }}>
+              <MapaUbicacion
+                latitudes={formData.latitud !== null ? [formData.latitud] : []}
+                longitudes={formData.longitud !== null ? [formData.longitud] : []}
+                height="100%"
+              />
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
 
       {/* Modal para selección de direcciones geodecodificadas */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
