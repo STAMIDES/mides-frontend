@@ -40,7 +40,7 @@ function LoginComponent() {
       setLoading(false);
       return;
     } else if (password.length < 7) {
-      setError('El usuario y la contraseña deben tener al menos 7 caracteres');
+      setError('La contraseña deben tener al menos 7 caracteres');
       setLoading(false);
       return;
     }
@@ -54,7 +54,7 @@ function LoginComponent() {
       navigate('/usuarios');
     } catch (error) {
       if (error.response) {
-        setError(error.response.data?.message || error.response.statusText || 'Error de autenticación');
+        setError(error.response.data?.detail || 'Error de autenticación');
       } else {
         setError('Error de conexión. Por favor intente nuevamente.');
       }
