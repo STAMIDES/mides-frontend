@@ -29,6 +29,7 @@ const CrearUsuario = ({ usuario = {} }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [geocodeOptions, setGeocodeOptions] = useState([]);
   const [verUsuario, setVerUsuario] = useState(false);
+  const [modoSeleccion, setModoSeleccion] = useState(false);
   let crearPedido = false;
 
   const api = useApi();
@@ -232,6 +233,9 @@ const handleSelectGeocode = (index, option) => {
                     <Grid item xs={2}>
                       <IconButton color={formData.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!formData.direccion}>
                         <GpsFixedIcon />
+                      </IconButton>                  
+                      <IconButton onClick={() => setModoSeleccion(!modoSeleccion)} color={modoSeleccion ? "error" : "primary"}>
+                        <GpsFixedIcon />
                       </IconButton>
                     </Grid>
                   </Grid>
@@ -291,11 +295,20 @@ const handleSelectGeocode = (index, option) => {
         <Grid item xs={4} sx={{ height: '100%' }}>
           <Paper elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ flexGrow: 1, width: '100%', height: '100%' }}>
-            <MapaUbicacion 
-              latitudes={formData.latitud !== null ? [formData.latitud] : []}
-              longitudes={formData.longitud !== null ? [formData.longitud] : []}
-              height="100%" 
-            />
+              <MapaUbicacion 
+                latitudes={formData.latitud !== null ? [formData.latitud] : []}
+                longitudes={formData.longitud !== null ? [formData.longitud] : []}
+                height="100%"
+                modoSeleccion={modoSeleccion}
+                onMapClick={({ lat, lng }) => {
+                  setFormData({
+                    ...formData,
+                    latitud: lat,
+                    longitud: lng,
+                  });
+                  setModoSeleccion(false);
+                }}
+              />
             </Box>
           </Paper>
         </Grid>

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-const MapaUbicacion = ({ latitudes = [], longitudes = [], height = "300px" }) => {
+const MapaUbicacion = ({ latitudes = [], longitudes = [], height = "300px", modoSeleccion = false, onMapClick }) => {
   latitudes = latitudes.filter(lat => lat !== undefined && lat !== null && !isNaN(lat));
   longitudes = longitudes.filter(lng => lng !== undefined && lng !== null && !isNaN(lng));
   const mapRef = useRef(null);
@@ -19,6 +19,16 @@ const MapaUbicacion = ({ latitudes = [], longitudes = [], height = "300px" }) =>
 
     if (!mapRef.current || !mapRef.current._container) return;
 
+    let mapClickHandler;
+
+    if (modoSeleccion && mapRef.current) {
+      mapClickHandler = (e) => {
+        const { lat, lng } = e.latlng;
+        if (onMapClick) onMapClick({ lat, lng });
+      };
+      mapRef.current.on("click", mapClickHandler);
+    }
+    
     // Eliminar marcadores previos
     markersRef.current.forEach(marker => mapRef.current.removeLayer(marker));
     markersRef.current = [];
@@ -45,8 +55,15 @@ const MapaUbicacion = ({ latitudes = [], longitudes = [], height = "300px" }) =>
       mapRef.current.setView([-34.9011, -56.1645], 13); // Fallback si no hay coordenadas
     }    
 
-  }, [latitudes, longitudes]);
+    return () => {
+      if (mapClickHandler && mapRef.current) {
+        mapRef.current.off("click", mapClickHandler);
+      }
+    };
+    
 
+  }, [latitudes, longitudes]);
+  
   return <div ref={mapContainerRef} style={{ height: height, width: "100%" }}></div>;
 };
 
