@@ -35,9 +35,16 @@
                   <div v-for="(visita, vIndex) in ruta.visitas" :key="vIndex" class="visita-row">
                     <div class="visita-time">{{ formatTime(visita.hora_llegada) }}</div>
                     <div class="visita-status-wrapper" :class="getStatusClass(visita.estado)">
-                      <div class="visita-status-circle" :class="getStatusClass(visita.estado)"/>
+                      <div class="visita-status-circle" :class="getStatusClass(visita.estado)"></div>
                     </div>
-                    <div class="visita-address">{{ visita.item.direccion }}</div>
+                    <div class="visita-address">
+                      <span v-if="visita.tipo_item === 'Lugar común'">
+                        Lugar Comun: {{ visita.item.nombre }}
+                      </span>
+                      <span v-else>
+                        {{ visita.item.direccion }}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -326,9 +333,9 @@ export default {
     const toggleSelectionVehiculo = (turnoIndex, vehicleId) => {
       const turno = turnos.value[turnoIndex];
       const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
-      
+
       if (index === -1) {
-        turno.vehicles.push({ vehicle_id: vehicleId, lugares_comunes_id: null, chofer_id: null });
+        turno.vehicles.push({ vehicle_id: vehicleId, lugares_comunes_id: null, chofer_id: null, vehicleIdWithTurnoIndex: `${vehicleId}${turnoIndex}` });
       } else {
         turno.vehicles.splice(index, 1);
       }
