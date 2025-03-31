@@ -230,12 +230,15 @@ export default {
         turno.vehicles.forEach((vehiculo_selected)=>{
           const v = vehiculos.value.find(v => v.id === vehiculo_selected.vehicle_id);
           const lc = lugaresComunes.value.find(l => l.id === Number(vehiculo_selected.lugares_comunes_id));
+          const has_electric_ramp = v?.caracteristicas.some(c => c.nombre === "rampa_electrica");
           if (v) {
             const start_tolerance = addMinutesToTime(turno.start, 30);
             const end_tolerance = addMinutesToTime(turno.end, 30);
             acc.push({
               id: vehiculo_selected.vehicleIdWithTurnoIndex, 
               capacity: v.capacidad_convencional,
+              wheel_chair_capacity: v.capacidad_silla_de_ruedas,
+              has_electric_ramp: has_electric_ramp,
               depot_start: { //FIXME: hardcodeado
                 id: lc.id,
                 address: lc.nombre,
@@ -248,6 +251,7 @@ export default {
                   end: start_tolerance+':00',
                 }
               },
+              has_wheelchair: v.tiene_carros,
               depot_end: { //FIXME: hardcodeado
                 id: lc.id,
                 address:  lc.nombre,
