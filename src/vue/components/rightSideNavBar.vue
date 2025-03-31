@@ -49,6 +49,40 @@
                 </div>
               </div>
             </div>
+
+            <div v-if="planificacion.pedidos_no_atendidos && planificacion.pedidos_no_atendidos.length > 0" class="unattended-pedidos">
+              <h3 class="unattended-title">Pedidos no atendidos</h3>
+              <div class="unattended-list">
+                <table class="pedidos-table unattended-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Origen y Horario</th>
+                      <th>Paradas Intermedias</th>
+                      <th>Destino y Horario</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="(pedido, index) in planificacion.pedidos_no_atendidos"
+                      :key="index"
+                      class="unattended-row"
+                    >
+                      <td>{{ pedido.id }}</td>
+                      <td class="td-wrapper">
+                        {{ pedido.direccion_origen_y_horario }}
+                      </td>
+                      <td class="td-wrapper">
+                        {{ pedido.paradas_intermedias }}
+                      </td>
+                      <td class="td-wrapper">
+                        {{ pedido.direccion_destino_y_horario }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
           </div>
           <div v-else>
@@ -784,4 +818,84 @@ export default {
 .turno-2 { background-color: #f0e6ff; }
 .turno-3 { background-color: #e6ffe6; }
 .turno-4 { background-color: #ffe6e6; }
+
+.unattended-pedidos {
+  margin-top: 24px;
+  background-color: #fff4f4;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #ffcccc;
+}
+
+.unattended-title {
+  color: #cc0000;
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+}
+
+.unattended-title:before {
+  content: "⚠️";
+  margin-right: 8px;
+}
+
+.unattended-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 0.5em;
+}
+.unattended-table th,
+.unattended-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ffcccc;
+  word-wrap: break-word; /* Ensure text wraps */
+}
+
+/* Column width distribution */
+.unattended-table th:nth-child(1), 
+.unattended-table td:nth-child(1) {
+  width: 10%; /* ID column - narrow */
+}
+
+.unattended-table th:nth-child(2), 
+.unattended-table td:nth-child(2),
+.unattended-table th:nth-child(4), 
+.unattended-table td:nth-child(4) {
+  width: 30%; /* Origin and destination columns */
+}
+
+.unattended-table th:nth-child(3), 
+.unattended-table td:nth-child(3) {
+  width: 30%; /* Intermediate stops column */
+}
+
+/* Update the td-wrapper class to ensure content fits */
+.td-wrapper {
+  overflow-wrap: break-word;  /* Modern property */
+  word-wrap: break-word;      /* Older browsers */
+  hyphens: auto;             /* Optional: Enable hyphenation */
+  word-break: break-word;    /* Break words to prevent overflow */
+  white-space: normal;       /* Allow text to wrap */
+  max-width: 100%;           /* Respect container width */
+}
+
+.unattended-row {
+  background-color: #fff0f0;
+}
+
+.unattended-row:hover {
+  background-color: #ffe0e0;
+}
+
+.unattended-list {
+  max-height: 250px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
 </style>

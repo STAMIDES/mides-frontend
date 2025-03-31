@@ -84,7 +84,6 @@ export default {
               coords: coords
           });
       });
-      console.log(nuevoListado);
       return nuevoListado;
     }
     
@@ -105,6 +104,7 @@ export default {
       try {
         const response = await api.get(`/planificaciones/${id}`);
         planificacion.value = response.data.planificacion;
+        planificacion.value.pedidos_no_atendidos = procesarPedidos(response.data.planificacion.pedidos_no_atendidos);
       } catch (error) {
         console.error('Error fetching planificacion:', error);
       }
@@ -185,7 +185,8 @@ export default {
         const normalizedPlanificacion = {
           planificacion: {fecha: selectedDate.value},
           rutas: normalizedRutas,
-          turnos: normalizedTurnos
+          turnos: normalizedTurnos,
+          pedidos_no_atendidos: nueva_planificacion.dropped_rides.map(p => parseInt(p)),
         };
         return normalizedPlanificacion;
     }
@@ -197,9 +198,14 @@ export default {
         // guardar en local storage los turnos
         localStorage.setItem('selectedTurnos', JSON.stringify(turnos.value));
         planificacion.value = response.data.planificacion
+        planificacion.value.pedidos_no_atendidos = procesarPedidos(response.data.planificacion.pedidos_no_atendidos);
       } catch (error) {
         errorPlanificacion.value++
-        estadoError.value = error.response.data.detail;
+        if (error.response?.data?.detail) {
+          estadoError.value = error.response.data.detail;
+        } else {
+          console.log(error);
+        }
       }
     };
     function addMinutesToTime(time, minutesToAdd) {
