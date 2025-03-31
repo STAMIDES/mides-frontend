@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Paper, Typography, Button, Grid, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
+import { Container, Paper, Typography, Button, Grid, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControlLabel, Checkbox } from '@mui/material';
 import useApi from '../../network/axios';
 import '../css/detalle.css';
 
@@ -9,6 +9,7 @@ const CamionetaDetalles = () => {
   const [camioneta, setCamioneta] = useState(null);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [camionetaEditor, setCamionetaEditor] = useState(null);
+  const [caracteristicasTodas, setCaracteristicasTodas] = useState([]);
 
   const api = useApi();
   useEffect(() => {
@@ -23,8 +24,25 @@ const CamionetaDetalles = () => {
       });
   }, [id]);
 
+  const obtenerCaracteristicas = async () => {
+    try {
+      const response = await api.get('caracteristicas');
+      setCaracteristicasTodas(response.data);
+    } catch (error) {
+      console.error('Error al obtener las caracteristicas:', error);
+    }
+  };
+
   const editarCamioneta = async () => {
-    const response = await api.put(`vehiculos/${camioneta.id}`, camionetaEditor);
+    // Convert caracteristicas objects to just ids before sending to API
+    const editData = {
+      ...camionetaEditor,
+      caracteristicas: camionetaEditor.caracteristicas 
+        ? camionetaEditor.caracteristicas.map(caracteristica => caracteristica.id)
+        : []
+    };
+    
+    const response = await api.put(`vehiculos/${camioneta.id}`, editData);
     setCamioneta(response.data.vehiculo);
     setCamionetaEditor(response.data.vehiculo);
   };
@@ -44,6 +62,24 @@ const CamionetaDetalles = () => {
     setCamionetaEditor({ ...camionetaEditor, [name]: value });
   };
 
+  const handleCheckboxChange = (caracteristica) => {
+    if (!camionetaEditor.caracteristicas) {
+      camionetaEditor.caracteristicas = [];
+    }
+    
+    if (camionetaEditor.caracteristicas.find(c => c.id === caracteristica.id)) {
+      setCamionetaEditor({ 
+        ...camionetaEditor, 
+        caracteristicas: camionetaEditor.caracteristicas.filter(c => c.id !== caracteristica.id) 
+      });
+    } else {
+      setCamionetaEditor({ 
+        ...camionetaEditor, 
+        caracteristicas: [...camionetaEditor.caracteristicas, caracteristica] 
+      });
+    }
+  };
+
   if (!camioneta) {
     return <Typography>Loading...</Typography>;
   }
@@ -51,6 +87,9 @@ const CamionetaDetalles = () => {
   const handleEdit = () => {
     console.log("Editing camioneta", camioneta.id);
     setOpenEditDialog(true);
+    if(caracteristicasTodas.length === 0) {
+      obtenerCaracteristicas();
+    }
   };
 
   const handleDelete = () => {
@@ -93,6 +132,16 @@ const CamionetaDetalles = () => {
           <Grid item xs={12}>
             <Typography variant="h6">Descripción:</Typography>
             <Typography>{camioneta.descripcion}</Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="h6">Características:</Typography>
+            {camioneta.caracteristicas && camioneta.caracteristicas.length > 0 ? (
+              camioneta.caracteristicas.map((caracteristica, index) => (
+                <Typography key={index}>{caracteristica.nombre}</Typography>
+              ))
+            ) : (
+              <Typography>Sin características asignadas</Typography>
+            )}
           </Grid>
           <Grid item xs={12} mb={2}>
             <Typography variant="h6">Observaciones:</Typography>
@@ -144,6 +193,22 @@ const CamionetaDetalles = () => {
               value={camionetaEditor.observaciones}
               onChange={handleInputChange}
           />
+          <Typography variant="subtitle1" style={{ marginTop: '16px' }}>
+            Características:
+          </Typography>
+          {caracteristicasTodas.map((caracteristica) => (
+            <FormControlLabel
+              key={caracteristica.id}
+              control={
+                <Checkbox
+                  checked={Boolean(camionetaEditor.caracteristicas && 
+                    camionetaEditor.caracteristicas.find(c => c.id === caracteristica.id))}
+                  onChange={() => handleCheckboxChange(caracteristica)}
+                />
+              }
+              label={caracteristica.nombre}
+            />
+          ))}
           </DialogContent>
           <DialogActions>
               <Button onClick={handleCloseEditDialog} color="primary">
