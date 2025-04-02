@@ -323,7 +323,8 @@ export default {
                 id: pedido.id,
                 user_id: pedido.cliente_documento,
                 has_companion: pedido.acompanante,
-                weelchair_required:   true,//cliente.caracteristicas.contains(silla_de_ruedas),
+                wheelchair_required: pedido.cliente.caracteristicas.some(c => c.nombre === "silla_de_ruedas"),
+                electric_ramp_required:  pedido.cliente.caracteristicas.some(c => c.nombre === "rampa_electrica"),
                 pickup: {
                   coordinates: {
                     latitude: origen.latitud,
