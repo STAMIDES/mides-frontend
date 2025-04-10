@@ -236,8 +236,8 @@ export default {
             const end_tolerance = addMinutesToTime(turno.end, 30);
             acc.push({
               id: vehiculo_selected.vehicleIdWithTurnoIndex, 
-              capacity: v.capacidad_convencional,
-              wheel_chair_capacity: v.capacidad_silla_de_ruedas,
+              seat_capacity : v.capacidad_convencional,
+              wheelchair_capacity : v.capacidad_silla_de_ruedas,
               has_electric_ramp: has_electric_ramp,
               depot_start: { //FIXME: hardcodeado
                 id: lc.id,
@@ -251,7 +251,6 @@ export default {
                   end: start_tolerance+':00',
                 }
               },
-              has_wheelchair: v.tiene_carros,
               depot_end: { //FIXME: hardcodeado
                 id: lc.id,
                 address:  lc.nombre,
