@@ -81,7 +81,8 @@ export default {
               paradas_intermedias: paradasIntermedias,
               direccion_destino_y_horario: direccionDestinoYHorario,
               paradasProcesadas: paradasProcesadas,
-              coords: coords
+              coords: coords,
+              caracteristicas: pedido.cliente.caracteristicas
           });
       });
       return nuevoListado;

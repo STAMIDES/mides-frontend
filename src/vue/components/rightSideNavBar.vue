@@ -137,6 +137,11 @@
                     <td class="td-wrapper">
                       {{ pedido.direccion_destino_y_horario }}
                     </td>
+                    <td>
+                      <!-- Add icons for silla_de_ruedas and rampa_electrica -->
+                      <span v-if="pedido.caracteristicas.some(c => c.nombre === 'silla_de_ruedas')">🦽</span>
+                      <span v-if="pedido.caracteristicas.some(c => c.nombre === 'rampa_electrica')">🔧</span>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -468,7 +473,7 @@ export default {
   top: 0;
   right: 0;
   height: 100vh;
-  width: 430px;
+  width: 450px;
   background-color: #f8f8f8;
   transition: transform 0.3s ease-in-out;
   display: flex;

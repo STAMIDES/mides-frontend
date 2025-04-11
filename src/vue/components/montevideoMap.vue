@@ -61,20 +61,26 @@ const addPedidosToMap = () => {
     if (props.unselectedPedidosIds.includes(pedido.id)) {
       return;
     }
+    
+    // Add the icons for wheelchair and ramp
+    let sillaIcon = pedido.caracteristicas?.some(c => c.nombre === 'silla_de_ruedas') ? '🦽' : '';
+    let rampaIcon = pedido.caracteristicas?.some(c => c.nombre === 'rampa_electrica') ? '🔧' : '';
+    let iconsSuffix = `\n${sillaIcon} ${rampaIcon}`;
+    
     const originLatLng = pedido.coords[0];
     const destinationLatLng = pedido.coords[pedido.coords.length - 1];
     if (originLatLng[0] === destinationLatLng[0] && originLatLng[1] === destinationLatLng[1]){
       L.marker(originLatLng)
       .addTo(map)
-      .bindPopup(`Origen: ${pedido.direccion_origen_y_horario} \n----- \nDestino: ${pedido.direccion_destino_y_horario}`);
+      .bindPopup(`Origen: ${pedido.direccion_origen_y_horario} \n----- \nDestino: ${pedido.direccion_destino_y_horario} ${iconsSuffix}`);
     }else{
       L.marker(originLatLng)
       .addTo(map)
-      .bindPopup(`Origen: ${pedido.direccion_origen_y_horario}`);
+      .bindPopup(`Origen: ${pedido.direccion_origen_y_horario} ${iconsSuffix}`);
 
       L.marker(destinationLatLng)
       .addTo(map)
-      .bindPopup(`Destino: ${pedido.direccion_destino_y_horario}`);
+      .bindPopup(`Destino: ${pedido.direccion_destino_y_horario} ${iconsSuffix}`);
     }
     if (pedido.tipo !== 'Ida y vuelta'){
       L.polyline([originLatLng, destinationLatLng], { 
@@ -82,7 +88,7 @@ const addPedidosToMap = () => {
         weight: 3,
         opacity: 0.7 
       }).addTo(map)
-        .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
+        .bindPopup(`Pedido de ${pedido.nombre_y_apellido} ${iconsSuffix}`);
     }else{
       let prevLatLng = originLatLng;
       for (let i = 1; i + 1< pedido.coords.length; i += 1) {
@@ -90,14 +96,14 @@ const addPedidosToMap = () => {
         
         L.marker(intermediaLatLng)
         .addTo(map)
-        .bindPopup(`Parada intermedia: ${pedido.paradasProcesadas[i]}`);
+        .bindPopup(`Parada intermedia: ${pedido.paradasProcesadas[i]} ${iconsSuffix}`);
         
         L.polyline([prevLatLng, intermediaLatLng], { 
           color: 'blue',
           weight: 3,
           opacity: 0.7 
         }).addTo(map)
-        .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
+        .bindPopup(`Pedido de ${pedido.nombre_y_apellido} ${iconsSuffix}`);
         prevLatLng = intermediaLatLng;
       }
       L.polyline([prevLatLng, destinationLatLng], { 
@@ -105,7 +111,7 @@ const addPedidosToMap = () => {
           weight: 3,
           opacity: 0.7 
         }).addTo(map)
-        .bindPopup(`Pedido de ${pedido.nombre_y_apellido}`);
+        .bindPopup(`Pedido de ${pedido.nombre_y_apellido} ${iconsSuffix}`);
     }
   });
 };
@@ -149,36 +155,38 @@ const addPlanificacionToMap = () => {
       }
       let cliente = visita.item?.pedido?.cliente?.nombre;
       let tipoViaje = visita.item?.pedido?.tipo;
-      let msg='';
+      let msg = '';
+      let sillaIcon = visita.item?.pedido?.cliente?.caracteristicas.some(c => c.nombre === 'silla_de_ruedas') ? '🦽' : '';
+      let rampaIcon = visita.item?.pedido?.cliente?.caracteristicas.some(c => c.nombre === 'rampa_electrica') ? '🔧' : '';
+      let iconsSuffix = `\n${sillaIcon} ${rampaIcon}`;
       if (icon) {  // Only create marker if we have a valid icon
-        if (Object.keys(all_coords).indexOf(latLng.toString()) === -1){
-          if (cliente){
-            
-            if (visita.item.posicion_en_pedido===0){
-              msg = `${visita.tipo_item}: ${visita.item.direccion}  \nRecoger a ${cliente}:  ${visita.hora_llegada}`;
-            }else{
-              msg = `${visita.tipo_item}: ${visita.item.direccion}  \nDejar a ${cliente}:  ${visita.hora_llegada}`;
+        if (Object.keys(all_coords).indexOf(latLng.toString()) === -1) {
+          if (cliente) {
+            if (visita.item.posicion_en_pedido === 0) {
+              msg = `${visita.tipo_item}: ${visita.item.direccion} \nRecoger a ${cliente}: ${visita.hora_llegada} ${iconsSuffix}`;
+            } else {
+              msg = `${visita.tipo_item}: ${visita.item.direccion} \nDejar a ${cliente}: ${visita.hora_llegada} ${iconsSuffix}`;
             }
-          }else{
-            msg = `${visita.tipo_item}: ${visita.item.direccion}  \nLlegada:  ${visita.hora_llegada}`;
+          } else {
+            msg = `${visita.tipo_item}: ${visita.item.direccion} \nLlegada: ${visita.hora_llegada} ${iconsSuffix}`;
           }
           const marker = L.marker(latLng, { icon })
-          .addTo(map)
-          .bindPopup(msg);
+            .addTo(map)
+            .bindPopup(msg);
           all_coords[latLng] = marker;
-        }else{
-          if (cliente){
-            if(tipoViaje==="Ida y vuelta" && visita.item.posicion_en_pedido && visita.item.posicion_en_pedido%2===1){
-              msg = `\nRecoger a ${cliente}:  ${visita.hora_llegada}`;
-            }else{
-              msg = `\nDejar a ${cliente}:  ${visita.hora_llegada}`;
-            }    
-          }else{
-            msg = `\nVuelta: ${visita.hora_llegada}`;
+        } else {
+          if (cliente) {
+            if (tipoViaje === "Ida y vuelta" && visita.item.posicion_en_pedido && visita.item.posicion_en_pedido % 2 === 1) {
+              msg = `\nRecoger a ${cliente}: ${visita.hora_llegada} ${iconsSuffix}`;
+            } else {
+              msg = `\nDejar a ${cliente}: ${visita.hora_llegada} ${iconsSuffix}`;
+            }
+          } else {
+            msg = `\nVuelta: ${visita.hora_llegada} ${iconsSuffix}`;
           }
-          all_coords[latLng].bindPopup( 
-          all_coords[latLng].getPopup()._content + msg);
-          
+          all_coords[latLng].bindPopup(
+            all_coords[latLng].getPopup()._content + msg);
+
         }
       }
     });
