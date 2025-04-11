@@ -27,6 +27,7 @@ const MapaUbicacion = ({ latitudes = [], longitudes = [], height = "300px", modo
         if (onMapClick) onMapClick({ lat, lng });
       };
       mapRef.current.on("click", mapClickHandler);
+      mapRef.current.getContainer().style.cursor = "crosshair";
     }
     
     // Eliminar marcadores previos
@@ -58,6 +59,9 @@ const MapaUbicacion = ({ latitudes = [], longitudes = [], height = "300px", modo
     return () => {
       if (mapClickHandler && mapRef.current) {
         mapRef.current.off("click", mapClickHandler);
+      }
+      if (mapRef.current) {
+        mapRef.current.getContainer().style.cursor = "";
       }
     };
     

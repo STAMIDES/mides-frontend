@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Box, TextField, Button, Typography, Select, MenuItem, Container, FormLabel, FormGroup, FormControlLabel, Alert,
+import { Box, TextField, Button, Typography, Tooltip, Snackbar, Alert as MuiAlert, FormLabel, FormGroup, FormControlLabel, Alert,
   Checkbox, Grid, Paper, FormControl, InputLabel, IconButton, Modal, List, ListItem, ListItemText } from '@mui/material';
-  import {GpsFixed as GpsFixedIcon} from '@mui/icons-material';
+  import { GpsFixed as GpsFixedIcon, Place as PlaceIcon } from '@mui/icons-material';
 import useApi from '../network/axios';
 import { useNavigate } from 'react-router-dom';
 import { geocodeAddress } from '../utils/geocoder';
 import MapaUbicacion from '../components/mapaUbicacion';
+import useDireccionConCoordenadas from '../hooks/useDireccionConCoordenadas';
+
+const CustomAlert = React.forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 const CrearUsuario = ({ usuario = {} }) => {
   const [formData, setFormData] = useState({
     documento: '',
     nombre: '',
     apellido: '',
-    direccion: '',
-    latitud: null,
-    longitud: null,
     telefono: '',
     email: '',
     caracteristicas: [],
@@ -30,6 +32,16 @@ const CrearUsuario = ({ usuario = {} }) => {
   const [geocodeOptions, setGeocodeOptions] = useState([]);
   const [verUsuario, setVerUsuario] = useState(false);
   const [modoSeleccion, setModoSeleccion] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const {
+    direccion,
+    latitud,
+    longitud,
+    seleccionManual,
+    handleDireccionChange,
+    setCoordenadas,
+    setDireccion
+  } = useDireccionConCoordenadas(usuario?.direccion || '');
   let crearPedido = false;
 
   const api = useApi();
@@ -110,18 +122,18 @@ const handleSelectGeocode = (index, option) => {
     }
   }
 
-  setFormData({
-    ...formData,
-    direccion: nuevaDireccion,
-    latitud: option.lat,
-    longitud: option.lng,
-  });
+  setDireccion(nuevaDireccion);
+  setCoordenadas(option.lat, option.lng, false);
 
   setModalOpen(false);
 };
 
   const handleNavigation = (id) => {
     navigate(`/solicitudes/crear?usuarioId=${id}`);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   const validarDoc = () => {
@@ -167,6 +179,9 @@ const handleSelectGeocode = (index, option) => {
 
     const dataToSubmit = {
       ...formData,
+      direccion,
+      latitud,
+      longitud,
       documento: parseInt(formData.documento, 10),
       caracteristicas: caracteristicas
     };
@@ -206,7 +221,7 @@ const handleSelectGeocode = (index, option) => {
       }
     });
   };
-  console.log(caracteristicasTodas[0])
+
   return (
     <>
       <Grid container spacing={2} sx={{ height: '99vh' }}>
@@ -228,15 +243,28 @@ const handleSelectGeocode = (index, option) => {
                 <Grid item xs={12}>
                   <Grid container spacing={1} alignItems="center">
                     <Grid item xs={10}>
-                      <TextField name="direccion" label="Dirección" value={formData.direccion} onChange={handleChange} fullWidth required error={!!errors.direccion} helperText={errors.direccion} />
+                      <TextField name="direccion" label="Dirección" value={direccion} onChange={handleChange} fullWidth required error={!!errors.direccion} helperText={errors.direccion} />
                     </Grid>
                     <Grid item xs={2}>
-                      <IconButton color={formData.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!formData.direccion}>
-                        <GpsFixedIcon />
-                      </IconButton>                  
-                      <IconButton onClick={() => setModoSeleccion(!modoSeleccion)} color={modoSeleccion ? "error" : "primary"}>
-                        <GpsFixedIcon />
-                      </IconButton>
+                      <Tooltip title="Geocodificar dirección escrita">
+                        <IconButton color={formData.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!formData.direccion}>
+                          <GpsFixedIcon />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Seleccionar ubicación manualmente en el mapa">             
+                        <IconButton 
+                          onClick={() => {
+                            const nuevoEstado = !modoSeleccion;
+                            setModoSeleccion(nuevoEstado);
+                            if (nuevoEstado) {
+                              setSnackbarOpen(true);
+                            }
+                          }} 
+                          color={modoSeleccion ? "error" : "primary"}>
+                          <PlaceIcon />
+                        </IconButton>
+                      </Tooltip>
                     </Grid>
                   </Grid>
                 </Grid>
@@ -296,16 +324,12 @@ const handleSelectGeocode = (index, option) => {
           <Paper elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ flexGrow: 1, width: '100%', height: '100%' }}>
               <MapaUbicacion 
-                latitudes={formData.latitud !== null ? [formData.latitud] : []}
-                longitudes={formData.longitud !== null ? [formData.longitud] : []}
+                latitudes={latitud !== null ? [latitud] : []}
+                longitudes={longitud !== null ? [longitud] : []}
                 height="100%"
                 modoSeleccion={modoSeleccion}
                 onMapClick={({ lat, lng }) => {
-                  setFormData({
-                    ...formData,
-                    latitud: lat,
-                    longitud: lng,
-                  });
+                  setCoordenadas(lat, lng, true);
                   setModoSeleccion(false);
                 }}
               />
@@ -338,6 +362,18 @@ const handleSelectGeocode = (index, option) => {
           </List>
         </Paper>
       </Modal>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <CustomAlert onClose={handleSnackbarClose} severity="info" sx={{ width: '100%' }}>
+          📍 Seleccioná un punto en el mapa para ubicar la dirección
+        </CustomAlert>
+      </Snackbar>
+
     </>
   );
 };
