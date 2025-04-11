@@ -233,13 +233,15 @@ export default {
           const lc = lugaresComunes.value.find(l => l.id === Number(vehiculo_selected.lugares_comunes_id));
           const has_electric_ramp = v?.caracteristicas.some(c => c.nombre === "rampa_electrica");
           if (v) {
-            const start_tolerance = addMinutesToTime(turno.start, 30);
-            const end_tolerance = addMinutesToTime(turno.end, 30);
             acc.push({
               id: vehiculo_selected.vehicleIdWithTurnoIndex, 
               seat_capacity : v.capacidad_convencional,
               wheelchair_capacity : v.capacidad_silla_de_ruedas,
               has_electric_ramp: has_electric_ramp,
+              time_window: {
+                start: turno.start+':00',
+                end: turno.end+':00',
+              },
               depot_start: { //FIXME: hardcodeado
                 id: lc.id,
                 address: lc.nombre,
@@ -247,10 +249,6 @@ export default {
                   latitude: lc.latitud,
                   longitude: lc.longitud
                 },
-                time_window: {
-                  start: turno.start+':00',
-                  end: start_tolerance+':00',
-                }
               },
               depot_end: { //FIXME: hardcodeado
                 id: lc.id,
@@ -259,10 +257,6 @@ export default {
                   latitude: lc.latitud,
                   longitude: lc.longitud
                 },
-                time_window: {
-                  start: turno.end+':00',
-                  end: end_tolerance+':00',
-                }
               },
             });
           }
