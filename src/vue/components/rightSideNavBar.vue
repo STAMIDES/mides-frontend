@@ -51,7 +51,7 @@
             </div>
 
             <div v-if="planificacion.pedidos_no_atendidos && planificacion.pedidos_no_atendidos.length > 0" class="unattended-pedidos">
-              <h3 class="unattended-title">Pedidos no atendidos</h3>
+              <h3 class="unattended-title">Solicitudes no atendidos</h3>
               <div class="unattended-list">
                 <table class="pedidos-table unattended-table">
                   <thead>
