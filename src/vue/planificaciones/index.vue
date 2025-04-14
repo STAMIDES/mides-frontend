@@ -274,6 +274,7 @@ export default {
         const planificacionProcesada = procesarNuevaPlanificacion(response.data, vehiculosNormalizados);
         guardarPlanificacion(planificacionProcesada)
         showPedidos.value = false;
+        estadoError.value = null;
       }catch (error) {
         console.log('The error was:', error);
         errorPlanificacion.value++

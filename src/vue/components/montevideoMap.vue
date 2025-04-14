@@ -5,27 +5,11 @@
       <h3>Mapa de Referencias</h3>
       <div v-if="showPedidos">
         <div class="legend-item">
-          <div class="marker-icon origin"></div>
-          <span>Punto de origen</span>
-        </div>
-        <div class="legend-item">
-          <div class="marker-icon destination"></div>
-          <span>Punto de destino</span>
-        </div>
-        <div class="legend-item">
           <div class="line-sample dashed"></div>
           <span>Conexión solicitada</span>
         </div>
       </div>
       <div v-else>
-        <div class="legend-item">
-          <div class="marker-icon pickup"></div>
-          <span>Punto de recogida</span>
-        </div>
-        <div class="legend-item">
-          <div class="marker-icon dropoff"></div>
-          <span>Punto de entrega</span>
-        </div>
         <div class="legend-item" v-for="(color, index) in colors.slice(0, routesCount)" :key="index">
           <div class="line-sample" :style="{ backgroundColor: color }"></div>
           <span>Ruta {{ index + 1 }}</span>
@@ -89,11 +73,9 @@ var myIcon = L.Icon.extend({
 
 var homeIcon = new myIcon({
   iconUrl: homeImg,
-  className: 'origin-marker'
 });
 var destinationIcon = new myIcon({
   iconUrl: homeImg,
-  className: 'destination-marker'
 });
 var buildingIcon = new myIcon({iconUrl: buildingImg});
 var hospitalIcon = new myIcon({iconUrl: hospitalImg, iconSize: [30, 50]});
@@ -182,33 +164,33 @@ const addPedidosToMap = () => {
       .addTo(map)
       .bindPopup(destPopup);
     }
-      // Create a dashed line with arrowheads to represent the requested connection
-      var cantidad_tramos = 0;
-      if (pedido.tipo !== 'Ida y vuelta'){
-        L.polyline([originLatLng, destinationLatLng], { 
-          color: '#3388ff',
-          weight: 2,
-          opacity: 0.7,
-          dashArray: '5, 10',
-          arrowheads: { 
-            fill: true,
-            frequency: 'endonly',
-            size: '10px'
-          }
-        }).addTo(map)
-          .bindPopup(createPopupContent(
-            `Pedido de ${pedido.nombre_y_apellido}`,
-            `<b>Origen:</b> ${pedido.direccion_origen_y_horario}<br/>
-             <b>Destino:</b> ${pedido.direccion_destino_y_horario}`,
-            iconsSuffix
-          ));
-      } else {
-        // For "Ida y vuelta" pedidos with intermediate stops
-        let prevLatLng = originLatLng;
-        cantidad_tramos = pedido.coords.length - 1;
-        for (let i = 1; i + 1 < pedido.coords.length; i += 1) {
-          const intermediaLatLng = pedido.coords[i];
-          bounds.push(intermediaLatLng);
+    // Create a dashed line with arrowheads to represent the requested connection
+    var cantidad_tramos = 0;
+    if (pedido.tipo !== 'Ida y vuelta'){
+      L.polyline([originLatLng, destinationLatLng], { 
+        color: '#3388ff',
+        weight: 2,
+        opacity: 0.7,
+        dashArray: '5, 10',
+        arrowheads: { 
+          fill: true,
+          frequency: 'endonly',
+          size: '10px'
+        }
+      }).addTo(map)
+        .bindPopup(createPopupContent(
+          `Pedido de ${pedido.nombre_y_apellido}`,
+          `<b>Origen:</b> ${pedido.direccion_origen_y_horario}<br/>
+           <b>Destino:</b> ${pedido.direccion_destino_y_horario}`,
+          iconsSuffix
+        ));
+    } else {
+      // For "Ida y vuelta" pedidos with intermediate stops
+      let prevLatLng = originLatLng;
+      cantidad_tramos = pedido.coords.length - 1;
+      for (let i = 1; i + 1 < pedido.coords.length; i += 1) {
+        const intermediaLatLng = pedido.coords[i];
+        bounds.push(intermediaLatLng);
           
           const stopPopup = createPopupContent(
             'Parada Intermedia', 
@@ -222,28 +204,8 @@ const addPedidosToMap = () => {
           })
           .addTo(map)
           .bindPopup(stopPopup);
-          
-          L.polyline([prevLatLng, intermediaLatLng], { 
-            color: '#3388ff',
-            weight: 2,
-            opacity: 0.7,
-            dashArray: '5, 10',
-            arrowheads: {
-              fill: true,
-              frequency: 'endonly',
-              size: '10px'
-            }
-          }).addTo(map)
-          .bindPopup(createPopupContent(
-            `Pedido de ${pedido.nombre_y_apellido}`,
-            `<b>Tramo:</b> ${cantidad_tramos} de ${cantidad_tramos}`,
-            iconsSuffix
-          ));
-          
-          prevLatLng = intermediaLatLng;
-        }
         
-        L.polyline([prevLatLng, destinationLatLng], { 
+        L.polyline([prevLatLng, intermediaLatLng], { 
           color: '#3388ff',
           weight: 2,
           opacity: 0.7,
@@ -259,7 +221,27 @@ const addPedidosToMap = () => {
           `<b>Tramo:</b> ${cantidad_tramos} de ${cantidad_tramos}`,
           iconsSuffix
         ));
+        
+        prevLatLng = intermediaLatLng;
       }
+      
+      L.polyline([prevLatLng, destinationLatLng], { 
+        color: '#3388ff',
+        weight: 2,
+        opacity: 0.7,
+        dashArray: '5, 10',
+        arrowheads: {
+          fill: true,
+          frequency: 'endonly',
+          size: '10px'
+        }
+      }).addTo(map)
+      .bindPopup(createPopupContent(
+        `Pedido de ${pedido.nombre_y_apellido}`,
+        `<b>Tramo:</b> ${cantidad_tramos} de ${cantidad_tramos}`,
+        iconsSuffix
+      ));
+    }
   });
   
   // Fit map to bounds if we have points
@@ -310,7 +292,6 @@ const addPlanificacionToMap = () => {
       bounds.push(latLng);
       
       let icon;
-      let iconClass = '';
 
       // Determine appropriate icon
       if (visita.tipo_item === 'Lugar común') {
@@ -320,13 +301,6 @@ const addPlanificacionToMap = () => {
           icon = hospitalIcon;
         } else {
           icon = homeIcon;
-          
-          // Add custom class for pickup/dropoff visualization
-          if (visita.item.posicion_en_pedido === 0){
-            iconClass = 'pickup-marker';
-          } else {
-            iconClass = 'dropoff-marker';  
-          }
         }
       }
       
@@ -367,7 +341,6 @@ const addPlanificacionToMap = () => {
           
           const marker = L.marker(latLng, { 
             icon: icon,
-            className: iconClass
           })
             .addTo(map)
             .bindPopup(createPopupContent(title, details, iconsSuffix));
@@ -453,27 +426,6 @@ watch(() => props.unselectedPedidosIds, addPedidosToMap, { deep: true });
   width: 100%;
 }
 
-/* Marker styling */
-.origin-marker img {
-  filter: hue-rotate(0deg);
-  border: 2px solid #4285F4;
-}
-
-.destination-marker img {
-  filter: hue-rotate(140deg);
-  border: 2px solid #EA4335;
-}
-
-.pickup-marker img {
-  filter: hue-rotate(90deg);
-  border: 2px solid #34A853;
-}
-
-.dropoff-marker img {
-  filter: hue-rotate(45deg);
-  border: 2px solid #FBBC05;
-}
-
 /* Custom popup styling */
 .custom-popup {
   font-family: 'Arial', sans-serif;
@@ -545,14 +497,6 @@ watch(() => props.unselectedPedidosIds, addPedidosToMap, { deep: true });
 
 .destination {
   background-color: #EA4335;
-}
-
-.pickup {
-  background-color: #34A853;
-}
-
-.dropoff {
-  background-color: #FBBC05;
 }
 
 .line-sample {
