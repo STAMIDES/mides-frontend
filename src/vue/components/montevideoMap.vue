@@ -183,6 +183,7 @@ const addPedidosToMap = () => {
       .bindPopup(destPopup);
     }
       // Create a dashed line with arrowheads to represent the requested connection
+      var cantidad_tramos = 0;
       if (pedido.tipo !== 'Ida y vuelta'){
         L.polyline([originLatLng, destinationLatLng], { 
           color: '#3388ff',
@@ -204,6 +205,7 @@ const addPedidosToMap = () => {
       } else {
         // For "Ida y vuelta" pedidos with intermediate stops
         let prevLatLng = originLatLng;
+        cantidad_tramos = pedido.coords.length - 1;
         for (let i = 1; i + 1 < pedido.coords.length; i += 1) {
           const intermediaLatLng = pedido.coords[i];
           bounds.push(intermediaLatLng);
@@ -234,7 +236,7 @@ const addPedidosToMap = () => {
           }).addTo(map)
           .bindPopup(createPopupContent(
             `Pedido de ${pedido.nombre_y_apellido}`,
-            `<b>Tramo:</b> ${i} de ${pedido.coords.length - 2}`,
+            `<b>Tramo:</b> ${cantidad_tramos} de ${cantidad_tramos}`,
             iconsSuffix
           ));
           
@@ -254,7 +256,7 @@ const addPedidosToMap = () => {
         }).addTo(map)
         .bindPopup(createPopupContent(
           `Pedido de ${pedido.nombre_y_apellido}`,
-          `<b>Tramo final</b>`,
+          `<b>Tramo:</b> ${cantidad_tramos} de ${cantidad_tramos}`,
           iconsSuffix
         ));
       }
