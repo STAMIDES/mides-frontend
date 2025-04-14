@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar" :class="{ 'sidebar-hidden': isHidden }">
-    <button class="toggle-btn" @click="toggleSidebar">
-      {{ isHidden ? '>' : '<' }}
+    <button class="toggle-btn" @click="toggleSidebar" aria-label="Toggle sidebar">
+      <i class="toggle-icon" :class="isHidden ? 'icon-chevron-left' : 'icon-chevron-right'"></i>
     </button>
     <div class="sidebar-content">
       <div class="button-group">
@@ -60,6 +60,7 @@
                       <th>Origen y Horario</th>
                       <th>Paradas Intermedias</th>
                       <th>Destino y Horario</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -112,6 +113,7 @@
                     <th>Origen y Horario</th>
                     <th>Paradas Intermedias</th>
                     <th>Destino y Horario</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody style="font-size: 10px;">
@@ -474,55 +476,103 @@ export default {
   right: 0;
   height: 100vh;
   width: 450px;
-  background-color: #f8f8f8;
-  transition: transform 0.3s ease-in-out;
+  background-color: #f8fafc;
+  box-shadow: -2px 0 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   z-index: 1000;
+  border-left: 1px solid #e2e8f0;
 }
 
 .sidebar-hidden {
-  transform: translateX(400px);
+  transform: translateX(450px);
 }
-
 
 .toggle-btn {
   position: absolute;
-  left: -30px;
+  left: -40px;
   top: 50%;
   transform: translateY(-50%);
-  background-color: #f8f8f8;
-  border: none;
-  padding: 10px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background-color: #f1f5f9;
+  transform: translateY(-50%) scale(1.05);
+}
+
+.toggle-icon {
+  width: 16px;
+  height: 16px;
+  position: relative;
+}
+
+.icon-chevron-left::before,
+.icon-chevron-right::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.icon-chevron-left::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 18 9 12 15 6'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+.icon-chevron-right::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 .sidebar-content {
-  padding: 20px;
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
 }
 
-.date-input {
-  margin-bottom: 10px;
-  padding: 10px;
-  font-size: 16px;
-  background-color: white;
-  width: 100%;
+.sidebar-content::-webkit-scrollbar {
+  width: 8px;
 }
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+
 .button-group {
-  background-color: #e8e8e8;
+  background-color: #ffffff;
   padding: 20px;
-  border-radius: 5px;
-  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
 }
 
 .top-buttons {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 5px;
+  margin-bottom: 15px;
+  gap: 10px;
 }
 
 .bottom-button {
@@ -533,26 +583,39 @@ export default {
 
 .btn {
   padding: 10px 20px;
-  background-color: #007bff;
+  background-color: #3b82f6;
   color: white;
   border: none;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .btn.big {
   width: 100%;
+  padding: 12px;
+  font-size: 16px;
 }
 
 .btn:hover {
-  background-color: #0056b3;
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn.active {
-  background-color: #0056b3;
+  background-color: #1d4ed8;
   font-weight: bold;
 }
+
 .btn.save {
-  background-color: #28a745;
+  background-color: #10b981;
+}
+
+.btn.save:hover {
+  background-color: #059669;
 }
 
 .pedidos-list {
@@ -561,82 +624,122 @@ export default {
   gap: 10px;
   height: 100%;
   overflow: auto;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 
 .pedidos-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .pedidos-table th,
 .pedidos-table td {
-  padding: 8px;
+  padding: 10px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
-    /* Ensure cells take up the full width */
-    width: 20%;
-    box-sizing: border-box;
+  border-bottom: 1px solid #e2e8f0;
+  width: 20%;
+  box-sizing: border-box;
+}
+
+.pedidos-table th {
+  background-color: #f1f5f9;
+  font-weight: 600;
+  color: #475569;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .pedidos-table tr:hover {
-  background-color: #f1f1f1;
+  background-color: #f8fafc;
 }
 
-/* Added styles for wrapping text and preventing overflow */
-.td-wrapper {
-    overflow-wrap: break-word;  /* Modern property */
-    word-wrap: break-word;      /* Older browsers */
-    hyphens: auto;             /* Optional: Enable hyphenation */
-    max-width: 0;             /* Required for overflow-wrap to work in table cells */
-    min-width: 0;            /* Required for overflow-wrap on some mobile view */
+.pedidos-table tr:last-child td {
+  border-bottom: none;
+}
 
+.td-wrapper {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+  max-width: 0;
+  min-width: 0;
+  font-size: 0.9em;
+  color: #475569;
 }
 
 .turnos-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
+  background-color: #ffffff;
 }
 
 .turno {
   padding: 15px;
-  border-radius: 5px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.morning-shift {
-  background-color: #ffedcc;
-}
-
-.afternoon-shift {
-  background-color: #e6f2ff;
+.turno:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
 .vehicles-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* Set 4 columns for the grid */
-  gap: 10px;
-  margin-top: 10px;
-  overflow-x: auto; /* Enable horizontal scrolling */
-  white-space: nowrap;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 15px;
 }
 
 .vehicle-box {
   background-color: white;
-  padding: 10px;
-  border-radius: 5px;
+  padding: 12px;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  min-width: 120px; /* Ensure each vehicle box takes a minimum width */
-  max-width: 200px; /* Set a max-width to prevent the box from expanding too much */
-  box-sizing: border-box; /* Include padding in width calculation */
+  gap: 6px;
+  min-width: 120px;
+  max-width: 200px;
+  box-sizing: border-box;
   overflow: hidden;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.vehicle-box:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .vehicle-box label {
   font-size: 14px;
   text-align: center;
+  color: #475569;
+}
+
+.vehicle-box input[type="checkbox"] {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: #3b82f6;
+}
+
+.vehicle-box select {
+  width: 100%;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  font-size: 12px;
+  color: #475569;
 }
 
 .truncate {
@@ -644,14 +747,10 @@ export default {
   width: 100%;
   white-space: wrap;
   overflow: hidden;
-  text-overflow: ellipsis; /* Add ellipsis for text overflow */
+  text-overflow: ellipsis;
+  font-weight: 500;
 }
-.vehicle-box select {
-  width: 100%; /* Make the select element take full width of the box */
-  max-width: 100%; /* Prevent the select from overflowing the box */
-  box-sizing: border-box; /* Include padding in width calculation */
-  font-size: 10px;
-}
+
 .spinner {
   display: inline-block;
   width: 20px;
@@ -667,66 +766,159 @@ export default {
 }
 
 .btn:disabled {
-  background-color: #cccccc;
+  background-color: #94a3b8;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
+
+.turno-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.turno-header h3 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.1em;
+}
+
+.time-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.time-input {
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  width: 100px;
+  color: #1e293b;
+  transition: border-color 0.2s ease;
+}
+
+.time-input:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.delete-turno-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s ease;
+}
+
+.delete-turno-btn:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
+.add-turno-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 15px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.add-turno-btn:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+}
+
+.plus-icon {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Modern colors for each shift */
+.turno-0 { background-color: #f0f9ff; border-left: 4px solid #0284c7; }
+.turno-1 { background-color: #f0fdf4; border-left: 4px solid #16a34a; }
+.turno-2 { background-color: #fef2f2; border-left: 4px solid #dc2626; }
+.turno-3 { background-color: #fffbeb; border-left: 4px solid #d97706; }
+.turno-4 { background-color: #f5f3ff; border-left: 4px solid #7c3aed; }
 
 .planification-results {
   background-color: white;
   border-radius: 8px;
-  padding: 16px;
-  margin-top: 16px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.rutas-container {
+  margin-top: 15px;
 }
 
 .ruta-block {
-  background-color: #abafb2;
-  border-radius: 6px;
+  background-color: #f8fafc;
+  border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
-  font-size: 0.8em;
+  font-size: 0.9em;
+  border: 1px solid #e2e8f0;
 }
 
 .ruta-header {
-  border-bottom: 1px solid #dee2e6;
-  padding-bottom: 8px;
-  margin-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+  margin-bottom: 15px;
+}
+
+.ruta-header h3 {
+  margin: 0 0 5px 0;
+  color: #1e293b;
 }
 
 .visitas-container {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .visita-row {
   display: grid;
   grid-template-columns: auto auto 1fr;
   align-items: center;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding: 10px;
   gap: 1rem;
   background-color: white;
   font-size: 0.9em;
-  border-bottom-style: double;
-  border-bottom-color: #dee2e6;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.visita-row:hover {
+  background-color: #f1f5f9;
 }
 
 .visita-time {
-  font-weight: 500;
-  color: #495057;
-}
-
-.visita-status-circle {
-  position: relative;
-  border-radius: 50%;
-  height: 16px;
-  width: 16px;
-  z-index: 1;
-}
-.status-pending.visita-status-circle {
-  background-color: blue;
-}
-.status-completed.visita-status-circle {
-  background-color: rgb(154, 157, 181);
+  font-weight: 600;
+  color: #1e293b;
 }
 
 .visita-status-wrapper {
@@ -736,109 +928,68 @@ export default {
   height: 100%;
 }
 
+.visita-status-circle {
+  position: relative;
+  border-radius: 50%;
+  height: 16px;
+  width: 16px;
+  z-index: 1;
+  transition: transform 0.2s ease;
+}
+
+.visita-row:hover .visita-status-circle {
+  transform: scale(1.1);
+}
+
+.status-pending.visita-status-circle {
+  background-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.status-completed.visita-status-circle {
+  background-color: #6b7280;
+  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2);
+}
+
 .visita-status-wrapper::before {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 50%; 
-  width: 8px; 
-  transform: translateX(-50%); 
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
 }
+
 .status-pending.visita-status-wrapper::before {
-  background-color: blue;
+  background-color: #3b82f6;
 }
 
 .status-completed.visita-status-wrapper::before {
-  background-color: rgb(154, 157, 181);
+  background-color: #6b7280;
 }
 
 .visita-address {
-  color: #6c757d;
+  color: #475569;
+  font-size: 0.95em;
 }
-
-
-.turno-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.time-inputs {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.time-input {
-  padding: 5px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 100px;
-}
-
-.delete-turno-btn {
-  background: #ff4444;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 18px;
-}
-
-.add-turno-btn {
-  width: 100%;
-  padding: 10px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 15px;
-}
-
-.plus-icon {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.turno-custom {
-  border: 1px solid #ddd;
-  margin-bottom: 15px;
-}
-
-/* Generate different background colors for each shift */
-.turno-0 { background-color: #ffedcc; }
-.turno-1 { background-color: #e6f2ff; }
-.turno-2 { background-color: #f0e6ff; }
-.turno-3 { background-color: #e6ffe6; }
-.turno-4 { background-color: #ffe6e6; }
 
 .unattended-pedidos {
   margin-top: 24px;
-  background-color: #fff4f4;
+  background-color: #fef2f2;
   border-radius: 8px;
-  padding: 16px;
-  border: 1px solid #ffcccc;
+  padding: 20px;
+  border: 1px solid #fecaca;
 }
 
 .unattended-title {
-  color: #cc0000;
+  color: #b91c1c;
   margin-top: 0;
   margin-bottom: 16px;
-  font-size: 1.2em;
+  font-size: 1.1em;
   display: flex;
   align-items: center;
+  font-weight: 600;
 }
 
 .unattended-title:before {
@@ -846,61 +997,76 @@ export default {
   margin-right: 8px;
 }
 
-.unattended-table {
-  width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
-  font-size: 0.5em;
-}
-.unattended-table th,
-.unattended-table td {
-  padding: 8px;
-  text-align: left;
-  border-bottom: 1px solid #ffcccc;
-  word-wrap: break-word; /* Ensure text wraps */
-}
-
-/* Column width distribution */
-.unattended-table th:nth-child(1), 
-.unattended-table td:nth-child(1) {
-  width: 10%; /* ID column - narrow */
-}
-
-.unattended-table th:nth-child(2), 
-.unattended-table td:nth-child(2),
-.unattended-table th:nth-child(4), 
-.unattended-table td:nth-child(4) {
-  width: 30%; /* Origin and destination columns */
-}
-
-.unattended-table th:nth-child(3), 
-.unattended-table td:nth-child(3) {
-  width: 30%; /* Intermediate stops column */
-}
-
-/* Update the td-wrapper class to ensure content fits */
-.td-wrapper {
-  overflow-wrap: break-word;  /* Modern property */
-  word-wrap: break-word;      /* Older browsers */
-  hyphens: auto;             /* Optional: Enable hyphenation */
-  word-break: break-word;    /* Break words to prevent overflow */
-  white-space: normal;       /* Allow text to wrap */
-  max-width: 100%;           /* Respect container width */
-}
-
-.unattended-row {
-  background-color: #fff0f0;
-}
-
-.unattended-row:hover {
-  background-color: #ffe0e0;
-}
-
 .unattended-list {
   max-height: 250px;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
 }
 
+.unattended-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.85em;
+}
+
+.unattended-table th {
+  background-color: #fee2e2;
+  color: #991b1b;
+  font-weight: 600;
+  padding: 10px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.unattended-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #fee2e2;
+  word-wrap: break-word;
+}
+
+.unattended-row {
+  background-color: #fff;
+}
+
+.unattended-row:hover {
+  background-color: #fef2f2;
+}
+
+/* Date picker styling */
+.date-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  font-size: 16px;
+  background-color: white;
+  transition: border-color 0.2s ease;
+}
+
+.date-input:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* Error message styling */
+.error-planificacion {
+  margin-top: 15px;
+  padding: 12px;
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border-radius: 6px;
+  border-left: 4px solid #dc2626;
+  font-size: 0.9em;
+}
 </style>
