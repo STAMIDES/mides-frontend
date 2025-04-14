@@ -30,13 +30,15 @@
 </template>
 
 <script setup>
-import { onMounted, watch, ref } from 'vue';
+import { onMounted, watch, ref, defineEmits } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import homeImg from '../../imgs/map_home.png';
 import buildingImg from '../../imgs/map_building.png';
 import hospitalImg from '../../imgs/map_hospital.png';
 import 'leaflet-arrowheads';
+
+const emit = defineEmits(['marker-hover']);
 
 const props = defineProps({
   processedPedidos: {
@@ -54,6 +56,14 @@ const props = defineProps({
   showPedidos: {  
     type: Boolean,
     required: true
+  },
+  hoveredPedidoId: {
+    type: Number,
+    default: null
+  },
+  hoverOrigin: {
+    type: String,
+    default: null
   }
 });
 
@@ -61,6 +71,7 @@ let map;
 const colors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#8E44AD', '#F39C12'];
 const showLegend = ref(true);
 const routesCount = ref(0);
+const markers = ref({}); // Store markers by pedido ID
 
 var myIcon = L.Icon.extend({
     options: {
@@ -90,12 +101,12 @@ const clearMapLayers = () => {
   }
 };
 
-const createPopupContent = (title, details, icons) => {
+const createPopupContent = (title, details, icons, pedidoId) => {
   return `
-    <div class="custom-popup">
+    <div class="custom-popup" data-pedido-id="${pedidoId || ''}">
       <div class="popup-header">${title}</div>
       <div class="popup-content">${details}</div>
-      <div classs="hidden-placeholder"></div>
+      <div class="hidden-placeholder"></div>
       <div class="popup-icons">${icons}</div>
     </div>
   `;
@@ -103,6 +114,7 @@ const createPopupContent = (title, details, icons) => {
 
 const addPedidosToMap = () => {
   clearMapLayers();
+  markers.value = {}; // Reset markers
   
   const bounds = [];
   
@@ -128,41 +140,84 @@ const addPedidosToMap = () => {
         `Pedido de ${pedido.nombre_y_apellido}`,
         `<b>Origen:</b> ${pedido.direccion_origen_y_horario}<br/>
          <b>Destino:</b> ${pedido.direccion_destino_y_horario}`,
-        iconsSuffix
+        iconsSuffix,
+        pedido.id
       );
       
-      L.marker(originLatLng, {
-        icon: homeIcon
+      const marker = L.marker(originLatLng, {
+        icon: homeIcon,
+        pedidoId: pedido.id // Store pedido ID in marker options
       })
       .addTo(map)
       .bindPopup(popupContent);
+      
+      marker.on('mouseover', () => {
+        emit('marker-hover', pedido.id);
+      });
+      
+      marker.on('mouseout', () => {
+        emit('marker-hover', null);
+      });
+      
+      // Store marker reference
+      if (!markers.value[pedido.id]) {
+        markers.value[pedido.id] = [];
+      }
+      markers.value[pedido.id].push(marker);
+      
     } else {
       // Different locations for origin and destination
       const originPopup = createPopupContent(
         'Punto de Origen', 
         `<b>Dirección:</b> ${pedido.direccion_origen_y_horario}<br/>
          <b>Persona:</b> ${pedido.nombre_y_apellido}`,
-        iconsSuffix
+        iconsSuffix,
+        pedido.id
       );
       
       const destPopup = createPopupContent(
         'Punto de Destino', 
         `<b>Dirección:</b> ${pedido.direccion_destino_y_horario}<br/>
          <b>Persona:</b> ${pedido.nombre_y_apellido}`,
-        iconsSuffix
+        iconsSuffix,
+        pedido.id
       );
 
-      L.marker(originLatLng, {
-        icon: homeIcon
+      const originMarker = L.marker(originLatLng, {
+        icon: homeIcon,
+        pedidoId: pedido.id
       })
       .addTo(map)
       .bindPopup(originPopup);
-
-      L.marker(destinationLatLng, {
-        icon: destinationIcon
+      
+      originMarker.on('mouseover', () => {
+        emit('marker-hover', pedido.id);
+      });
+      
+      originMarker.on('mouseout', () => {
+        emit('marker-hover', null);
+      });
+      
+      const destMarker = L.marker(destinationLatLng, {
+        icon: destinationIcon,
+        pedidoId: pedido.id
       })
       .addTo(map)
       .bindPopup(destPopup);
+      
+      destMarker.on('mouseover', () => {
+        emit('marker-hover', pedido.id);
+      });
+      
+      destMarker.on('mouseout', () => {
+        emit('marker-hover', null);
+      });
+      
+      // Store marker references
+      if (!markers.value[pedido.id]) {
+        markers.value[pedido.id] = [];
+      }
+      markers.value[pedido.id].push(originMarker, destMarker);
     }
     // Create a dashed line with arrowheads to represent the requested connection
     var cantidad_tramos = 0;
@@ -199,12 +254,27 @@ const addPedidosToMap = () => {
             iconsSuffix
           );
           
-          L.marker(intermediaLatLng, {
-            icon: homeIcon
+          let intermediaMarker = L.marker(intermediaLatLng, {
+            icon: homeIcon,
+            pedidoId: pedido.id
           })
           .addTo(map)
           .bindPopup(stopPopup);
-        
+          
+          intermediaMarker.on('mouseover', () => {
+            emit('marker-hover', pedido.id);
+          });
+          
+          intermediaMarker.on('mouseout', () => {
+            emit('marker-hover', null);
+          });
+          
+          // Store marker reference
+          if (!markers.value[pedido.id]) {
+            markers.value[pedido.id] = [];
+          }
+          markers.value[pedido.id].push(intermediaMarker);
+          
         L.polyline([prevLatLng, intermediaLatLng], { 
           color: '#3388ff',
           weight: 2,
@@ -412,6 +482,47 @@ watch(() => props.showPedidos, (newVal) => {
 });
 
 watch(() => props.unselectedPedidosIds, addPedidosToMap, { deep: true });
+
+// Watch for hover state changes from sidebar
+watch(() => [props.hoveredPedidoId, props.hoverOrigin], ([newId, origin]) => {
+  if (props.showPedidos) {
+    // Reset all markers to default style
+    Object.values(markers.value).flat().forEach(marker => {
+      // Reset marker style
+      const icon = marker.options.icon;
+      marker.setIcon(icon);
+      // Remove any highlight classes
+      const element = marker.getElement();
+      if (element) {
+        element.classList.remove('marker-highlight');
+      }
+      
+      // Close all popups if this is from map hover to avoid popup conflicts
+      if (origin === 'map') {
+        marker.closePopup();
+      }
+    });
+    
+    // Highlight the hovered marker
+    if (newId && markers.value[newId]) {
+      markers.value[newId].forEach(marker => {
+        // Add highlight style to marker
+        const element = marker.getElement();
+        if (element) {
+          element.classList.add('marker-highlight');
+        }
+        
+        // Bring marker to front
+        marker.setZIndexOffset(1000);
+        
+        // Open popup if hover originated from sidebar
+        if (origin === 'sidebar') {
+          marker.openPopup();
+        }
+      });
+    }
+  }
+});
 </script>
 
 <style>
@@ -540,4 +651,28 @@ watch(() => props.unselectedPedidosIds, addPedidosToMap, { deep: true });
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   z-index: 1000;
 }
+
+.marker-highlight {
+  z-index: 900 !important;
+  filter: drop-shadow(0 0 5px #fff59d) !important; 
+  background-color: #e3f2fd !important; 
+  transition: all 0.3s ease;
+}
+
+.custom-marker {
+  transition: all 0.3s ease;
+}
+
+.marker-highlight::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  background-color: rgba(255, 245, 157, 0.3); 
+  border-radius: 5px;
+  z-index: -1;
+}
+
 </style>

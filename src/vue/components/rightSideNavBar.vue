@@ -120,7 +120,11 @@
                   <tr
                     v-for="(pedido, index) in processedPedidos"
                     :key="index"
-                    :style="{ backgroundColor: getPedidoColor(pedido.id) }"
+                    :style="{ backgroundColor: getRowBackgroundColor(pedido.id) }"
+                    @mouseover="handleRowHover(pedido.id)"
+                    @mouseout="handleRowHover(null)"
+                    :class="{ 'row-highlight': hoveredPedidoId === pedido.id }"
+                    :data-pedido-id="pedido.id"
                   >
                     <td>
                       <input 
@@ -268,8 +272,16 @@ export default {
     },
     estadoError: {
     },
+    hoveredPedidoId: {
+      type: Number,
+      default: null
+    },
+    hoverOrigin: {
+      type: String,
+      default: null
+    }
   },
-  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-turnos'],
+  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-turnos', 'row-hover'],
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
@@ -412,6 +424,32 @@ export default {
       emit('planificar');
     };
 
+    const handleRowHover = (pedidoId) => {
+      emit('row-hover', pedidoId);
+    };
+
+    const getRowBackgroundColor = (id) => {
+      if (id === props.hoveredPedidoId) {
+        return '#fff59d'; // Light yellow highlight
+      }
+      const baseLightness = 60;
+      const variance = (id % 30) - 10;
+      const lightness = baseLightness + variance;
+      return `hsl(220, 15%, ${lightness}%)`;
+    };
+
+    // Scroll the table to the hovered pedido ONLY when hover originated from map
+    watch(() => props.hoveredPedidoId, (newId) => {
+      if (newId && props.hoverOrigin === 'map') {
+        setTimeout(() => {
+          const element = document.querySelector(`tr[data-pedido-id="${newId}"]`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 300); // Reduced from 500ms to 300ms for more responsive feeling
+      }
+    });
+
     watch(() => props.planificacion, (newValue) => {
       if (newValue !== null) {
         console.log(newValue);
@@ -456,7 +494,9 @@ export default {
       updateTurno,
       getTurnoClass,
       isTurnoVehicleSelected,
-      getStatusClass
+      getStatusClass,
+      handleRowHover,
+      getRowBackgroundColor
     };
   }
 };
@@ -1068,5 +1108,20 @@ export default {
   border-radius: 6px;
   border-left: 4px solid #dc2626;
   font-size: 0.9em;
+}
+
+.row-highlight {
+  background-color: #fff59d !important; /* Light yellow */
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  transform: translateZ(0);
+  transition: background-color 0.3s ease;
+}
+
+.pedidos-table tr {
+  transition: background-color 0.3s ease;
+}
+
+.pedidos-table tr:hover {
+  background-color: #e3f2fd !important; /* Light blue on hover */
 }
 </style>

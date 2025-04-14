@@ -1,7 +1,8 @@
 <template>
   <div class="main-container">
     <MontevideoMap :processedPedidos="processedPedidos" :planificacion="planificacion" 
-    :unselectedPedidosIds="unselectedPedidosIds" :showPedidos="showPedidos" />
+    :unselectedPedidosIds="unselectedPedidosIds" :showPedidos="showPedidos"
+    :hoveredPedidoId="hoveredPedidoId" :hoverOrigin="hoverOrigin" @marker-hover="handleMarkerHover" />
     <RightSidebar 
       :selectedDate="selectedDate" 
       :processedPedidos="processedPedidos"
@@ -12,10 +13,13 @@
       :fetchPedidos="fetchPedidos"
       :errorPlanificacion="errorPlanificacion"
       :estadoError="estadoError"
+      :hoveredPedidoId="hoveredPedidoId"
+      :hoverOrigin="hoverOrigin"
       @date-changed="handleDateChange"
       @planificar="planificar"
       @checkbox-change-pedidos="handleCheckboxChangePedidos"
       @selected-turnos="handleSelectedTurnos"
+      @row-hover="handleRowHover"
     />
   </div>
 </template>
@@ -48,6 +52,19 @@ export default {
     const unselectedPedidosIds = ref([]);
     const showPedidos = ref(null);
     const turnos = ref([]);
+    const hoveredPedidoId = ref(null);
+    const hoverOrigin = ref(null); // 'map' or 'sidebar'
+
+    // Handle hover events
+    const handleRowHover = (pedidoId) => {
+      hoveredPedidoId.value = pedidoId;
+      hoverOrigin.value = pedidoId ? 'sidebar' : null;
+    };
+
+    const handleMarkerHover = (pedidoId) => {
+      hoveredPedidoId.value = pedidoId;
+      hoverOrigin.value = pedidoId ? 'map' : null;
+    };
 
     
     const procesarPedidos = (pedidosSinProcesar) => {
@@ -411,7 +428,11 @@ export default {
       showPedidos,
       fetchPedidos,
       errorPlanificacion,
-      estadoError
+      estadoError,
+      hoveredPedidoId,
+      hoverOrigin,
+      handleRowHover,
+      handleMarkerHover
     };
   }
 };
