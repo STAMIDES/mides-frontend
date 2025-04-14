@@ -68,12 +68,15 @@ const PlanificacionListado = () => {
   const handleDelete = (planificacion) => {
     try{
       // TODO:: Agregar algun tipo de freno, el usuario no deberia poder cualquier planificacion
-      const response = api.delete(`/planificacions/${planificacion.id}`);
-      if (planificaciones.length==1 && currentPage>1){  
-        obtenerPlanificaciones(currentPage-1, date);
-      }else{
-        obtenerPlanificaciones(currentPage, date);
-      }
+      const response = api.delete(`/planificaciones/${planificacion.id}`);
+      // wait for db to delete the planificacion
+      setTimeout(() => {
+        if (planificaciones.length==1 && currentPage>1){  
+          obtenerPlanificaciones(currentPage-1, date);
+        }else{
+          obtenerPlanificaciones(currentPage, date);
+        }
+      }, 1000);
     } catch (error) {
       console.error('Error borrando cliente:', error);
     }
