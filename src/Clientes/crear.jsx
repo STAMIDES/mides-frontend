@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, TextField, Button, Typography, Tooltip, Snackbar, Alert as MuiAlert, FormLabel, FormGroup, FormControlLabel, Alert,
-  Checkbox, Grid, Paper, FormControl, InputLabel, IconButton, Modal, List, ListItem, ListItemText } from '@mui/material';
-import { GpsFixed as GpsFixedIcon, Place as PlaceIcon } from '@mui/icons-material';
+  Checkbox, Grid, Paper, FormControl, InputLabel, IconButton, Modal, List, ListItem, ListItemText, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { GpsFixed as GpsFixedIcon, Place as PlaceIcon, Edit as EditIcon } from '@mui/icons-material';
 import useApi from '../network/axios';
 import { useNavigate } from 'react-router-dom';
 import { geocodeAddress } from '../utils/geocoder';
@@ -33,24 +33,33 @@ const CrearUsuario = ({ usuario = {} }) => {
   const [verUsuario, setVerUsuario] = useState(false);
   const [modoSeleccion, setModoSeleccion] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [direccionTemporal, setDireccionTemporal] = useState("");
+  const [respaldo, setRespaldo] = useState({ direccion: '', latitud: null, longitud: null });
+
   let crearPedido = false;
 
   const api = useApi();
   const navigate = useNavigate();
+  const direccionDeshabilitada = formData.latitud !== null && formData.longitud !== null && modoSeleccion === false;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "direccion") {
-        setFormData({ 
-            ...formData, 
-            direccion: value, 
-            latitud: null, 
-            longitud: null 
+      if (!direccionDeshabilitada) {
+        setFormData({
+          ...formData,
+          direccion: value,
+          latitud: null,
+          longitud: null,
         });
+      } else {
+        setFormData({ ...formData, direccion: value });
+      }
     } else {
-        setFormData({ ...formData, [name]: value });
+      setFormData({ ...formData, [name]: value });
     }
-};
+  };
 
   const obtenerCaracteristicas = async () => {
     try {
@@ -83,7 +92,6 @@ const CrearUsuario = ({ usuario = {} }) => {
         setErrors(prevErrors => ({ ...prevErrors, direccion: "Error en la geocodificación, intenta nuevamente." }));
     }
 };
-
 
 const handleSelectGeocode = (index, option) => {
   let direccionOriginal = formData.direccion.trim();
@@ -213,6 +221,16 @@ const handleSelectGeocode = (index, option) => {
       }
     });
   };
+  
+  const handleCancelarDireccionManual = () => {
+    setFormData({
+      ...formData,
+      direccion: respaldo.direccion,
+      latitud: respaldo.latitud,
+      longitud: respaldo.longitud,
+    });
+    setPopupOpen(false);
+  };
 
   return (
     <>
@@ -235,9 +253,29 @@ const handleSelectGeocode = (index, option) => {
                 <Grid item xs={12}>
                   <Grid container spacing={1} alignItems="center">
                     <Grid item xs={10}>
-                      <TextField name="direccion" label="Dirección" value={formData.direccion} onChange={handleChange} fullWidth required error={!!errors.direccion} helperText={errors.direccion} />
+                      <TextField 
+                        name="direccion" 
+                        label="Dirección" 
+                        value={formData.direccion} 
+                        onChange={handleChange} 
+                        fullWidth 
+                        required 
+                        disabled={direccionDeshabilitada}
+                        error={!!errors.direccion} 
+                        helperText={errors.direccion} />
                     </Grid>
                     <Grid item xs={2}>
+                      {direccionDeshabilitada && (
+                        <Tooltip title="Editar dirección manualmente">
+                          <IconButton onClick={() => {
+                            if (window.confirm("Esto eliminará las coordenadas actuales. ¿Deseas continuar?")) {
+                              setFormData({ ...formData, latitud: null, longitud: null });
+                            }
+                          }}>
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                       <Tooltip title="Geocodificar dirección escrita">
                         <IconButton color={formData.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!formData.direccion}>
                           <GpsFixedIcon />
@@ -321,11 +359,19 @@ const handleSelectGeocode = (index, option) => {
                 height="100%"
                 modoSeleccion={modoSeleccion}
                 onMapClick={({ lat, lng }) => {
+                  setRespaldo({
+                    direccion: formData.direccion,
+                    latitud: formData.latitud,
+                    longitud: formData.longitud
+                  });
+
                   setFormData({
                     ...formData,
                     latitud: lat,
                     longitud: lng,
                   });
+                  setDireccionTemporal("");
+                  setPopupOpen(true);
                   setModoSeleccion(false);
                 }}
               />
@@ -369,6 +415,37 @@ const handleSelectGeocode = (index, option) => {
           📍 Seleccioná un punto en el mapa para ubicar la dirección
         </CustomAlert>
       </Snackbar>
+
+      <Dialog open={popupOpen} onClose={() => setPopupOpen(false)}>
+        <DialogTitle>Ingrese la dirección</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Dirección"
+            fullWidth
+            value={direccionTemporal}
+            onChange={(e) => setDireccionTemporal(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelarDireccionManual} color="secondary">
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => {
+              setFormData((prev) => ({
+                ...prev,
+                direccion: direccionTemporal
+              }));
+              setPopupOpen(false);
+            }}
+            disabled={!direccionTemporal.trim()}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
