@@ -248,13 +248,17 @@ export default {
         turno.vehicles.forEach((vehiculo_selected)=>{
           const v = vehiculos.value.find(v => v.id === vehiculo_selected.vehicle_id);
           const lc = lugaresComunes.value.find(l => l.id === Number(vehiculo_selected.lugares_comunes_id));
-          const has_electric_ramp = v?.caracteristicas.some(c => c.nombre === "rampa_electrica");
+          let supported_characteristics = []; //Agregar aca todas las caracteristicas que tenga el vehiculo que permite que se pueda utilizar si el pedido/cliente indica que tiene esa caracteristica
+          if (v?.caracteristicas.some(c => c.nombre === "rampa_electrica")){
+            supported_characteristics.push("rampa_electrica");
+          }
+
           if (v) {
             acc.push({
               id: vehiculo_selected.vehicleIdWithTurnoIndex, 
               seat_capacity : v.capacidad_convencional,
               wheelchair_capacity : v.capacidad_silla_de_ruedas,
-              supported_characteristics: [has_electric_ramp ? "rampa_electrica" : ""],
+              supported_characteristics: supported_characteristics,
               time_window: {
                 start: turno.start+':00',
                 end: turno.end+':00',
@@ -401,12 +405,16 @@ export default {
           for (let i = 0; i + 1 < paradas.length; i += 1) {
             const origen = paradas[i];
             const destino = paradas[i + 1];
+            let characteristics = []; // Agregar aca todas las caracteristicas que tenga el pedido/cliente que restringan que tipo de vehiculo se pueda utilizar
+            if (pedido.cliente.caracteristicas.some(c => c.nombre === "rampa_electrica")){
+              characteristics.push("rampa_electrica");
+            }
             let normalized ={
                 id: pedido.id,
                 user_id: pedido.cliente_documento,
                 has_companion: pedido.acompanante,
                 wheelchair_required: pedido.cliente.caracteristicas.some(c => c.nombre === "silla_de_ruedas"),
-                characteristics: [pedido.cliente.caracteristicas.some(c => c.nombre === "rampa_electrica") && "rampa_electrica" ], //Agregar aca todas las caracteristicas que tengan los pedidos/clientes que restringan que tipo de vehiculo se pueda utilizar
+                characteristics: characteristics, //Agregar aca todas las caracteristicas que tengan los pedidos/clientes que restringan que tipo de vehiculo se pueda utilizar
                 pickup: {
                   coordinates: {
                     latitude: origen.latitud,
