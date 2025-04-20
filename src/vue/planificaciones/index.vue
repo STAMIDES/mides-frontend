@@ -254,7 +254,7 @@ export default {
               id: vehiculo_selected.vehicleIdWithTurnoIndex, 
               seat_capacity : v.capacidad_convencional,
               wheelchair_capacity : v.capacidad_silla_de_ruedas,
-              has_electric_ramp: has_electric_ramp,
+              supported_characteristics: [has_electric_ramp ? "rampa_electrica" : ""],
               time_window: {
                 start: turno.start+':00',
                 end: turno.end+':00',
@@ -323,7 +323,77 @@ export default {
     const handleSelectedTurnos = (t) =>{
       turnos.value = t
     }
+
+    const validarPlanificacion = () => {
+      // Validar que haya al menos un pedido seleccionado
+      if (!pedidos.value || pedidos.value.length === 0) {
+        estadoError.value = "No hay pedidos disponibles para planificar.";
+        errorPlanificacion.value++;
+        return false;
+      }
+
+      // Verificar que haya pedidos seleccionados
+      if (unselectedPedidosIds.value.length === pedidos.value.length) {
+        estadoError.value = "Debe seleccionar al menos un pedido para planificar.";
+        errorPlanificacion.value++;
+        return false;
+      }
+
+      // Validar que haya al menos un turno definido
+      if (!turnos.value || turnos.value.length === 0) {
+        estadoError.value = "No hay turnos definidos. Debe crear al menos un turno para planificar.";
+        errorPlanificacion.value++;
+        return false;
+      }
+
+      // Validar los vehículos en cada turno
+      for (let i = 0; i < turnos.value.length; i++) {
+        const turno = turnos.value[i];
+        
+        if (!turno.vehicles || turno.vehicles.length === 0) {
+          estadoError.value = `El turno ${i+1} no tiene vehículos asignados.`;
+          errorPlanificacion.value++;
+          return false;
+        }
+
+        for (let j = 0; j < turno.vehicles.length; j++) {
+          const vehicle = turno.vehicles[j];
+          
+          if (!vehicle.vehicle_id) {
+            estadoError.value = `El vehículo ${j+1} del turno ${i+1} no tiene un ID de vehículo válido.`;
+            errorPlanificacion.value++;
+            return false;
+          }
+          
+          if (vehicle.lugares_comunes_id === null || vehicle.lugares_comunes_id === undefined) {
+            estadoError.value = `El vehículo ${j+1} del turno ${i+1} no tiene un lugar común asignado.`;
+            errorPlanificacion.value++;
+            return false;
+          }
+          
+          if (vehicle.chofer_id === null || vehicle.chofer_id === undefined) {
+            estadoError.value = `El vehículo ${j+1} del turno ${i+1} no tiene un chofer asignado.`;
+            errorPlanificacion.value++;
+            return false;
+          }
+          
+          if (!vehicle.vehicleIdWithTurnoIndex) {
+            estadoError.value = `El vehículo ${j+1} del turno ${i+1} no tiene un identificador combinado válido.`;
+            errorPlanificacion.value++;
+            return false;
+          }
+        }
+      }
+      
+      return true;
+    };
+
     const planificar = () => {
+      // Ejecutar validación antes de continuar
+      if (!validarPlanificacion()) {
+        return;
+      }
+
       const pedidosNormalizados = pedidos.value.reduce((acc, pedido) => {
         if (!unselectedPedidosIds.value.includes(pedido.id)) {
           const paradas = pedido.paradas;
@@ -336,7 +406,7 @@ export default {
                 user_id: pedido.cliente_documento,
                 has_companion: pedido.acompanante,
                 wheelchair_required: pedido.cliente.caracteristicas.some(c => c.nombre === "silla_de_ruedas"),
-                electric_ramp_required:  pedido.cliente.caracteristicas.some(c => c.nombre === "rampa_electrica"),
+                characteristics: [pedido.cliente.caracteristicas.some(c => c.nombre === "rampa_electrica") && "rampa_electrica" ], //Agregar aca todas las caracteristicas que tengan los pedidos/clientes que restringan que tipo de vehiculo se pueda utilizar
                 pickup: {
                   coordinates: {
                     latitude: origen.latitud,

@@ -79,6 +79,10 @@
                       <td class="td-wrapper">
                         {{ pedido.direccion_destino_y_horario }}
                       </td>
+                      <td class="caracteristicas-cell">
+                        <span v-if="pedido.caracteristicas.some(c => c.nombre === 'silla_de_ruedas')">🦽</span>
+                        <span v-if="pedido.caracteristicas.some(c => c.nombre === 'rampa_electrica')">🔧</span>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -190,18 +194,31 @@
                     />
                     <label :for="'turno-' + index + '-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
                     <label :for="'turno-' + index + '-' + vehicle.id">{{ vehicle.matricula }}</label>
-                    <template v-if="isTurnoVehicleSelected(index, vehicle.id)">
+                    <div>
+                      <span v-if="vehicle.caracteristicas.some(c => c.nombre === 'rampa_electrica')">🔧</span>
+                      <span v-if="vehicle.capacidad_silla_de_ruedas"> {{ vehicle.capacidad_silla_de_ruedas }} 🦽</span>
+                    </div>
+                      <template v-if="isTurnoVehicleSelected(index, vehicle.id)">
                       <select
                         @change="selectLugarComun(index, vehicle.id, $event.target.value)">
                         <option value="">Lugar de salida</option>
-                        <option v-for="lugar in lugaresComunes" :key="lugar.id" :value="lugar.id" :selected="turnos[index].vehicles.some(v => parseInt(v.lugares_comunes_id) === lugar.id)">
+                        <option 
+                          v-for="lugar in lugaresComunes" 
+                          :key="lugar.id" 
+                          :value="lugar.id"
+                          :selected="turnos[index].vehicles?.some(tv => tv.vehicle_id === vehicle.id && parseInt(tv.lugares_comunes_id) === lugar.id)"
+                        >
                           {{ lugar.nombre }}
                         </option>
                       </select>
                       <select
                         @change="selectChofer(index, vehicle.id, $event.target.value)">
                         <option value="">Chofer</option>
-                        <option v-for="chofer in choferes" :key="chofer.id" :value="chofer.id" :selected="turnos[index].vehicles.some(v => parseInt(v.chofer_id) === chofer.id)">
+                        <option 
+                        v-for="chofer in choferes" 
+                        :key="chofer.id" 
+                        :value="chofer.id" 
+                        :selected="turnos[index].vehicles?.find(tv=> tv.vehicle_id === vehicle.id && parseInt(tv.chofer_id) === chofer.id)">
                           {{ chofer.nombre }}
                         </option>
                       </select>
@@ -415,11 +432,6 @@ export default {
     };
 
     const planificar = async () => {
-      const allEmpty = turnos.value.every(t => t.vehicles.length === 0);
-      if (allEmpty){
-        alert('Debe seleccionar al menos un vehículo para planificar');
-        return;
-      }
       isPlanificando.value = true;
       emit('planificar');
     };

@@ -417,7 +417,6 @@ const addPlanificacionToMap = () => {
             
           all_coords[latLng] = marker;
         } else {
-          debugger
           // Location already has a marker, append to popup
           if (cliente) {
             if (tipoViaje === "Ida y vuelta" && !visita.item.es_destino) {
