@@ -1,7 +1,7 @@
 import React, { useState, useEffect  } from 'react';
-import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Container, Grid, Paper, FormControl, RadioGroup, InputLabel, 
-         Radio, IconButton, Alert,Select, MenuItem, Modal, List, ListItem, ListItemText } from '@mui/material';
-import { Add as AddIcon, GpsFixed as GpsFixedIcon, Settings as AdvancedIcon } from '@mui/icons-material';
+import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Tooltip, Grid, Paper, FormControl, RadioGroup, InputLabel, 
+         Radio, IconButton, Select, MenuItem, Modal, List, ListItem, ListItemText, Snackbar, Alert as MuiAlert } from '@mui/material';
+import { Add as AddIcon, GpsFixed as GpsFixedIcon, Place as PlaceIcon, Edit as EditIcon } from '@mui/icons-material';
 import useApi from '../network/axios';
 import { useParams, useLocation  } from 'react-router-dom';
 import { geocodeAddress } from '../utils/geocoder';
@@ -48,7 +48,22 @@ const CrearPedido = () => {
   const [geocodeOptions, setGeocodeOptions] = useState([]);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  //const [advancedModalOpen, setAdvancedModalOpen] = useState(false)
+  const [modoSeleccionOrigen, setModoSeleccionOrigen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [direccionOrigenTemporal, setDireccionOrigenTemporal] = useState("");
+  const [popupOrigenOpen, setPopupOrigenOpen] = useState(false);
+  const direccionOrigenDeshabilitada = cords[0]?.lat !== null && cords[0]?.lng !== null;
+  const direccionFinalDeshabilitada = direccion_final_coords.lat !== null && direccion_final_coords.lng !== null;
+  const [direccionParadaDeshabilitada, setDireccionParadaDeshabilitada] = useState([true]);
+  const [modoSeleccionFinal, setModoSeleccionFinal] = useState(false);
+  const [popupFinalOpen, setPopupFinalOpen] = useState(false);
+  const [direccionFinalTemporal, setDireccionFinalTemporal] = useState("");
+  const [respaldoOrigen, setRespaldoOrigen] = useState({ direccion: "", lat: null, lng: null });
+  const [respaldoFinal, setRespaldoFinal] = useState({ direccion: "", lat: null, lng: null });
+  const [modoSeleccionParada, setModoSeleccionParada] = useState([]);
+  const [popupParadaOpen, setPopupParadaOpen] = useState([]);
+  const [direccionParadaTemporal, setDireccionParadaTemporal] = useState([]);
+  const [respaldoParadas, setRespaldoParadas] = useState([]);
 
   const tiposViaje = [
     "Ida y vuelta" , "Solo ida" , "Solo vuelta" 
@@ -190,6 +205,16 @@ const CrearPedido = () => {
   }, [clienteId, tipoViaje]);
   
   useEffect(() => {
+    setDireccionParadaDeshabilitada(prev => {
+      const diferencia = formData.paradas.length - prev.length;
+      if (diferencia > 0) {
+        return [...prev, ...Array(diferencia).fill(false)];
+      }
+      return prev;
+    });
+  }, [formData.paradas.length]);
+
+  useEffect(() => {
     api.get('tipos_paradas')
       .then(response => {
         setTiposParadas(response.data);
@@ -280,10 +305,16 @@ const CrearPedido = () => {
   };
 
   const addParada = () => {
-    setFormData({
-      ...formData,
-      paradas: [...formData.paradas, { direccion_destino: '', ventana_horaria_inicio: '', ventana_horaria_fin: '', tipo_parada: '' }],
-    });
+    setFormData(prev => ({
+      ...prev,
+      paradas: [...prev.paradas, { direccion_destino: '', ventana_horaria_inicio: '', ventana_horaria_fin: '', tipo_parada: '' }],
+    }));
+  
+    setModoSeleccionParada(prev => [...prev, false]);
+    setPopupParadaOpen(prev => [...prev, false]);
+    setDireccionParadaTemporal(prev => [...prev, ""]);
+    setRespaldoParadas(prev => [...prev, { direccion: "", lat: null, lng: null }]);
+    setDireccionParadaDeshabilitada(prev => [...prev, false]);
   };
 
   const validarDoc = () => {
@@ -424,6 +455,12 @@ const CrearPedido = () => {
           let newCords = [...prevCords];
           newCords[index] = { lat: option.lat, lng: option.lng };
           return newCords;
+        });
+
+        setDireccionParadaDeshabilitada(prev => {
+          const nuevo = [...prev];
+          nuevo[index - 1] = true;
+          return nuevo;
         });
       }
   
@@ -569,32 +606,65 @@ const CrearPedido = () => {
                   <Grid container spacing={3} mt={1}>
                   <Grid item xs={12} sm={4}>
                     <Box display="flex" alignItems="center">
-                      <TextField
-                        name="direccion_origen"
-                        label="Dirección de Origen"
-                        value={formData.direccion_origen}
-                        onChange={handleChange}
-                        fullWidth
-                        required
-                        error={!!errors.direccion_origen}
-                        helperText={errors.direccion_origen}
-                      />
-                      {/* Botón para geocodificación estándar */}
-                      <IconButton
-                        color={hasValidCoords(0) ? 'success' : 'primary'}
-                        onClick={() => handleGeocode(formData.direccion_origen, 0)}
-                        disabled={!formData.direccion_origen}
-                      >
-                        <GpsFixedIcon />
-                      </IconButton>
+                      <Grid container spacing={1} alignItems="center">
+                        <Grid item xs={10}>
+                          <TextField
+                            name="direccion_origen"
+                            label="Dirección de Origen"
+                            value={formData.direccion_origen}
+                            onChange={handleChange}
+                            fullWidth
+                            required
+                            disabled={direccionOrigenDeshabilitada}
+                            error={!!errors.direccion_origen}
+                            helperText={errors.direccion_origen}
+                          />
+                        </Grid>
+                        <Grid item xs={2}>
+                          <Box display="flex" justifyContent="space-around" alignItems="center">
+                            {direccionOrigenDeshabilitada && (
+                              <Tooltip title="Editar dirección manualmente">
+                                <IconButton
+                                  onClick={() => {
+                                    if (window.confirm("Esto eliminará las coordenadas actuales. ¿Deseas continuar?")) {
+                                      setFormData({ ...formData, direccion_origen: "", });
+                                      setCords((prev) => {
+                                        const nuevo = [...prev];
+                                        nuevo[0] = { lat: null, lng: null };
+                                        return nuevo;
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <EditIcon />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                            <Tooltip title="Geocodificar dirección escrita">
+                              <IconButton
+                                color={hasValidCoords(0) ? "success" : "primary"}
+                                onClick={() => handleGeocode(formData.direccion_origen, 0)}
+                                disabled={!formData.direccion_origen}
+                              >
+                                <GpsFixedIcon />
+                              </IconButton>
+                            </Tooltip>
 
-                      {/* Botón para activar el modo avanzado */}
-                      {/* <IconButton
-                        color="secondary"
-                        onClick={() => setAdvancedModalOpen(true)}
-                      >
-                        <AdvancedIcon />
-                      </IconButton> */}
+                            <Tooltip title="Seleccionar ubicación manualmente en el mapa">
+                              <IconButton
+                                onClick={() => {
+                                  const nuevo = !modoSeleccionOrigen;
+                                  setModoSeleccionOrigen(nuevo);
+                                  if (nuevo) setSnackbarOpen(true);
+                                }}
+                                color={modoSeleccionOrigen ? "error" : "primary"}
+                              >
+                                <PlaceIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </Grid>
+                      </Grid>
                     </Box>
                   </Grid>
                   <Grid item xs={12} sm={4}>
@@ -633,35 +703,91 @@ const CrearPedido = () => {
                 {formData.paradas.map((destino, index) => (
                   <Grid container spacing={3} key={index} sx={{ mt: 3 }} style={{ display: index !== 0 && tipoViaje !== 0 ? "none" : "flex" }}>
                     <Grid item xs={12} sm={4}>
-                    <Box display="flex" alignItems="center">
-                      <TextField
-                        name="direccion_destino"
-                        label="Dirección de Destino"
-                        value={destino.direccion_destino}
-                        onChange={(e) => handleParadaChange(index, e)}
-                        fullWidth
-                        required
-                        error={!!errors[`parada_${index}`]}
-                        helperText={errors[`parada_${index}`]}
-                      />
-                      {/* Botón para geocodificación estándar */}
-                      <IconButton
-                        color={hasValidCoords(index + 1) ? 'success' : 'primary'}
-                        onClick={() => handleGeocode(destino.direccion_destino, index + 1)}
-                        disabled={!destino.direccion_destino}
-                      >
-                        <GpsFixedIcon />
-                      </IconButton>
+                      <Box display="flex" alignItems="center">
+                        <TextField
+                          name="direccion_destino"
+                          label="Dirección de Destino"
+                          value={destino.direccion_destino}
+                          onChange={(e) => handleParadaChange(index, e)}
+                          fullWidth
+                          required
+                          disabled={direccionParadaDeshabilitada[index]}
+                          error={!!errors[`parada_${index}`]}
+                          helperText={errors[`parada_${index}`]}
+                        />
+                        <Box ml={1} display="flex" alignItems="center">
+                          {cords[index + 1]?.lat !== null && cords[index + 1]?.lng !== null && (
+                            <Tooltip title="Editar dirección manualmente">
+                              <IconButton
+                                onClick={() => {
+                                  if (window.confirm("Esto eliminará las coordenadas actuales. ¿Deseas continuar?")) {
+                                    setRespaldoParadas((prev) => {
+                                      const nuevo = [...prev];
+                                      nuevo[index] = {
+                                        direccion: destino.direccion_destino,
+                                        lat: cords[index + 1]?.lat,
+                                        lng: cords[index + 1]?.lng,
+                                      };
+                                      return nuevo;
+                                    });
 
-                      {/* Botón para activar el modo avanzado */}
-                      {/* <IconButton
-                        color="secondary"
-                        onClick={() => setAdvancedModalOpen(true)}
-                      >
-                        <AdvancedIcon />
-                      </IconButton> */}
-                    </Box>
+                                    setFormData(prev => {
+                                      const actualizado = [...prev.paradas];
+                                      actualizado[index].direccion_destino = "";
+                                      return { ...prev, paradas: actualizado };
+                                    });
+
+                                    setCords(prev => {
+                                      const nuevo = [...prev];
+                                      nuevo[index + 1] = { lat: null, lng: null };
+                                      return nuevo;
+                                    });
+
+                                    setDireccionParadaTemporal(prev => {
+                                      const nuevo = [...prev];
+                                      nuevo[index] = "";
+                                      return nuevo;
+                                    });
+
+                                    setDireccionParadaDeshabilitada(prev => {
+                                      const nuevo = [...prev];
+                                      nuevo[index] = false;
+                                      return nuevo;
+                                    });
+                                  }
+                                }}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          <Tooltip title="Geocodificar dirección escrita">
+                            <IconButton
+                              color={hasValidCoords(index + 1) ? 'success' : 'primary'}
+                              onClick={() => handleGeocode(destino.direccion_destino, index + 1)}
+                              disabled={!destino.direccion_destino || direccionParadaDeshabilitada[index]}
+                            >
+                              <GpsFixedIcon />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="Seleccionar ubicación manualmente en el mapa">
+                            <IconButton
+                              onClick={() => {
+                                const nuevo = [...modoSeleccionParada];
+                                nuevo[index] = !nuevo[index];
+                                setModoSeleccionParada(nuevo);
+                                if (nuevo[index]) setSnackbarOpen(true);
+                              }}
+                              color={modoSeleccionParada[index] ? "error" : "primary"}
+                            >
+                              <PlaceIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Box>
                     </Grid>
+
 
                     <Grid item xs={12} sm={2.5}>
                       <TextField
@@ -718,33 +844,61 @@ const CrearPedido = () => {
                 <Grid container spacing={3} mt={1}>
                   <Grid item xs={12} sm={4}>
                     <Box display="flex" alignItems="center">
-                      <TextField
-                        name="direccion_final"
-                        label="Dirección final"
-                        value={formData.direccion_final}
-                        onChange={handleChange}
-                        fullWidth
-                        style={{ display: tipoViaje === 0 ? "flex" : "none" }}
-                        required={tipoViaje === 0} 
-                        disabled={tipoViaje !== 0}
-                        error={!!errors.direccion_final}
-                        helperText={errors.direccion_final}
-                        />
-                        {/* Botón para geocodificación estándar */}
-                        <IconButton
-                          color={hasValidCoords(-1) ? 'success' : 'primary'}
-                          onClick={() => handleGeocode(formData.direccion_final, -1)}
-                          disabled={!formData.direccion_final}
-                        >
-                        {tipoViaje === 0 && <GpsFixedIcon />}
-                        </IconButton>
-                        {/* Botón para activar el modo avanzado */}
-                        {/* <IconButton
-                          color="secondary"
-                          onClick={() => setAdvancedModalOpen(true)}
-                        >
-                          <AdvancedIcon />
-                        </IconButton> */}
+                      <Grid container spacing={1} alignItems="center">
+                        <Grid item xs={10}>
+                          <TextField
+                            name="direccion_final"
+                            label="Dirección final"
+                            value={formData.direccion_final}
+                            onChange={handleChange}
+                            fullWidth
+                            required={tipoViaje === 0}
+                            disabled={direccionFinalDeshabilitada || tipoViaje !== 0}
+                            error={!!errors.direccion_final}
+                            helperText={errors.direccion_final}
+                          />
+                        </Grid>
+                        <Grid item xs={2}>
+                          <Box display="flex" justifyContent="space-around" alignItems="center">
+                            {direccionFinalDeshabilitada && (
+                              <Tooltip title="Editar dirección manualmente">
+                                <IconButton
+                                  onClick={() => {
+                                    if (window.confirm("Esto eliminará las coordenadas actuales. ¿Deseas continuar?")) {
+                                      setFormData(prev => ({ ...prev, direccion_final: "" }));
+                                      setDireccionFinalCoords({ lat: null, lng: null });
+                                    }
+                                  }}
+                                >
+                                  <EditIcon />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                            <Tooltip title="Geocodificar dirección escrita">
+                              <IconButton
+                                color={hasValidCoords(-1) ? 'success' : 'primary'}
+                                onClick={() => handleGeocode(formData.direccion_final, -1)}
+                                disabled={!formData.direccion_final}
+                              >
+                                <GpsFixedIcon />
+                              </IconButton>
+                            </Tooltip>
+
+                            <Tooltip title="Seleccionar ubicación manualmente en el mapa">
+                              <IconButton
+                                onClick={() => {
+                                  const nuevo = !modoSeleccionFinal;
+                                  setModoSeleccionFinal(nuevo);
+                                  if (nuevo) setSnackbarOpen(true);
+                                }}
+                                color={modoSeleccionFinal ? "error" : "primary"}
+                              >
+                                <PlaceIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </Grid>
+                      </Grid>            
                     </Box>
                   </Grid>
                 </Grid>
@@ -793,28 +947,94 @@ const CrearPedido = () => {
             </form>
           </Paper>
         </Grid>
+
         {/* 🗺️ Mapa a la derecha */}
         <Grid item xs={4} sx={{ height: '100%' }}>
           <Paper elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ flexGrow: 1, width: '100%', height: '100%' }}>
-            <MapaUbicacion 
-  {...(() => {
-    const allCoords = [cords[0], ...cords.slice(1), direccion_final_coords];
-    const validCoords = allCoords.filter(
-      c => c && typeof c.lat === 'number' && typeof c.lng === 'number' && !isNaN(c.lat) && !isNaN(c.lng)
-    );
-    return {
-      latitudes: validCoords.map(c => c.lat),
-      longitudes: validCoords.map(c => c.lng),
-      height: "100%"
-    };
-  })()}
-/>
-
+              <MapaUbicacion
+                latitudes={[cords[0]?.lat, ...cords.slice(1).map(c => c?.lat), direccion_final_coords?.lat]}
+                longitudes={[cords[0]?.lng, ...cords.slice(1).map(c => c?.lng), direccion_final_coords?.lng]}
+                height="100%"
+                modoSeleccion={
+                  modoSeleccionOrigen ||
+                  modoSeleccionFinal ||
+                  modoSeleccionParada.some((m) => m)
+                }
+                onMapClick={({ lat, lng }) => {
+                  if (modoSeleccionOrigen) {
+                    setRespaldoOrigen({
+                      direccion: formData.direccion_origen,
+                      lat: cords[0]?.lat ?? null,
+                      lng: cords[0]?.lng ?? null
+                    });
+                    const nuevasCords = [...cords];
+                    nuevasCords[0] = { lat, lng };
+                    setCords(nuevasCords);
+                    setDireccionOrigenTemporal("");
+                    setPopupOrigenOpen(true);
+                    setModoSeleccionOrigen(false);
+                  } else 
+                  if (modoSeleccionFinal) {
+                    setRespaldoFinal({
+                      direccion: formData.direccion_final,
+                      lat: direccion_final_coords?.lat ?? null,
+                      lng: direccion_final_coords?.lng ?? null
+                    });
+                    setDireccionFinalCoords({ lat, lng });
+                    setDireccionFinalTemporal("");
+                    setPopupFinalOpen(true);
+                    setModoSeleccionFinal(false);
+                  }
+                  else {
+                    const idx = modoSeleccionParada.findIndex(m => m);
+                    if (idx !== -1) {
+                      // Guardar respaldo
+                      setRespaldoParadas(prev => {
+                        const nuevo = [...prev];
+                        nuevo[idx] = {
+                          direccion: formData.paradas[idx].direccion_destino,
+                          lat: cords[idx + 1]?.lat ?? null,
+                          lng: cords[idx + 1]?.lng ?? null
+                        };
+                        return nuevo;
+                      });
+                  
+                      // Actualizar coordenadas reales
+                      setCords(prev => {
+                        const nuevo = [...prev];
+                        nuevo[idx + 1] = { lat, lng };
+                        return nuevo;
+                      });
+                  
+                      // Preparar para confirmación textual
+                      setDireccionParadaTemporal(prev => {
+                        const nuevo = [...prev];
+                        nuevo[idx] = "";
+                        return nuevo;
+                      });
+                  
+                      setPopupParadaOpen(prev => {
+                        const nuevo = [...prev];
+                        nuevo[idx] = true;
+                        return nuevo;
+                      });
+                  
+                      // Desactivar modo selección
+                      setModoSeleccionParada(prev => {
+                        const nuevo = [...prev];
+                        nuevo[idx] = false;
+                        return nuevo;
+                      });
+                    }
+                  }               
+                }}
+              />
             </Box>
           </Paper>
         </Grid>
       </Grid>
+
       <Modal open={modalOpen} onClose={handleCloseModal}>
           <Paper sx={{ padding: 2, width: 400, margin: 'auto', marginTop: '20vh' }}>
             <Typography variant="h6">Selecciona una dirección</Typography>
@@ -837,6 +1057,167 @@ const CrearPedido = () => {
             </List>
           </Paper>
       </Modal>
+
+      <Modal open={popupOrigenOpen} onClose={() => setPopupOrigenOpen(false)}>
+        <Paper sx={{ padding: 3, width: 400, margin: 'auto', marginTop: '20vh' }}>
+          <Typography variant="h6" gutterBottom>Ingresá una dirección</Typography>
+          <TextField
+            label="Dirección de Origen"
+            fullWidth
+            value={direccionOrigenTemporal}
+            onChange={(e) => setDireccionOrigenTemporal(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+          <Box display="flex" justifyContent="flex-end" mt={2}>
+            <Button onClick={() => {
+              setFormData(prev => ({
+                ...prev,
+                direccion_origen: respaldoOrigen.direccion
+              }));
+              setCords(prev => {
+                const nuevas = [...prev];
+                nuevas[0] = { lat: respaldoOrigen.lat, lng: respaldoOrigen.lng };
+                return nuevas;
+              });
+              setPopupOrigenOpen(false);
+              setModoSeleccionOrigen(false);
+            }}>Cancelar</Button>
+            <Button 
+              variant="contained" 
+              sx={{ ml: 2 }}
+              disabled={!direccionOrigenTemporal.trim()} 
+              onClick={() => {
+                setFormData(prev => ({
+                  ...prev,
+                  direccion_origen: direccionOrigenTemporal
+                }));
+                setCords(prev => {
+                  const nuevo = [...prev];
+                  nuevo[0] = coordOrigenTemporal;
+                  return nuevo;
+                });
+                setPopupOrigenOpen(false);
+              }}>Confirmar
+            </Button>
+          </Box>
+        </Paper>
+      </Modal>
+
+      <Modal open={popupFinalOpen} onClose={() => setPopupFinalOpen(false)}>
+        <Paper sx={{ padding: 3, width: 400, margin: 'auto', marginTop: '20vh' }}>
+          <Typography variant="h6" gutterBottom>Ingresá una dirección</Typography>
+          <TextField
+            label="Dirección Final"
+            fullWidth
+            value={direccionFinalTemporal}
+            onChange={(e) => setDireccionFinalTemporal(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+          <Box display="flex" justifyContent="flex-end" mt={2}>
+            <Button onClick={() => {
+              setFormData(prev => ({
+                ...prev,
+                direccion_final: respaldoFinal.direccion
+              }));
+              setDireccionFinalCoords({
+                lat: respaldoFinal.lat,
+                lng: respaldoFinal.lng
+              });
+              setPopupFinalOpen(false);
+              setModoSeleccionFinal(false);
+            }}>Cancelar</Button>
+            <Button 
+              variant="contained" 
+              sx={{ ml: 2 }}
+              disabled={!direccionFinalTemporal.trim()} 
+              onClick={() => {
+                setFormData(prev => ({
+                  ...prev,
+                  direccion_final: direccionFinalTemporal
+                }));
+                setDireccionFinalCoords(coordFinalTemporal);
+                setPopupFinalOpen(false);
+              }}>Confirmar
+            </Button>
+          </Box>
+        </Paper>
+      </Modal>
+
+      {formData.paradas.map((_, index) => (
+        <Modal key={index} open={popupParadaOpen[index]} onClose={() => {
+          const nuevoPopup = [...popupParadaOpen];
+          nuevoPopup[index] = false;
+          setPopupParadaOpen(nuevoPopup);
+        }}>
+          <Paper sx={{ padding: 3, width: 400, margin: 'auto', marginTop: '20vh' }}>
+            <Typography variant="h6" gutterBottom>Ingresá una dirección</Typography>
+            <TextField
+              label={`Dirección parada ${index + 1}`}
+              fullWidth
+              value={direccionParadaTemporal[index]}
+              onChange={(e) => {
+                const nuevo = [...direccionParadaTemporal];
+                nuevo[index] = e.target.value;
+                setDireccionParadaTemporal(nuevo);
+              }}
+              sx={{ mt: 2 }}
+            />
+            <Box display="flex" justifyContent="flex-end" mt={2}>
+              <Button onClick={() => {
+                setFormData(prev => {
+                  const actualizado = { ...prev };
+                  actualizado.paradas[index].direccion_destino = respaldoParadas[index].direccion;
+                  return actualizado;
+                });
+
+                setCords(prev => {
+                  const nuevo = [...prev];
+                  nuevo[index + 1] = {
+                    lat: respaldoParadas[index].lat,
+                    lng: respaldoParadas[index].lng
+                  };
+                  return nuevo;
+                });
+
+                const nuevoPopup = [...popupParadaOpen];
+                nuevoPopup[index] = false;
+                setPopupParadaOpen(nuevoPopup);
+
+                const nuevoModo = [...modoSeleccionParada];
+                nuevoModo[index] = false;
+                setModoSeleccionParada(nuevoModo);
+              }}>Cancelar</Button>
+
+              <Button
+                variant="contained"
+                sx={{ ml: 2 }}
+                disabled={!direccionParadaTemporal[index]?.trim()}
+                onClick={() => {
+                  setFormData(prev => {
+                    const actualizado = { ...prev };
+                    actualizado.paradas[index].direccion_destino = direccionParadaTemporal[index];
+                    return actualizado;
+                  });
+
+                  setDireccionParadaDeshabilitada(prev => {
+                    const nuevo = [...prev];
+                    nuevo[index] = true;
+                    return nuevo;
+                  });
+
+                  const nuevoPopup = [...popupParadaOpen];
+                  nuevoPopup[index] = false;
+                  setPopupParadaOpen(nuevoPopup);
+                }}
+              >
+                Confirmar
+              </Button>
+            </Box>
+          </Paper>
+        </Modal>
+      ))}
+
+
       {/* <AdvancedGeocodeModal
         open={advancedModalOpen}
         onClose={() => setAdvancedModalOpen(false)}

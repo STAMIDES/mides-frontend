@@ -268,8 +268,8 @@ const handleSelectGeocode = (index, option) => {
                       {direccionDeshabilitada && (
                         <Tooltip title="Editar dirección manualmente">
                           <IconButton onClick={() => {
-                            if (window.confirm("Esto eliminará las coordenadas actuales. ¿Deseas continuar?")) {
-                              setFormData({ ...formData, latitud: null, longitud: null });
+                            if (window.confirm("Esto eliminará la dirección y coordenadas actuales. ¿Deseas continuar?")) {
+                              setFormData({ ...formData, direccion: "", latitud: null, longitud: null });
                             }
                           }}>
                             <EditIcon />
@@ -277,7 +277,10 @@ const handleSelectGeocode = (index, option) => {
                         </Tooltip>
                       )}
                       <Tooltip title="Geocodificar dirección escrita">
-                        <IconButton color={formData.latitud ? "success" : "primary"} onClick={handleGeocode} disabled={!formData.direccion}>
+                        <IconButton 
+                          color={formData.latitud ? "success" : "primary"} 
+                          onClick={handleGeocode} 
+                          disabled={!formData.direccion || direccionDeshabilitada}>
                           <GpsFixedIcon />
                         </IconButton>
                       </Tooltip>
