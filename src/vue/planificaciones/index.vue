@@ -20,6 +20,15 @@
       @checkbox-change-pedidos="handleCheckboxChangePedidos"
       @selected-turnos="handleSelectedTurnos"
       @row-hover="handleRowHover"
+      @force-add-pedido="showForcePedidoModal"
+    />
+    
+    <ForcePedidoModal 
+      :show="showForceModal" 
+      :pedido="selectedPedidoForForcing" 
+      :planificacion="planificacion"
+      @close="closeForcePedidoModal"
+      @force-add="handleForcePedidoAdd"
     />
   </div>
 </template>
@@ -28,6 +37,7 @@
 import { ref, computed, onMounted } from 'vue';
 import MontevideoMap from '../components/montevideoMap.vue';
 import RightSidebar from '../components/rightSideNavBar.vue';
+import ForcePedidoModal from '../components/ForcePedidoModal.vue';
 import {useRoute} from "vue-router";
 
 
@@ -37,7 +47,8 @@ export default {
   name: 'MainPage',
   components: {
     MontevideoMap,
-    RightSidebar
+    RightSidebar,
+    ForcePedidoModal
   },
   setup() {
     const route = useRoute();
@@ -54,6 +65,8 @@ export default {
     const turnos = ref([]);
     const hoveredPedidoId = ref(null);
     const hoverOrigin = ref(null); // 'map' or 'sidebar'
+    const showForceModal = ref(false);
+    const selectedPedidoForForcing = ref(null);
 
     // Handle hover events
     const handleRowHover = (pedidoId) => {
@@ -479,6 +492,40 @@ export default {
       return crearPlanificacion(pedidosNormalizados);
     };
 
+    const showForcePedidoModal = (pedido) => {
+      selectedPedidoForForcing.value = pedido;
+      showForceModal.value = true;
+    };
+
+    const closeForcePedidoModal = () => {
+      showForceModal.value = false;
+      selectedPedidoForForcing.value = null;
+    };
+
+    const handleForcePedidoAdd = async (forceData) => {
+      try {
+        // Call API to force add the pedido to the planification
+        const response = await api.post(`/planificaciones/${planificacion.value.id}/forzar-pedido-en-planificacion`, forceData);
+        
+        // Update planification with the new data
+        planificacion.value = response.data.planificacion;
+        planificacion.value.pedidos_no_atendidos = procesarPedidos(response.data.planificacion.pedidos_no_atendidos);
+        
+        // Close the modal
+        closeForcePedidoModal();
+        
+        // Show success notification
+        estadoError.value = "Pedido agregado correctamente a la planificación";
+        setTimeout(() => {
+          estadoError.value = null;
+        }, 3000);
+      } catch (error) {
+        console.error('Error forcing pedido:', error);
+        estadoError.value = "Error al forzar el pedido en la planificación";
+        errorPlanificacion.value++;
+      }
+    };
+
     onMounted(() => {
       fetchVehiculos()
       fetchChoferes()
@@ -510,7 +557,12 @@ export default {
       hoveredPedidoId,
       hoverOrigin,
       handleRowHover,
-      handleMarkerHover
+      handleMarkerHover,
+      showForceModal,
+      selectedPedidoForForcing,
+      showForcePedidoModal,
+      closeForcePedidoModal,
+      handleForcePedidoAdd
     };
   }
 };

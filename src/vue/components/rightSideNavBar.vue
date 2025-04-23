@@ -60,7 +60,8 @@
                       <th>Origen y Horario</th>
                       <th>Paradas Intermedias</th>
                       <th>Destino y Horario</th>
-                      <th></th>
+                      <th>Caract.</th>
+                      <th>Acción</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -82,6 +83,11 @@
                       <td class="caracteristicas-cell">
                         <span v-if="pedido.caracteristicas.some(c => c.nombre === 'silla_de_ruedas')">🦽</span>
                         <span v-if="pedido.caracteristicas.some(c => c.nombre === 'rampa_electrica')">🔧</span>
+                      </td>
+                      <td class="action-cell">
+                        <button class="force-add-btn" @click="handleForceAdd(pedido)">
+                          Forzar
+                        </button>
                       </td>
                     </tr>
                   </tbody>
@@ -298,7 +304,7 @@ export default {
       default: null
     }
   },
-  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-turnos', 'row-hover'],
+  emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-turnos', 'row-hover', 'force-add-pedido'],
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
@@ -450,6 +456,10 @@ export default {
       return `hsl(220, 15%, ${lightness}%)`;
     };
 
+    const handleForceAdd = (pedido) => {
+      emit('force-add-pedido', pedido);
+    };
+
     // Scroll the table to the hovered pedido ONLY when hover originated from map
     watch(() => props.hoveredPedidoId, (newId) => {
       if (newId && props.hoverOrigin === 'map') {
@@ -508,7 +518,8 @@ export default {
       isTurnoVehicleSelected,
       getStatusClass,
       handleRowHover,
-      getRowBackgroundColor
+      getRowBackgroundColor,
+      handleForceAdd
     };
   }
 };
@@ -1091,6 +1102,27 @@ export default {
 
 .unattended-row:hover {
   background-color: #fef2f2;
+}
+
+.action-cell {
+  text-align: center;
+}
+
+.force-add-btn {
+  background-color: #fb923c;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.force-add-btn:hover {
+  background-color: #f97316;
+  transform: translateY(-1px);
 }
 
 /* Date picker styling */
