@@ -857,9 +857,9 @@ export default {
 
 .time-input {
   padding: 8px 10px;
+  width: 50%;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  width: 100px;
   color: #1e293b;
   transition: border-color 0.2s ease;
 }
