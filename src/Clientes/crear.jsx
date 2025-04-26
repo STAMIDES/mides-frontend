@@ -41,7 +41,7 @@ const CrearUsuario = ({ usuario = {} }) => {
 
   const api = useApi();
   const navigate = useNavigate();
-  const direccionDeshabilitada = formData.latitud !== null && formData.longitud !== null && modoSeleccion === false;
+  const direccionDeshabilitada = formData.latitud !== null && formData.longitud !== null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -91,45 +91,45 @@ const CrearUsuario = ({ usuario = {} }) => {
         console.error("Error al geodecodificar:", error);
         setErrors(prevErrors => ({ ...prevErrors, direccion: "Error en la geocodificación, intenta nuevamente." }));
     }
-};
+  };
 
-const handleSelectGeocode = (index, option) => {
-  let direccionOriginal = formData.direccion.trim();
-  let direccionGeocoder = option.display_name.trim();
-  let nuevaDireccion = direccionGeocoder;
+  const handleSelectGeocode = (index, option) => {
+    let direccionOriginal = formData.direccion.trim();
+    let direccionGeocoder = option.display_name.trim();
+    let nuevaDireccion = direccionGeocoder;
 
-  // Extraer correctamente el número de puerta
-  const partesDireccionUsuario = direccionOriginal.split(" ");
-  let numeroUsuario = null;
+    // Extraer correctamente el número de puerta
+    const partesDireccionUsuario = direccionOriginal.split(" ");
+    let numeroUsuario = null;
 
-  for (let i = partesDireccionUsuario.length - 1; i >= 0; i--) {
-    if (!isNaN(partesDireccionUsuario[i])) {
-      numeroUsuario = partesDireccionUsuario[i];
-      break;
+    for (let i = partesDireccionUsuario.length - 1; i >= 0; i--) {
+      if (!isNaN(partesDireccionUsuario[i])) {
+        numeroUsuario = partesDireccionUsuario[i];
+        break;
+      }
     }
-  }
 
-  const geocoderMatch = direccionGeocoder.match(/^([\d,]+)\s(.+)$/);
-  if (geocoderMatch) {
-    const numeros = geocoderMatch[1].split(",").map(num => num.trim());
-    const restoDireccion = geocoderMatch[2].trim();
-    const nombreCalle = restoDireccion.split(",")[0];
-    const restosSinCalle = restoDireccion.replace(nombreCalle, "").trim();
+    const geocoderMatch = direccionGeocoder.match(/^([\d,]+)\s(.+)$/);
+    if (geocoderMatch) {
+      const numeros = geocoderMatch[1].split(",").map(num => num.trim());
+      const restoDireccion = geocoderMatch[2].trim();
+      const nombreCalle = restoDireccion.split(",")[0];
+      const restosSinCalle = restoDireccion.replace(nombreCalle, "").trim();
 
-    if (numeroUsuario && numeros.includes(numeroUsuario)) {
-      nuevaDireccion = `${nombreCalle} ${numeroUsuario}${restosSinCalle}`;
+      if (numeroUsuario && numeros.includes(numeroUsuario)) {
+        nuevaDireccion = `${nombreCalle} ${numeroUsuario}${restosSinCalle}`;
+      }
     }
-  }
 
-  setFormData({
-    ...formData,
-    direccion: nuevaDireccion,
-    latitud: option.lat,
-    longitud: option.lng,
-  });
+    setFormData({
+      ...formData,
+      direccion: nuevaDireccion,
+      latitud: option.lat,
+      longitud: option.lng,
+    });
 
-  setModalOpen(false);
-};
+    setModalOpen(false);
+  };
 
   const handleNavigation = (id) => {
     navigate(`/solicitudes/crear?usuarioId=${id}`);
