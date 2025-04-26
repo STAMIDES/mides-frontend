@@ -459,6 +459,7 @@ const CrearPedido = () => {
           nuevaDireccion = `${nombreCalle} ${numeroUsuario}${restosSinCalle}`;
         }
       }
+      nuevaDireccion = nuevaDireccion.split(",")[0] + ',' + nuevaDireccion.split(",")[1] + ',' + nuevaDireccion.split(",")[2]
   
       // 🔹 Guardar la dirección corregida en el estado adecuado
       if (index === -1) {
@@ -544,8 +545,6 @@ const CrearPedido = () => {
     setIsSubmitting(true);
   };
   
-  
-
   return (
     <>
       <Grid container spacing={2} sx={{ height: '99vh' }}>
