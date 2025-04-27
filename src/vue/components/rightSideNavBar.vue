@@ -231,7 +231,7 @@
                         v-for="chofer in choferes" 
                         :key="chofer.id" 
                         :value="chofer.id" 
-                        :selected="turnos[index].vehicles?.find(tv=> tv.vehicle_id === vehicle.id && parseInt(tv.chofer_id) === chofer.id)">
+                        :selected="turnos[index].vehicles?.find(tv=> tv.vehicle_id === vehicle.id && tv.chofer_id === chofer.id)">
                           {{ chofer.nombre }}
                         </option>
                       </select>
@@ -436,7 +436,7 @@ export default {
       const turno = turnos.value[turnoIndex];
       const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
       if (index !== -1) {
-        turno.vehicles[index].lugares_comunes_id = lugarComunId;
+        turno.vehicles[index].lugares_comunes_id =  parseInt(lugarComunId);
         emit('selected-turnos', turnos.value);
       }
     };
@@ -445,7 +445,7 @@ export default {
       const turno = turnos.value[turnoIndex];
       const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
       if (index !== -1) {
-        turno.vehicles[index].chofer_id = choferId;
+        turno.vehicles[index].chofer_id = parseInt(choferId);
         emit('selected-turnos', turnos.value);
       }
     };
@@ -555,6 +555,14 @@ export default {
   }
 };
 </script>
+
+<style>
+.p-datepicker-calendar-container {
+  background-color: white !important;
+  z-index: 1001 !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+</style>
 
 <style scoped>
 .sidebar {

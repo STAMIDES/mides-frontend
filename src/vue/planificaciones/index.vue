@@ -197,6 +197,7 @@ export default {
             const vehicle = turno.vehicles.find(v => v.vehicleIdWithTurnoIndex === p.vehicle_id);
             normalizedRutas.push({
                     id_vehiculo: vehicle.vehicle_id,
+                    id_chofer: vehicle.chofer_id,
                     hora_inicio: arrival_time_start_depot,
                     hora_fin: arrival_time_end_depot,
                     geometria: p.geometry,
@@ -272,7 +273,7 @@ export default {
       var vehiculosNormalizados =  turnos.value.reduce((acc, turno) => {
         turno.vehicles.forEach((vehiculo_selected)=>{
           const v = vehiculos.value.find(v => v.id === vehiculo_selected.vehicle_id);
-          const lc = lugaresComunes.value.find(l => l.id === Number(vehiculo_selected.lugares_comunes_id));
+          const lc = lugaresComunes.value.find(l => l.id === vehiculo_selected.lugares_comunes_id);
           let supported_characteristics = []; //Agregar aca todas las caracteristicas que tenga el vehiculo que permite que se pueda utilizar si el pedido/cliente indica que tiene esa caracteristica
           if (v?.caracteristicas.some(c => c.nombre === "rampa_electrica")){
             supported_characteristics.push("rampa_electrica");
