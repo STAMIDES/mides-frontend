@@ -15,6 +15,7 @@
       :estadoError="estadoError"
       :hoveredPedidoId="hoveredPedidoId"
       :hoverOrigin="hoverOrigin"
+      :downloadPlanificacionPDF="downloadPlanificacionPDF"
       @date-changed="handleDateChange"
       @planificar="planificar"
       @checkbox-change-pedidos="handleCheckboxChangePedidos"
@@ -66,6 +67,30 @@ export default {
       hoverOrigin.value = pedidoId ? 'map' : null;
     };
 
+    // Download planificacion PDF function
+    const downloadPlanificacionPDF = async () => {
+      if (!planificacion.value || !planificacion.value.id) return;
+      
+      try {
+        const response = await api.get(`/planificaciones/${planificacion.value.id}/download`, {
+          responseType: 'blob'
+        });
+        
+        // Create blob link to download
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `planificacion-${planificacion.value.id}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Error downloading PDF:', error);
+      }
+    };
     
     const procesarPedidos = (pedidosSinProcesar) => {
       const nuevoListado = [];
@@ -510,7 +535,8 @@ export default {
       hoveredPedidoId,
       hoverOrigin,
       handleRowHover,
-      handleMarkerHover
+      handleMarkerHover,
+      downloadPlanificacionPDF
     };
   }
 };

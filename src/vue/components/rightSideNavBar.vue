@@ -10,16 +10,26 @@
             Crear nueva planificación
           </button>
           <div class="planification-results">
-            <div>
-
-              <h3 style="margin:0">
-                Detalles de Planificación {{ planificacion.id }} 
-              </h3>
-              <p>
-                {{ formatDate2(planificacion.fecha) }}
-              </p>
+            <div class="planification-header">
+              <div>
+                <h3 style="margin:0">
+                  Detalles de Planificación {{ planificacion.id }}
+                </h3>
+                <p>
+                  {{ formatDate2(planificacion.fecha) }}
+                </p>
+              </div>
+              <button 
+                class="btn download-btn" 
+                @click="downloadPlanificacionPDF" 
+                :disabled="isDownloadingPDF"
+              >
+                <span v-if="isDownloadingPDF" class="spinner-small"></span>
+                <i v-else class="icon-download"></i>
+                {{ isDownloadingPDF ? 'Generando PDF...' : 'Descargar PDF' }}
+              </button>
             </div>
-            
+
             <div class="rutas-container">
               <div v-for="(ruta, index) in planificacion.rutas" :key="index" class="ruta-block">
                 <div class="ruta-header">
@@ -87,6 +97,9 @@
                   </tbody>
                 </table>
               </div>
+            </div>
+            <div v-if="downloadError" class="error-download">
+              {{ downloadError }}
             </div>
           </div>
           </div>
@@ -296,6 +309,10 @@ export default {
     hoverOrigin: {
       type: String,
       default: null
+    },
+    downloadPlanificacionPDF: {
+      type: Function,
+      required: true
     }
   },
   emits: ['date-changed', 'planificar', 'checkbox-change-pedidos', 'selected-turnos', 'row-hover'],
@@ -305,6 +322,8 @@ export default {
     const date = ref(new Date(props.selectedDate).toISOString().split('T')[0]);
     const unselectedPedidos = ref([]);
     const isPlanificando = ref(false);
+    const isDownloadingPDF = ref(false);
+    const downloadError = ref(null);
 
     const selectedVehicles = ref({
       morning: [],
@@ -436,6 +455,25 @@ export default {
       emit('planificar');
     };
 
+    // Download PDF function using the prop passed from parent
+    const downloadPlanificacionPDF = async () => {
+      if (!props.planificacion || !props.planificacion.id) {
+        downloadError.value = "No hay planificación disponible para descargar.";
+        return;
+      }
+
+      try {
+        isDownloadingPDF.value = true;
+        downloadError.value = null;
+        await props.downloadPlanificacionPDF();
+      } catch (error) {
+        downloadError.value = "Error al descargar el PDF. Intente nuevamente.";
+        console.error('Error en la descarga del PDF:', error);
+      } finally {
+        isDownloadingPDF.value = false;
+      }
+    };
+
     const handleRowHover = (pedidoId) => {
       emit('row-hover', pedidoId);
     };
@@ -466,6 +504,7 @@ export default {
       if (newValue !== null) {
         console.log(newValue);
         isPlanificando.value = false;
+        downloadError.value = null; // Clear download error when planificacion changes
       }
     });
     watch(() => props.errorPlanificacion, (newValue) => {
@@ -508,19 +547,15 @@ export default {
       isTurnoVehicleSelected,
       getStatusClass,
       handleRowHover,
-      getRowBackgroundColor
+      getRowBackgroundColor,
+      downloadPlanificacionPDF,
+      isDownloadingPDF,
+      downloadError
     };
   }
 };
 </script>
 
-<style>
-.p-datepicker-calendar-container {
-  background-color: white !important;
-  z-index: 1001 !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
-}
-</style>
 <style scoped>
 .sidebar {
   position: fixed;
@@ -1135,5 +1170,46 @@ export default {
 
 .pedidos-table tr:hover {
   background-color: #e3f2fd !important; /* Light blue on hover */
+}
+
+.planification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.download-btn {
+  background-color: #10b981; /* Green color */
+  padding: 8px 15px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.download-btn:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.spinner-small {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+.error-download {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #fef2f2; /* Light red */
+  color: #b91c1c; /* Dark red */
+  border-radius: 4px;
+  border-left: 4px solid #dc2626; /* Red border */
+  font-size: 0.9em;
 }
 </style>
