@@ -39,12 +39,14 @@ const PedidoListado = () => {
     obtenerPedidos(currentPage, date, searchTerm);
   }, [date, currentPage, searchTerm]);
 
-  const handleDelete = (pedido) => {
+  const handleDelete = async (pedido) => {
     try{
       if (pedido.estado !== 'Pendiente') {
         return alert('La solicitud debe estar en estado pendiente para poder ser eliminada');
       }
-      const response = api.delete(`/pedidos/${pedido.id}`);
+
+      await api.delete(`/pedidos/${pedido.id}`);
+
       if (pedidos.length==1 && currentPage>1){  
         obtenerPedidos(currentPage-1, date);
       }else{
@@ -76,10 +78,10 @@ const PedidoListado = () => {
             usuario_documento: pedido.cliente_documento,
             direccion_origen_y_horario: direccionOrigenYHorario,
             paradas_intermedias: paradasIntermedias,
-            direccion_destino_y_horario: direccionDestinoYHorario
+            direccion_destino_y_horario: direccionDestinoYHorario,
+            estado: pedido.estado
         });
     });
-    console.log(nuevoListado);
     return nuevoListado;
   }
 
