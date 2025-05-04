@@ -1,15 +1,14 @@
 import React, { useState, useEffect  } from 'react';
-import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Container, Grid, Paper, FormControl, RadioGroup, InputLabel, 
-         Radio, IconButton, Alert,Select, MenuItem, Modal, List, ListItem, ListItemText } from '@mui/material';
-import { Add as AddIcon, GpsFixed as GpsFixedIcon, Settings as AdvancedIcon } from '@mui/icons-material';
+import { Box, TextField, Button, Typography, FormControlLabel, Checkbox, Tooltip, Grid, Paper, FormControl, RadioGroup, InputLabel, 
+         Radio, IconButton, Select, MenuItem, Modal, List, ListItem, ListItemText, Snackbar, Alert } from '@mui/material';
+import { Add as AddIcon, GpsFixed as GpsFixedIcon, Place as PlaceIcon, Edit as EditIcon } from '@mui/icons-material';
 import useApi from '../network/axios';
-import { useParams, useLocation  } from 'react-router-dom';
+import { useLocation  } from 'react-router-dom';
 import { geocodeAddress } from '../utils/geocoder';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import moment from 'moment';
-
+import MapaUbicacion from '../components/mapaUbicacion';
 import 'moment/locale/es';
 
 
@@ -48,7 +47,24 @@ const CrearPedido = () => {
   const [geocodeOptions, setGeocodeOptions] = useState([]);
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  //const [advancedModalOpen, setAdvancedModalOpen] = useState(false)
+  const [modoSeleccionOrigen, setModoSeleccionOrigen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [direccionOrigenTemporal, setDireccionOrigenTemporal] = useState("");
+  const [popupOrigenOpen, setPopupOrigenOpen] = useState(false);
+  const direccionOrigenDeshabilitada = cords[0]?.lat !== null && cords[0]?.lng !== null;
+  const direccionFinalDeshabilitada = direccion_final_coords.lat !== null && direccion_final_coords.lng !== null;
+  const [direccionParadaDeshabilitada, setDireccionParadaDeshabilitada] = useState(
+    (formData.paradas || []).map(() => false)
+  );
+  const [modoSeleccionFinal, setModoSeleccionFinal] = useState(false);
+  const [popupFinalOpen, setPopupFinalOpen] = useState(false);
+  const [direccionFinalTemporal, setDireccionFinalTemporal] = useState("");
+  const [respaldoOrigen, setRespaldoOrigen] = useState({ direccion: "", lat: null, lng: null });
+  const [respaldoFinal, setRespaldoFinal] = useState({ direccion: "", lat: null, lng: null });
+  const [modoSeleccionParada, setModoSeleccionParada] = useState([]);
+  const [popupParadaOpen, setPopupParadaOpen] = useState([]);
+  const [direccionParadaTemporal, setDireccionParadaTemporal] = useState([]);
+  const [respaldoParadas, setRespaldoParadas] = useState([]);
 
   const tiposViaje = [
     "Ida y vuelta" , "Solo ida" , "Solo vuelta" 
@@ -81,6 +97,44 @@ const CrearPedido = () => {
     const newTipoViaje = parseInt(e.target.value, 10);
     setTipoViaje(newTipoViaje);
   
+    // 🔹 Calcular nuevas coordenadas ANTES de hacer el set
+    let nuevasCoords = [];
+    if (newTipoViaje === 2) {
+      nuevasCoords = [
+        { lat: null, lng: null }, // origen
+        { lat: null, lng: null }  // parada
+      ];
+    } else if (newTipoViaje === 0) {
+      nuevasCoords = [
+        cords[0] || { lat: null, lng: null }, // origen
+        { lat: null, lng: null }              // parada
+      ];
+    } else {
+      nuevasCoords = [
+        cords[0] || { lat: null, lng: null }  // origen
+      ];
+    }
+  
+    // 🔹 Actualizar coords y final en el orden correcto
+    setCords(nuevasCoords);
+  
+    if (newTipoViaje === 0) {
+      setDireccionFinalCoords(nuevasCoords[0] || { lat: null, lng: null });
+    } else {
+      setDireccionFinalCoords({ lat: null, lng: null });
+    }
+    
+    setDireccionParadaDeshabilitada(prev => {
+      const nuevo = [...prev];
+      if (newTipoViaje === 2) { // Solo vuelta
+        nuevo[0] = formData.paradas[0]?.direccion_destino ? true : false;
+      } else {
+        nuevo[0] = false; // En solo ida o ida y vuelta, habilitamos para edición
+      }
+      return nuevo;
+    });
+    
+    // 🔹 Actualizar formulario
     setFormData(prevState => {
       let updatedForm = { ...prevState };
   
@@ -89,33 +143,20 @@ const CrearPedido = () => {
           updatedForm.direccion_origen = "";
           updatedForm.paradas[0].direccion_destino = formData.direccion_origen || formData.direccion_final;
           updatedForm.direccion_final = "";
-        } else { // Si cambio de "Solo vuelta" a otro tipo, reiniciar la parada 1
+        }
+        else if (newTipoViaje === 1) { // Solo ida
+          updatedForm.direccion_origen = prevState.direccion_origen || prevState.direccion_final;
+          updatedForm.direccion_final = "";
+          updatedForm.paradas = [{ direccion_destino: "", ventana_horaria_inicio: "", ventana_horaria_fin: "", tipo_parada: "" }];
+        }
+        else {
           updatedForm.direccion_origen = formData.direccion_origen || formData.direccion_final;
           updatedForm.direccion_final = formData.direccion_final || formData.direccion_origen;
-  
-          // Resetear la parada 1 si no estamos en "Solo vuelta"
           updatedForm.paradas = [{ direccion_destino: "", ventana_horaria_inicio: "", ventana_horaria_fin: "", tipo_parada: "" }];
         }
       }
   
       return updatedForm;
-    });
-  
-    setCords(prevCords => {
-      let updatedCords = [...prevCords];
-      if (newTipoViaje === 2) {
-        setDireccionFinalCoords(updatedCords[0] || { lat: null, lng: null });
-        updatedCords[0] = { lat: null, lng: null };
-      } else {
-        updatedCords[0] = prevCords[0] || { lat: null, lng: null };
-
-        if (newTipoViaje === 0) {
-            setDireccionFinalCoords(prevCords[0] || { lat: null, lng: null });
-        } else {
-            setDireccionFinalCoords({ lat: null, lng: null });
-        }
-    }
-      return updatedCords;
     });
   };
   
@@ -141,7 +182,15 @@ const CrearPedido = () => {
                 updatedForm.direccion_origen = "";
                 updatedForm.paradas[0].direccion_destino = cliente.direccion;
                 updatedForm.direccion_final = "";
-              } else {
+              } 
+              else if (tipoViaje === 1) { // Solo ida
+                updatedForm.direccion_origen = cliente.direccion;
+                updatedForm.direccion_final = "";
+                if (!updatedForm.paradas || updatedForm.paradas.length === 0) {
+                  updatedForm.paradas = [{ direccion_destino: "", ventana_horaria_inicio: "", ventana_horaria_fin: "", tipo_parada: "" }];
+                }
+              }
+              else {
                 updatedForm.direccion_origen = cliente.direccion;
                 updatedForm.direccion_final = cliente.direccion;
               }
@@ -179,6 +228,16 @@ const CrearPedido = () => {
     }
   }, [clienteId, tipoViaje]);
   
+  useEffect(() => {
+    setDireccionParadaDeshabilitada(prev => {
+      const diferencia = formData.paradas.length - prev.length;
+      if (diferencia > 0) {
+        return [...prev, ...Array(diferencia).fill(false)];
+      }
+      return prev;
+    });
+  }, [formData.paradas.length]);
+
   useEffect(() => {
     api.get('tipos_paradas')
       .then(response => {
@@ -238,7 +297,11 @@ const CrearPedido = () => {
     const { name, value, checked } = e.target;
   
     if (name === 'direccion_origen') {
-      setCords([{ lat: null, lng: null }]);
+      setCords((prev) => {
+        const nuevo = [...prev];
+        nuevo[0] = { lat: null, lng: null };
+        return nuevo;
+      });
     }
   
     if (name === 'direccion_final') {
@@ -266,10 +329,16 @@ const CrearPedido = () => {
   };
 
   const addParada = () => {
-    setFormData({
-      ...formData,
-      paradas: [...formData.paradas, { direccion_destino: '', ventana_horaria_inicio: '', ventana_horaria_fin: '', tipo_parada: '' }],
-    });
+    setFormData(prev => ({
+      ...prev,
+      paradas: [...prev.paradas, { direccion_destino: '', ventana_horaria_inicio: '', ventana_horaria_fin: '', tipo_parada: '' }],
+    }));
+  
+    setModoSeleccionParada(prev => [...prev, false]);
+    setPopupParadaOpen(prev => [...prev, false]);
+    setDireccionParadaTemporal(prev => [...prev, ""]);
+    setRespaldoParadas(prev => [...prev, { direccion: "", lat: null, lng: null }]);
+    setDireccionParadaDeshabilitada(prev => [...prev, false]);
   };
 
   const validarDoc = () => {
@@ -389,6 +458,7 @@ const CrearPedido = () => {
           nuevaDireccion = `${nombreCalle} ${numeroUsuario}${restosSinCalle}`;
         }
       }
+      nuevaDireccion = nuevaDireccion.split(",")[0] + ',' + nuevaDireccion.split(",")[1] + ',' + nuevaDireccion.split(",")[2]
   
       // 🔹 Guardar la dirección corregida en el estado adecuado
       if (index === -1) {
@@ -411,6 +481,12 @@ const CrearPedido = () => {
           newCords[index] = { lat: option.lat, lng: option.lng };
           return newCords;
         });
+
+        setDireccionParadaDeshabilitada(prev => {
+          const nuevo = [...prev];
+          nuevo[index - 1] = true;
+          return nuevo;
+        });
       }
   
       return updatedData;
@@ -420,8 +496,6 @@ const CrearPedido = () => {
     handleCloseModal();
   };
   
-
-
   const getTipoViaje = () => {
     return tiposViaje[parseInt(tipoViaje, 10)];
   }
@@ -470,312 +544,547 @@ const CrearPedido = () => {
     setIsSubmitting(true);
   };
   
-  
-
   return (
     <>
-      <Paper elevation={7} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom>Agregar Nueva Solicitud</Typography>
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                name="nombre"
-                label="Nombre"
-                fullWidth
-                value={formData.nombre}
-                required
-                disabled={!!clienteId}
-                />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                name="apellido"
-                label="Apellido"
-                value={formData.apellido}
-                fullWidth
-                required
-                disabled={!!clienteId}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="cliente_documento"
-                label="Documento"
-                fullWidth
-                value={formData.cliente_documento}
-                required
-                error={!!errors.cliente_documento}
-                helperText={errors.cliente_documento}
-                disabled={!!clienteId}
-              />
-            </Grid>
-            <Grid item xs={12}>
-                  <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={'es-UY'}>
-                    <DatePicker
-                      label="Fecha"
-                      name="fecha_programado"
-                      format="DD/MM/YYYY"
-                      onChange={(newValue) => handleChange(newValue, 'date')}
-                      slotProps={{ 
-                        textField: { 
-                          fullWidth: true,
-                          required: true,
-                          placeholder: "dd/mm/yyyy",
-                          InputLabelProps: {
-                            shrink: true,
-                          }
-                        } 
-                      }}
+      <Grid container spacing={2} sx={{ height: '99vh' }}>
+        {/* 📍 Formulario a la izquierda */}
+        <Grid item xs={8} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Paper elevation={7} sx={{ p: 4 }}>
+            <Typography variant="h4" gutterBottom>Agregar Nueva Solicitud</Typography>
+            <form onSubmit={handleSubmit}>
+
+              {/* Datos del usuario */}
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="nombre"
+                    label="Nombre"
+                    fullWidth
+                    value={formData.nombre}
+                    required
+                    disabled={!!clienteId}
                     />
-                  </LocalizationProvider>
                 </Grid>
-              </Grid>
-            <Paper elevation={7} sx={{ p: 4, mt: 3 }}>
-              <FormControl component="fieldset" >
-                <RadioGroup
-                  row
-                  name="tipoViaje"
-                  value={tipoViaje}
-                  onChange={handleTipoViajeChange}
-                >
-                  {tiposViaje.map((tipo, index) => (
-                      <FormControlLabel
-                        key={index}
-                        value={index}
-                        control={<Radio />}
-                        label={tipo}
-                      />
-                    ))}
-                </RadioGroup>
-              </FormControl>
-              <Grid container spacing={3} mt={1}>
-              <Grid item xs={12} sm={4}>
-                <Box display="flex" alignItems="center">
+
+                <Grid item xs={12} sm={6}>
                   <TextField
-                    name="direccion_origen"
-                    label="Dirección de Origen"
-                    value={formData.direccion_origen}
-                    onChange={handleChange}
+                    name="apellido"
+                    label="Apellido"
+                    value={formData.apellido}
                     fullWidth
                     required
-                    error={!!errors.direccion_origen}
-                    helperText={errors.direccion_origen}
-                  />
-                  {/* Botón para geocodificación estándar */}
-                  <IconButton
-                    color={hasValidCoords(0) ? 'success' : 'primary'}
-                    onClick={() => handleGeocode(formData.direccion_origen, 0)}
-                    disabled={!formData.direccion_origen}
-                  >
-                    <GpsFixedIcon />
-                  </IconButton>
-
-                  {/* Botón para activar el modo avanzado */}
-                  {/* <IconButton
-                    color="secondary"
-                    onClick={() => setAdvancedModalOpen(true)}
-                  >
-                    <AdvancedIcon />
-                  </IconButton> */}
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  name="ventana_horaria_inicio"
-                  label="Hora de partida del origen"
-                  type="time"
-                  value={formData.ventana_horaria_inicio}
-                  onChange={handleChange}
-                  fullWidth
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  style={{visibility: tipoViaje === 2 ? "visible" : "hidden"}}
+                    disabled={!!clienteId}
                   />
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <FormControl fullWidth style={{ visibility: tipoViaje === 2 ? "visible" : "hidden" }}>
-                      <InputLabel id={'tipo-parada-label'}>Tipo de Parada</InputLabel>
-                      <Select
-                        labelId={'tipo-parada-label'}
-                        name="direccion_origen_tipo"
-                        value={formData.direccion_origen_tipo}
-                        onChange={(e) => handleChange(e)}
-                      >
-                        {tiposParadas.map((tipo) => (
-                          <MenuItem key={tipo.id} value={tipo.id}>
-                            {tipo.nombre}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                </Grid>
 
-            </Grid>
-            {formData.paradas.map((destino, index) => (
-              <Grid container spacing={3} key={index} sx={{ mt: 3 }} style={{ display: index !== 0 && tipoViaje !== 0 ? "none" : "flex" }}>
-                <Grid item xs={12} sm={4}>
-                <Box display="flex" alignItems="center">
+                <Grid item xs={12}>
                   <TextField
-                    name="direccion_destino"
-                    label="Dirección de Destino"
-                    value={destino.direccion_destino}
-                    onChange={(e) => handleParadaChange(index, e)}
+                    name="cliente_documento"
+                    label="Documento"
                     fullWidth
+                    value={formData.cliente_documento}
                     required
-                    error={!!errors[`parada_${index}`]}
-                    helperText={errors[`parada_${index}`]}
+                    error={!!errors.cliente_documento}
+                    helperText={errors.cliente_documento}
+                    disabled={!!clienteId}
                   />
-                  {/* Botón para geocodificación estándar */}
-                  <IconButton
-                    color={hasValidCoords(index + 1) ? 'success' : 'primary'}
-                    onClick={() => handleGeocode(destino.direccion_destino, index + 1)}
-                    disabled={!destino.direccion_destino}
-                  >
-                    <GpsFixedIcon />
-                  </IconButton>
-
-                  {/* Botón para activar el modo avanzado */}
-                  {/* <IconButton
-                    color="secondary"
-                    onClick={() => setAdvancedModalOpen(true)}
-                  >
-                    <AdvancedIcon />
-                  </IconButton> */}
-                </Box>
                 </Grid>
+                {/* Fecha de la solicitud */}
+                <Grid item xs={12}>
+                      <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={'es-UY'}>
+                        <DatePicker
+                          label="Fecha"
+                          name="fecha_programado"
+                          format="DD/MM/YYYY"
+                          onChange={(newValue) => handleChange(newValue, 'date')}
+                          slotProps={{ 
+                            textField: { 
+                              fullWidth: true,
+                              required: true,
+                              placeholder: "dd/mm/yyyy",
+                              InputLabelProps: {
+                                shrink: true,
+                              }
+                            } 
+                          }}
+                        />
+                      </LocalizationProvider>
+                </Grid>
+              </Grid>
 
-                <Grid item xs={12} sm={2.5}>
+              {/* Datos de las visitas */}  
+              <Paper elevation={7} sx={{ p: 4, mt: 3 }}>
+
+                {/* Tipo de visita*/}
+                <FormControl component="fieldset" >
+                  <RadioGroup
+                    row
+                    name="tipoViaje"
+                    value={tipoViaje}
+                    onChange={handleTipoViajeChange}
+                  >
+                    {tiposViaje.map((tipo, index) => (
+                        <FormControlLabel
+                          key={index}
+                          value={index}
+                          control={<Radio />}
+                          label={tipo}
+                        />
+                      ))}
+                  </RadioGroup>
+                </FormControl>
+                
+                {/* Origen */}
+                <Grid container spacing={3} mt={1} >
+                  {/* Dirección */}
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      name="direccion_origen"
+                      label="Dirección de Origen"
+                      value={formData.direccion_origen}
+                      onChange={handleChange}
+                      fullWidth
+                      required
+                      disabled={direccionOrigenDeshabilitada}
+                      error={!!errors.direccion_origen}
+                      helperText={errors.direccion_origen}
+                    />
+                  </Grid>
+
+                  {/* Botones */}
+                  <Grid item xs={12} sm={2}>
+                    <Box display="flex" justifyContent="space-around" alignItems="center">
+                      <Tooltip title="Editar dirección manualmente">
+                        <IconButton
+                          onClick={() => {
+                            if (window.confirm("Esto eliminará las coordenadas actuales. ¿Deseas continuar?")) {
+                              setFormData({ ...formData, direccion_origen: "", });
+                              setCords((prev) => {
+                                const nuevo = [...prev];
+                                nuevo[0] = { lat: null, lng: null };
+                                return nuevo;
+                              });
+                            }
+                          }}
+                          disabled={!direccionOrigenDeshabilitada}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      
+                      <Tooltip title="Geocodificar dirección escrita">
+                        <IconButton
+                          color={hasValidCoords(0) ? "success" : "primary"}
+                          onClick={() => handleGeocode(formData.direccion_origen, 0)}
+                          disabled={!formData.direccion_origen || direccionOrigenDeshabilitada}
+                        >
+                          <GpsFixedIcon />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Seleccionar ubicación manualmente en el mapa">
+                        <IconButton
+                          onClick={() => {
+                            const nuevo = !modoSeleccionOrigen;
+                            setModoSeleccionOrigen(nuevo);
+                            if (nuevo) setSnackbarOpen(true);
+                          }}
+                          color={modoSeleccionOrigen ? "error" : "primary"}
+                        >
+                          <PlaceIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </Grid>
+
+                  {/* Ventana horaria */}
+                  <Grid item xs={12} sm={2}>
                   <TextField
                     name="ventana_horaria_inicio"
-                    label="Hora de llegada al destino"
+                    label="Hora de partida del origen"
                     type="time"
-                    value={destino.ventana_horaria_inicio}
-                    onChange={(e) => handleParadaChange(index, e)}
-                    fullWidth
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    style={{visibility: tipoViaje !== 2 ? "visible" : "hidden"}}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={2.5}>
-                <TextField
-                    name="ventana_horaria_fin"
-                    label="Hora de partida del destino"
-                    type="time"
-                    value={destino.ventana_horaria_fin}
-                    onChange={(e) => handleParadaChange(index, e)}
-                    fullWidth
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    style={{visibility: tipoViaje === 0   ? "visible" : "hidden"}}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={3}>
-                  <FormControl fullWidth style={{ visibility: tipoViaje !== 2 ? "visible" : "hidden" }}>
-                    <InputLabel id={'tipo-parada-label'}>Tipo de Parada</InputLabel>
-                    <Select
-                      labelId={'tipo-parada-label'}
-                      value={destino.tipo_parada}
-                      name="tipo_parada"
-                      onChange={(e) => handleParadaChange(index,e)}
-                    >
-                      {tiposParadas.map((tipo) => (
-                        <MenuItem key={tipo.id} value={tipo.id}>
-                          {tipo.nombre}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </Grid>
-            ))}
-            <Box display="flex" justifyContent="center" sx={{ mt: 3, display: tipoViaje === 0 ? "flex" : "none" }}>
-              <IconButton color="primary" onClick={addParada}>
-                <AddIcon />
-              </IconButton>
-            </Box>
-            <Grid container spacing={3} mt={1}>
-              <Grid item xs={12} sm={4}>
-                <Box display="flex" alignItems="center">
-                  <TextField
-                    name="direccion_final"
-                    label="Dirección final"
-                    value={formData.direccion_final}
+                    value={formData.ventana_horaria_inicio}
                     onChange={handleChange}
                     fullWidth
-                    style={{ display: tipoViaje === 0 ? "flex" : "none" }}
-                    required={tipoViaje === 0} 
-                    disabled={tipoViaje !== 0}
-                    error={!!errors.direccion_final}
-                    helperText={errors.direccion_final}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    style={{visibility: tipoViaje === 2 ? "visible" : "hidden"}}
                     />
-                    {/* Botón para geocodificación estándar */}
-                    <IconButton
-                      color={hasValidCoords(-1) ? 'success' : 'primary'}
-                      onClick={() => handleGeocode(formData.direccion_final, -1)}
-                      disabled={!formData.direccion_final}
-                    >
-                    {tipoViaje === 0 && <GpsFixedIcon />}
-                    </IconButton>
-                    {/* Botón para activar el modo avanzado */}
-                    {/* <IconButton
-                      color="secondary"
-                      onClick={() => setAdvancedModalOpen(true)}
-                    >
-                      <AdvancedIcon />
-                    </IconButton> */}
-                </Box>
-              </Grid>
-            </Grid>
-          </Paper>
-          <Grid container spacing={3} sx={{ mt: 3 }} >
-            <Grid item xs={12}>
-              <FormControlLabel
-                name="prioridad"
-                label="Prioridad"
-                control={<Checkbox checked={formData.prioridad} onChange={handleChange} />}
-              />
-              <FormControlLabel
-                name="acompañante"
-                label="Lleva acompañante"
-                control={<Checkbox checked={formData.acompañante} onChange={handleChange} />}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                name="observaciones"
-                label="Observaciones"
-                value={formData.observaciones}
-                onChange={handleChange}
-                fullWidth
-                multiline
-                rows={4}
-              />
-            </Grid>
-            <Grid item xs={12}>
-            {message && (
-                <Alert severity={message.type} sx={{ mb: 3 }}>
-                  {message.text}
-                </Alert>
-              )}
-            <Button 
-              type="submit" 
-              variant="contained" 
-              color="primary" 
-              fullWidth 
-              onClick={handleSubmit}
-            >
-                Agregar Solicitud
-            </Button>
-          </Grid>
-          </Grid>
-        </form>
+                  </Grid>
 
-        <Modal open={modalOpen} onClose={handleCloseModal}>
+                  {/* Tipo de parada */}
+                  <Grid item xs={12} sm={2}>
+                    <FormControl fullWidth style={{ visibility: tipoViaje === 2 ? "visible" : "hidden" }}>
+                        <InputLabel id={'tipo-parada-label'}>Tipo de Parada</InputLabel>
+                        <Select
+                          labelId={'tipo-parada-label'}
+                          name="direccion_origen_tipo"
+                          value={formData.direccion_origen_tipo}
+                          onChange={(e) => handleChange(e)}
+                        >
+                          {tiposParadas.map((tipo) => (
+                            <MenuItem key={tipo.id} value={tipo.id}>
+                              {tipo.nombre}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                  </Grid>
+                </Grid>
+
+                {/* Paradas */}           
+                {formData.paradas.map((destino, index) => (
+                  <Grid container spacing={3} key={index} mt={1}>
+                    {/* Dirección */}
+                    <Grid item xs={12} sm={4}>
+                      <TextField
+                        name="direccion_destino"
+                        label="Dirección de Destino"
+                        value={destino.direccion_destino}
+                        onChange={(e) => handleParadaChange(index, e)}
+                        fullWidth
+                        required
+                        disabled={direccionParadaDeshabilitada[index]}
+                        error={!!errors[`parada_${index}`]}
+                        helperText={errors[`parada_${index}`]}
+                      />
+                    </Grid>
+
+                    {/* Botones */}
+                    <Grid item xs={12} sm={2}>
+                      <Box display="flex" justifyContent="space-around" alignItems="center">
+                        <Tooltip title="Editar dirección manualmente">
+                          <IconButton
+                            onClick={() => {
+                              if (window.confirm("Esto eliminará las coordenadas actuales. ¿Deseas continuar?")) {
+                                setRespaldoParadas((prev) => {
+                                  const nuevo = [...prev];
+                                  nuevo[index] = {
+                                    direccion: destino.direccion_destino,
+                                    lat: cords[index + 1]?.lat,
+                                    lng: cords[index + 1]?.lng,
+                                  };
+                                  return nuevo;
+                                });
+
+                                setFormData(prev => {
+                                  const actualizado = [...prev.paradas];
+                                  actualizado[index].direccion_destino = "";
+                                  return { ...prev, paradas: actualizado };
+                                });
+
+                                setCords(prev => {
+                                  const nuevo = [...prev];
+                                  nuevo[index + 1] = { lat: null, lng: null };
+                                  return nuevo;
+                                });
+
+                                setDireccionParadaTemporal(prev => {
+                                  const nuevo = [...prev];
+                                  nuevo[index] = "";
+                                  return nuevo;
+                                });
+
+                                setDireccionParadaDeshabilitada(prev => {
+                                  const nuevo = [...prev];
+                                  nuevo[index] = false;
+                                  return nuevo;
+                                });
+                              }
+                            }}
+                            disabled={cords[index + 1]?.lat == null && cords[index + 1]?.lng == null}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                        
+                        <Tooltip title="Geocodificar dirección escrita">
+                          <IconButton
+                            color={hasValidCoords(index + 1) ? 'success' : 'primary'}
+                            onClick={() => handleGeocode(destino.direccion_destino, index + 1)}
+                            disabled={!destino.direccion_destino || direccionParadaDeshabilitada[index]}
+                          >
+                            <GpsFixedIcon />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Seleccionar ubicación manualmente en el mapa">
+                          <IconButton
+                            onClick={() => {
+                              const nuevo = [...modoSeleccionParada];
+                              nuevo[index] = !nuevo[index];
+                              setModoSeleccionParada(nuevo);
+                              if (nuevo[index]) setSnackbarOpen(true);
+                            }}
+                            color={modoSeleccionParada[index] ? "error" : "primary"}
+                          >
+                            <PlaceIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Grid>
+                    
+                    {/* Ventanas horarias */}
+                    <Grid item xs={12} sm={2}>
+                      <TextField
+                        name="ventana_horaria_inicio"
+                        label="Hora de llegada al destino"
+                        type="time"
+                        value={destino.ventana_horaria_inicio}
+                        onChange={(e) => handleParadaChange(index, e)}
+                        fullWidth
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        style={{visibility: tipoViaje !== 2 ? "visible" : "hidden"}}
+                      />
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={2}>
+                    <TextField
+                        name="ventana_horaria_fin"
+                        label="Hora de partida del destino"
+                        type="time"
+                        value={destino.ventana_horaria_fin}
+                        onChange={(e) => handleParadaChange(index, e)}
+                        fullWidth
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                        style={{visibility: tipoViaje === 0   ? "visible" : "hidden"}}
+                      />
+                    </Grid>
+                    
+                    {/* Tipo de parada */}
+                    <Grid item xs={12} sm={2}>
+                      <FormControl fullWidth style={{ visibility: tipoViaje !== 2 ? "visible" : "hidden" }}>
+                        <InputLabel id={'tipo-parada-label'}>Tipo de Parada</InputLabel>
+                        <Select
+                          labelId={'tipo-parada-label'}
+                          value={destino.tipo_parada}
+                          name="tipo_parada"
+                          onChange={(e) => handleParadaChange(index,e)}
+                        >
+                          {tiposParadas.map((tipo) => (
+                            <MenuItem key={tipo.id} value={tipo.id}>
+                              {tipo.nombre}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                ))}
+
+                {/* Agregar parada */}
+                <Box display="flex" justifyContent="center" sx={{ mt: 3, display: tipoViaje === 0 ? "flex" : "none" }}>
+                  <IconButton color="primary" onClick={addParada}>
+                    <AddIcon />
+                  </IconButton>
+                </Box>
+
+                {/* Final */}  
+                <Grid container spacing={3} mt={1} style={{ display: tipoViaje === 0 ? "flex" : "none" }}>
+                  {/* Dirección */}
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      name="direccion_final"
+                      label="Dirección final"
+                      value={formData.direccion_final}
+                      onChange={handleChange}
+                      fullWidth
+                      required={tipoViaje === 0}
+                      disabled={direccionFinalDeshabilitada || tipoViaje !== 0}
+                      error={!!errors.direccion_final}
+                      helperText={errors.direccion_final}
+                    />
+                  </Grid>
+
+                  {/* Botones */}
+                  <Grid item xs={12} sm={2}>
+                    <Box display="flex" justifyContent="space-around" alignItems="center">
+                      <Tooltip title="Editar dirección manualmente">
+                        <IconButton
+                          onClick={() => {
+                            if (window.confirm("Esto eliminará las coordenadas actuales. ¿Deseas continuar?")) {
+                              setFormData(prev => ({ ...prev, direccion_final: "" }));
+                              setDireccionFinalCoords({ lat: null, lng: null });
+                            }
+                          }}
+                          disabled={!direccionFinalDeshabilitada}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Geocodificar dirección escrita">
+                        <IconButton
+                          color={hasValidCoords(-1) ? 'success' : 'primary'}
+                          onClick={() => handleGeocode(formData.direccion_final, -1)}
+                          disabled={!formData.direccion_final || direccionFinalDeshabilitada}
+                        >
+                          <GpsFixedIcon />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Seleccionar ubicación manualmente en el mapa">
+                        <IconButton
+                          onClick={() => {
+                            const nuevo = !modoSeleccionFinal;
+                            setModoSeleccionFinal(nuevo);
+                            if (nuevo) setSnackbarOpen(true);
+                          }}
+                          color={modoSeleccionFinal ? "error" : "primary"}
+                        >
+                          <PlaceIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </Grid>
+                </Grid>
+
+              </Paper>
+
+              {/* Otros datos */}
+              <Grid container spacing={3} sx={{ mt: 3 }} >
+                {/* Prioridad y acompañante */}
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    name="prioridad"
+                    label="Prioridad"
+                    control={<Checkbox checked={formData.prioridad} onChange={handleChange} />}
+                  />
+                  <FormControlLabel
+                    name="acompañante"
+                    label="Lleva acompañante"
+                    control={<Checkbox checked={formData.acompañante} onChange={handleChange} />}
+                  />
+                </Grid>
+
+                {/* Observaciones */}
+                <Grid item xs={12}>
+                  <TextField
+                    name="observaciones"
+                    label="Observaciones"
+                    value={formData.observaciones}
+                    onChange={handleChange}
+                    fullWidth
+                    multiline
+                    rows={4}
+                  />
+                </Grid>
+
+                {/* Agregar solicitud */}
+                <Grid item xs={12}>
+                {message && (
+                    <Alert severity={message.type} sx={{ mb: 3 }}>
+                      {message.text}
+                    </Alert>
+                  )}
+                <Button 
+                  type="submit" 
+                  variant="contained" 
+                  color="primary" 
+                  fullWidth 
+                  onClick={handleSubmit}
+                >
+                    Agregar Solicitud
+                </Button>
+                </Grid>
+              </Grid>
+            </form>
+          </Paper>
+        </Grid>
+
+        {/* 🗺️ Mapa a la derecha */}
+        <Grid item xs={4} sx={{ height: '100%' }}>
+          <Paper elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ flexGrow: 1, width: '100%', height: '100%' }}>
+              <MapaUbicacion
+                latitudes={[cords[0]?.lat, ...cords.slice(1).map(c => c?.lat), direccion_final_coords?.lat]}
+                longitudes={[cords[0]?.lng, ...cords.slice(1).map(c => c?.lng), direccion_final_coords?.lng]}
+                height="100%"
+                modoSeleccion={
+                  modoSeleccionOrigen ||
+                  modoSeleccionFinal ||
+                  modoSeleccionParada.some((m) => m)
+                }
+                onMapClick={({ lat, lng }) => {
+                  if (modoSeleccionOrigen) {
+                    setRespaldoOrigen({
+                      direccion: formData.direccion_origen,
+                      lat: cords[0]?.lat ?? null,
+                      lng: cords[0]?.lng ?? null
+                    });
+                    const nuevasCords = [...cords];
+                    nuevasCords[0] = { lat, lng };
+                    setCords(nuevasCords);
+                    setDireccionOrigenTemporal("");
+                    setPopupOrigenOpen(true);
+                    setModoSeleccionOrigen(false);
+                  } else 
+                  if (modoSeleccionFinal) {
+                    setRespaldoFinal({
+                      direccion: formData.direccion_final,
+                      lat: direccion_final_coords?.lat ?? null,
+                      lng: direccion_final_coords?.lng ?? null
+                    });
+                    setDireccionFinalCoords({ lat, lng });
+                    setDireccionFinalTemporal("");
+                    setPopupFinalOpen(true);
+                    setModoSeleccionFinal(false);
+                  }
+                  else {
+                    const idx = modoSeleccionParada.findIndex(m => m);
+                    if (idx !== -1) {
+                      // Guardar respaldo
+                      setRespaldoParadas(prev => {
+                        const nuevo = [...prev];
+                        nuevo[idx] = {
+                          direccion: formData.paradas[idx].direccion_destino,
+                          lat: cords[idx + 1]?.lat ?? null,
+                          lng: cords[idx + 1]?.lng ?? null
+                        };
+                        return nuevo;
+                      });
+                  
+                      // Actualizar coordenadas reales
+                      setCords(prev => {
+                        const nuevo = [...prev];
+                        nuevo[idx + 1] = { lat, lng };
+                        return nuevo;
+                      });
+                  
+                      // Preparar para confirmación textual
+                      setDireccionParadaTemporal(prev => {
+                        const nuevo = [...prev];
+                        nuevo[idx] = "";
+                        return nuevo;
+                      });
+                  
+                      setPopupParadaOpen(prev => {
+                        const nuevo = [...prev];
+                        nuevo[idx] = true;
+                        return nuevo;
+                      });
+                  
+                      // Desactivar modo selección
+                      setModoSeleccionParada(prev => {
+                        const nuevo = [...prev];
+                        nuevo[idx] = false;
+                        return nuevo;
+                      });
+                    }
+                  }               
+                }}
+              />
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Modal open={modalOpen} onClose={handleCloseModal}>
           <Paper sx={{ padding: 2, width: 400, margin: 'auto', marginTop: '20vh' }}>
             <Typography variant="h6">Selecciona una dirección</Typography>
             <List>
@@ -796,15 +1105,167 @@ const CrearPedido = () => {
               ))}
             </List>
           </Paper>
+      </Modal>
+
+      <Modal open={popupOrigenOpen} onClose={() => setPopupOrigenOpen(false)}>
+        <Paper sx={{ padding: 3, width: 400, margin: 'auto', marginTop: '20vh' }}>
+          <Typography variant="h6" gutterBottom>Ingresá una dirección</Typography>
+          <TextField
+            label="Dirección de Origen"
+            fullWidth
+            value={direccionOrigenTemporal}
+            onChange={(e) => setDireccionOrigenTemporal(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+          <Box display="flex" justifyContent="flex-end" mt={2}>
+            <Button onClick={() => {
+              setFormData(prev => ({
+                ...prev,
+                direccion_origen: respaldoOrigen.direccion
+              }));
+              setCords(prev => {
+                const nuevas = [...prev];
+                nuevas[0] = { lat: respaldoOrigen.lat, lng: respaldoOrigen.lng };
+                return nuevas;
+              });
+              setPopupOrigenOpen(false);
+              setModoSeleccionOrigen(false);
+            }}>Cancelar</Button>
+            <Button 
+              variant="contained" 
+              sx={{ ml: 2 }}
+              disabled={!direccionOrigenTemporal.trim()} 
+              onClick={() => {
+                setFormData(prev => ({
+                  ...prev,
+                  direccion_origen: direccionOrigenTemporal
+                }));
+                setPopupOrigenOpen(false);
+              }}>Confirmar
+            </Button>
+          </Box>
+        </Paper>
+      </Modal>
+
+      <Modal open={popupFinalOpen} onClose={() => setPopupFinalOpen(false)}>
+        <Paper sx={{ padding: 3, width: 400, margin: 'auto', marginTop: '20vh' }}>
+          <Typography variant="h6" gutterBottom>Ingresá una dirección</Typography>
+          <TextField
+            label="Dirección Final"
+            fullWidth
+            value={direccionFinalTemporal}
+            onChange={(e) => setDireccionFinalTemporal(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+          <Box display="flex" justifyContent="flex-end" mt={2}>
+            <Button onClick={() => {
+              setFormData(prev => ({
+                ...prev,
+                direccion_final: respaldoFinal.direccion
+              }));
+              setDireccionFinalCoords({
+                lat: respaldoFinal.lat,
+                lng: respaldoFinal.lng
+              });
+              setPopupFinalOpen(false);
+              setModoSeleccionFinal(false);
+            }}>Cancelar</Button>
+            <Button 
+              variant="contained" 
+              sx={{ ml: 2 }}
+              disabled={!direccionFinalTemporal.trim()} 
+              onClick={() => {
+                setFormData(prev => ({
+                  ...prev,
+                  direccion_final: direccionFinalTemporal
+                }));
+                setDireccionFinalCoords(coordFinalTemporal);
+                setPopupFinalOpen(false);
+              }}>Confirmar
+            </Button>
+          </Box>
+        </Paper>
+      </Modal>
+
+      {formData.paradas.map((_, index) => (
+        <Modal key={index} open={popupParadaOpen[index]} onClose={() => {
+          const nuevoPopup = [...popupParadaOpen];
+          nuevoPopup[index] = false;
+          setPopupParadaOpen(nuevoPopup);
+        }}>
+          <Paper sx={{ padding: 3, width: 400, margin: 'auto', marginTop: '20vh' }}>
+            <Typography variant="h6" gutterBottom>Ingresá una dirección</Typography>
+            <TextField
+              label={`Dirección parada ${index + 1}`}
+              fullWidth
+              value={direccionParadaTemporal[index]}
+              onChange={(e) => {
+                const nuevo = [...direccionParadaTemporal];
+                nuevo[index] = e.target.value;
+                setDireccionParadaTemporal(nuevo);
+              }}
+              sx={{ mt: 2 }}
+            />
+            <Box display="flex" justifyContent="flex-end" mt={2}>
+              <Button onClick={() => {
+                setFormData(prev => {
+                  const actualizado = { ...prev };
+                  actualizado.paradas[index].direccion_destino = respaldoParadas[index].direccion;
+                  return actualizado;
+                });
+
+                setCords(prev => {
+                  const nuevo = [...prev];
+                  nuevo[index + 1] = {
+                    lat: respaldoParadas[index].lat,
+                    lng: respaldoParadas[index].lng
+                  };
+                  return nuevo;
+                });
+
+                const nuevoPopup = [...popupParadaOpen];
+                nuevoPopup[index] = false;
+                setPopupParadaOpen(nuevoPopup);
+
+                const nuevoModo = [...modoSeleccionParada];
+                nuevoModo[index] = false;
+                setModoSeleccionParada(nuevoModo);
+              }}>Cancelar</Button>
+
+              <Button
+                variant="contained"
+                sx={{ ml: 2 }}
+                disabled={!direccionParadaTemporal[index]?.trim()}
+                onClick={() => {
+                  setFormData(prev => {
+                    const actualizado = { ...prev };
+                    actualizado.paradas[index].direccion_destino = direccionParadaTemporal[index];
+                    return actualizado;
+                  });
+
+                  setDireccionParadaDeshabilitada(prev => {
+                    const nuevo = [...prev];
+                    nuevo[index] = true;
+                    return nuevo;
+                  });
+
+                  const nuevoPopup = [...popupParadaOpen];
+                  nuevoPopup[index] = false;
+                  setPopupParadaOpen(nuevoPopup);
+                }}
+              >
+                Confirmar
+              </Button>
+            </Box>
+          </Paper>
         </Modal>
+      ))}
 
-        {/* <AdvancedGeocodeModal
-          open={advancedModalOpen}
-          onClose={() => setAdvancedModalOpen(false)}
-        /> */}
 
-        
-      </Paper>
+      {/* <AdvancedGeocodeModal
+        open={advancedModalOpen}
+        onClose={() => setAdvancedModalOpen(false)}
+      /> */}
     </>
   );
   
