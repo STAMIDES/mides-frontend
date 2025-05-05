@@ -51,7 +51,7 @@ function ForgetPasswordRequest() {
   };
 
   const handleGoBack = () => {
-    navigate('/login');
+    navigate('/cuenta/login');
   };
 
   return (

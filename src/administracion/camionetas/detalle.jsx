@@ -27,7 +27,8 @@ const CamionetaDetalles = () => {
   const obtenerCaracteristicas = async () => {
     try {
       const response = await api.get('caracteristicas');
-      setCaracteristicasTodas(response.data);
+      const caracteristicas = response.data.filter(c => c.nombre !== 'silla_de_ruedas'); // Todas las camionetas tienen caracteristicas de tipo "silla_de_ruedas", no hay necesidad de mostrarlas en la lista
+      setCaracteristicasTodas(caracteristicas);
     } catch (error) {
       console.error('Error al obtener las caracteristicas:', error);
     }
