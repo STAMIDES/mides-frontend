@@ -24,7 +24,7 @@ const CamionetasCrear = ({ camioneta = {} }) => {
     try {
       const response = await api.get('caracteristicas');
       const caracteristicas = response.data.filter(c => c.nombre !== 'silla_de_ruedas'); // Todas las camionetas tienen caracteristicas de tipo "silla_de_ruedas", no hay necesidad de mostrarlas en la lista
-      setCaracteristicasTodas(response.data);
+      setCaracteristicasTodas(caracteristicas);
     } catch (error) {
       console.error('Error al obtener las caracteristicas:', error);
     }
