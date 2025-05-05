@@ -335,12 +335,12 @@ export default {
       fetchPedidos();
     };
 
-    const addTolerance = (time, substract=true) => {
+    const addTolerance = (time, commmand="none") => {
       let date = new Date(`1970-01-01T${time}Z`);
 
-      if (substract){
+      if (commmand=="substract"){
         date.setTime(date.getTime() - TIMEWINDOW_TOLERANCE * 60 * 1000);
-      }else{
+      }else if (commmand=="add"){
         date.setTime(date.getTime() + TIMEWINDOW_TOLERANCE * 60 * 1000);
       }
       let updatedTime = date.toISOString().substring(11, 19);
@@ -463,37 +463,37 @@ export default {
               if (pedido.tipo=="Solo ida"){ 
                 normalized.direction = "going";
                 normalized.delivery.time_window = {
-                  start: addTolerance(destino.ventana_horaria_inicio),
-                  end: addTolerance(destino.ventana_horaria_inicio, false),
+                  start: addTolerance(destino.ventana_horaria_inicio, "substract"),
+                  end: addTolerance(destino.ventana_horaria_inicio),
                 };
               }else if (pedido.tipo=="Solo vuelta"){
                 normalized.direction = "return";
                 normalized.pickup.time_window = {
-                  start: addTolerance(origen.ventana_horaria_inicio) ,
-                  end: addTolerance(origen.ventana_horaria_inicio, false),
+                  start: addTolerance(origen.ventana_horaria_inicio, "substract"),
+                  end: addTolerance(origen.ventana_horaria_inicio),
                 };
               }else if (pedido.tipo=="Ida y vuelta"){
                 if (i==0){
                   normalized.direction = "going";
                   normalized.delivery.time_window = {
-                    start: addTolerance(destino.ventana_horaria_inicio),
-                    end: addTolerance(destino.ventana_horaria_inicio, false),
+                    start: addTolerance(destino.ventana_horaria_inicio, "substract"),
+                    end: addTolerance(destino.ventana_horaria_inicio),
                   };
                 }else if (i + 2 == paradas.length){//last element, return
                   normalized.direction = "return";
                   normalized.pickup.time_window = {
                     start: addTolerance(origen.ventana_horaria_fin),
-                    end: addTolerance(origen.ventana_horaria_fin, false),
+                    end: addTolerance(origen.ventana_horaria_fin, "add"),
                   };
                 }else{ //solo cuando va a 2 o mas lugares y vuelve a su casa
                   normalized.direction = "going"; //TODO: definir que va aca cuando tiene doble time window
                   normalized.pickup.time_window = {
                     start: addTolerance(origen.ventana_horaria_fin),
-                    end: addTolerance(origen.ventana_horaria_fin, false),
+                    end: addTolerance(origen.ventana_horaria_fin, "add"),
                   };
                   normalized.delivery.time_window = {
-                    start: addTolerance(destino.ventana_horaria_inicio),
-                    end: addTolerance(destino.ventana_horaria_inicio, false),
+                    start: addTolerance(destino.ventana_horaria_inicio, "substract"),
+                    end: addTolerance(destino.ventana_horaria_inicio),
                   };
                 }
                 
