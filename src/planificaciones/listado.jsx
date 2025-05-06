@@ -11,11 +11,14 @@ import moment from 'moment';
 
 const columns = [
   { label: "Id", key: "id" },
+  { label: "Fecha de creado", key: "fmt_fecha_creacion" },
   { label: "Planificado por", key: "creado_por" },
   { label: "Rutas", key: "rutas", borderSeparation: true, columns: [
       { label: "Origen", key: "direccion_origen_y_horario"},
       { label: "Destino", key: "direccion_destino_y_horario"},
-      { label: "Vehículo", key: "vehiculo"}]},
+      { label: "Vehículo", key: "vehiculo"},
+      { label: "Chofer", key: "chofer" } ],
+  }
 ]
 
 const PlanificacionListado = () => {
@@ -58,10 +61,12 @@ const PlanificacionListado = () => {
         ...planificacion,
         creado_por: `${planificacion.creado_por.nombre}`,
         definitiva: planificacion.definitiva,
+        fecha_creacion: planificacion.fecha_creacion,
         rutas: planificacion.rutas.map(ruta => ({
           direccion_origen_y_horario: `${ruta.hora_inicio}  ${ruta.visitas[0].lugar_comun.nombre}`,
           direccion_destino_y_horario: `${ruta.hora_fin} ${ruta.visitas[ruta.visitas.length-1].lugar_comun.nombre}`,
-          vehiculo: `${ruta.vehiculo.descripcion} ${ruta.vehiculo.matricula}`
+          vehiculo: `${ruta.vehiculo.descripcion} ${ruta.vehiculo.matricula}`,
+          chofer: `${ruta.chofer.nombre} ${ruta.chofer.apellido}`
         }))
       }));
       setPlanificaciones(planificacionesProcesados);
@@ -104,7 +109,12 @@ const PlanificacionListado = () => {
 
   return (
     <Container>
-      <Header createLink="./crear"  onSearch={handleSearch}/>
+      <Header createLink="./crear"  onSearch={handleSearch}
+      customButtons={[
+        { customLink: "/planificaciones/informe", customMessage: "Generar informe estadístico", 
+          customColor: "tomato" }
+      ]}
+      />
       {error && <p>{error}</p>}
       <ListComponent 
         title="Planificaciones" 

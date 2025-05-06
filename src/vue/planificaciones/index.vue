@@ -72,7 +72,7 @@ export default {
       if (!planificacion.value || !planificacion.value.id) return;
       
       try {
-        const response = await api.get(`/planificaciones/${planificacion.value.id}/download`, {
+        const response = await api.get(`/planificaciones/${planificacion.value.id}/descargar`, {
           responseType: 'blob'
         });
         

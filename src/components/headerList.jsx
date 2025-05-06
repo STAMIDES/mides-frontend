@@ -17,7 +17,8 @@ const Header = ({
   createLink = null,
   createMessage = "Crear Nuevo", 
   onSearch,
-  title = ""
+  title = "",
+  customButtons = []
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
@@ -34,6 +35,9 @@ const Header = ({
     debouncedSearch(value);
   }, [debouncedSearch]);
 
+  // Default button color
+  const defaultButtonColor = "rgba(102, 108, 255, 0.9)";
+  
   return (
     <Box 
       sx={{
@@ -47,7 +51,7 @@ const Header = ({
       }}
     >
       {/* Title area */}
-      <Box sx={{ display: "flex", alignItems: "center" }}>
+      <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
         {title && (
           <Typography 
             variant="h5" 
@@ -86,6 +90,31 @@ const Header = ({
             </Button>
           </Link>
         )}
+
+        {/* Custom buttons */}
+        {customButtons && customButtons.map((button, index) => (
+          <Link key={index} to={button.customLink} style={{ textDecoration: "none" }}>
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: button.customColor || defaultButtonColor,
+                textTransform: "none",
+                borderRadius: "8px",
+                px: 2,
+                py: 1,
+                boxShadow: `0 4px 12px ${button.customColor ? button.customColor.replace("0.9", "0.2") : "rgba(102, 108, 255, 0.2)"}`,
+                "&:hover": {
+                  backgroundColor: button.customColor ? button.customColor.replace("0.9", "1") : "rgba(102, 108, 255, 1)",
+                  boxShadow: `0 6px 15px ${button.customColor ? button.customColor.replace("0.9", "0.3") : "rgba(102, 108, 255, 0.3)"}`,
+                  transform: "translateY(-2px)"
+                },
+                transition: "all 0.2s"
+              }}
+            >
+              {button.customMessage}
+            </Button>
+          </Link>
+        ))}
       </Box>
 
       {/* Search area */}
