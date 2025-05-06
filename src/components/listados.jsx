@@ -80,7 +80,7 @@ const ListComponent = ({
                           <div className="link-hover-outline" onClick={() => handleNavigation(item.id)} style={{ cursor: 'pointer' }}>
                             {!column.columns ? (
                               <Typography variant="body2" color="textSecondary" className="dataText">
-                                {column.key === 'activo' ? item[column.key] ? 'Si' : 'No' : item[column.key]}
+                                { item[column.key]}
                               </Typography>
                             ) : (
                               <Typography variant="body2" color="textSecondary" className="dataText">
@@ -104,10 +104,10 @@ const ListComponent = ({
                       ))}
                       <td className="data-cell actions-cell">
                         {icons.map((icon, iconIndex) => {
-                          if (icon.type.type.render.displayName === 'ToggleOnIcon' && item.activo === true) {
+                          if (icon.type.type.render.displayName === 'ToggleOffIcon'  && (item.activo === true || item.definitiva === true)) {
                             return null;
                           }
-                          if (icon.type.type.render.displayName === 'ToggleOffIcon' && item.activo === false) {
+                          if (icon.type.type.render.displayName === 'ToggleOnIcon' && (item.activo === false || item.definitiva === false)) {
                             return null;
                           }
                           return (
@@ -119,9 +119,9 @@ const ListComponent = ({
                                 if (icon.type.type.render.displayName === 'DeleteIcon') {
                                   handleDeleteClick(item);
                                 } else if (icon.type.type.render.displayName === 'ToggleOnIcon') {
-                                  setStatus(item.id, true);
-                                } else if ( icon.type.type.render.displayName === 'ToggleOffIcon'){
                                   setStatus(item.id, false);
+                                } else if ( icon.type.type.render.displayName === 'ToggleOffIcon'){
+                                  setStatus(item.id, true);
                                 }else {
                                   navigate(`${iconsLinks[iconIndex]}${item.id}`);
                                 }

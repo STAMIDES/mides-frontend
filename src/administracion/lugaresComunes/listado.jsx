@@ -9,7 +9,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 const columns = [
   { label: "Nombre", key: "nombre" },
   { label: "Direccion", key: "direccion" },
-  { label: "Activo", key: "activo" },
   { label: "observaciones", key: "observaciones" }
 ];
 
@@ -78,7 +77,7 @@ const LugaresComunesListado = () => {
         data={lugares} 
         columns={columns} 
         createLink="/lugares_comunes/crear" 
-        icons={[ <ToggleOffIcon/>, <ToggleOnIcon/>, <DeleteIcon />]}
+        icons={[<ToggleOffIcon style={{color: 'red'}}/>, <ToggleOnIcon style={{color: 'green'}} /> ,<DeleteIcon />]}
         iconsLinks={["", "", ""]}
         iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Lugar Comun"]}
         getFunction={obtenerLugaresComunes}

@@ -11,7 +11,6 @@ const columns = [
   { label: "Matricula", key: "matricula" },
   { label: "Capacidad", key: "capacidad_convencional" },
   { label: "Capacidad silla de ruedas", key: "capacidad_silla_de_ruedas" },
-  { label: "Activo", key: "activo" },
   { label: "Descripcion", key: "descripcion" }
 ];
 
@@ -82,7 +81,7 @@ const ComionetasListado = () => {
         data={camionetas} 
         columns={columns} 
         createLink="/camionetas/crear" 
-        icons={[ <ToggleOffIcon/>, <ToggleOnIcon/>, <DeleteIcon />]}
+        icons={[<ToggleOffIcon style={{color: 'red'}}/>, <ToggleOnIcon style={{color: 'green'}} /> ,<DeleteIcon />]}
         iconsLinks={[ "","", ""]}
         iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Camioneta"]}
         getFunction={obtenerCamionetas}

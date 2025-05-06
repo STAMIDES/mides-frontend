@@ -5,16 +5,17 @@ import ListComponent from "../components/listados";
 import useApi from "../network/axios";
 import DateFilter from "../components/dateFilter";
 import DeleteIcon from '@mui/icons-material/Delete';
-import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
+import ToggleOffIcon from '@mui/icons-material/ToggleOff';
+import ToggleOnIcon from '@mui/icons-material/ToggleOn';
 import moment from 'moment';
 
 const columns = [
   { label: "Id", key: "id" },
   { label: "Planificado por", key: "creado_por" },
   { label: "Rutas", key: "rutas", borderSeparation: true, columns: [
-                                { label: "Origen", key: "direccion_origen_y_horario"},
-                                { label: "Destino", key: "direccion_destino_y_horario"},
-                                { label: "Vehículo", key: "vehiculo"}]},
+      { label: "Origen", key: "direccion_origen_y_horario"},
+      { label: "Destino", key: "direccion_destino_y_horario"},
+      { label: "Vehículo", key: "vehiculo"}]},
 ]
 
 const PlanificacionListado = () => {
@@ -34,6 +35,15 @@ const PlanificacionListado = () => {
     }
   });
   
+  const setStatus = async (id, status) => {
+    try {
+      const response = await api.put(`/planificaciones/estado/${id}?definitiva=${status}`);
+      obtenerPlanificaciones(currentPage, date);
+    } catch (error) {
+      console.error("Error al marcar como activo o inactivo:", error);
+    }
+  };
+
   useEffect(() => {
     obtenerPlanificaciones(currentPage, date);
   }, [date, currentPage]);
@@ -47,6 +57,7 @@ const PlanificacionListado = () => {
       const planificacionesProcesados = planificaciones.map(planificacion => ({
         ...planificacion,
         creado_por: `${planificacion.creado_por.nombre}`,
+        definitiva: planificacion.definitiva,
         rutas: planificacion.rutas.map(ruta => ({
           direccion_origen_y_horario: `${ruta.hora_inicio}  ${ruta.visitas[0].lugar_comun.nombre}`,
           direccion_destino_y_horario: `${ruta.hora_fin} ${ruta.visitas[ruta.visitas.length-1].lugar_comun.nombre}`,
@@ -101,8 +112,9 @@ const PlanificacionListado = () => {
         filterComponentProps={{ date: date, handleDateChange: handleDateChange }}
         data={planificaciones} 
         columns={columns} 
-        icons={[<DeleteIcon />]}
-        iconsTooltip={[ "Eliminar Planificación"]}
+        icons={[<ToggleOffIcon style={{color: 'red'}}/>, <ToggleOnIcon style={{color: 'green'}} /> ,<DeleteIcon />]}
+        iconsTooltip={[  "Marcar como definitiva", "Desmarcar planificación definitiva", "Eliminar Planificación"]}
+        setStatus={setStatus}
         onDelete={handleDelete}
         getFunction={obtenerPlanificaciones}
         currentPage={currentPage}

@@ -11,7 +11,6 @@ const columns = [
   { label: "Apellidos", key: "apellido" },
   { label: "Cedula", key: "documento" },
   { label: "Telefono", key: "telefono" },
-  { label: "Activo", key: "activo" },
 ];
 
 const UsuarioListado = () => {
@@ -81,7 +80,7 @@ const UsuarioListado = () => {
         data={choferes} 
         columns={columns} 
         createLink="/choferes/crear" 
-        icons={[ <ToggleOffIcon/>, <ToggleOnIcon/>, <DeleteIcon />]}
+        icons={[<ToggleOffIcon style={{color: 'red'}}/>, <ToggleOnIcon style={{color: 'green'}} /> ,<DeleteIcon />]}
         iconsLinks={[  "", "", "/choferes/eliminar?chofer_id="]}
         iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Chofer"]}
         getFunction={obtenerChoferes}
