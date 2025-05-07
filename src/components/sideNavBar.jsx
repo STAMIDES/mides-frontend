@@ -18,7 +18,9 @@ const SideNavBar = () => {
 
   const api = useApi();
   const location = useLocation();
-  const pathVuePlanification = location.pathname.includes('/planificaciones/crear');
+  const pathVuePlanification = (location.pathname.includes('/planificaciones/') 
+    && !location.pathname.includes('/planificaciones/informe')
+)
 
   useEffect(() => {
     if (pathVuePlanification) {
