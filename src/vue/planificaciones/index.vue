@@ -30,6 +30,8 @@ import { ref, computed, onMounted } from 'vue';
 import MontevideoMap from '../components/montevideoMap.vue';
 import RightSidebar from '../components/rightSideNavBar.vue';
 import {useRoute} from "vue-router";
+import moment from 'moment';
+
 
 
 import { api } from "../../network/axios";
@@ -42,7 +44,7 @@ export default {
   },
   setup() {
     const route = useRoute();
-    const selectedDate = ref(new Date().toISOString().split('T')[0]);
+    const selectedDate = ref(moment().format('YYYY-MM-DD'));
     const errorPlanificacion = ref(null);
     const estadoError = ref(null);
     const pedidos = ref([]);

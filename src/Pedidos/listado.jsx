@@ -20,8 +20,8 @@ const columns = [
 const PedidoListado = () => {
   const [pedidos, setPedidos] = useState([]); 
   const today = new Date();
-  const defaultValue = today.toISOString().slice(0, 10);
-  const [date, setDate] = useState(moment(defaultValue, "YYYY-MM-DD"));
+  // Fix timezone issue - use moment directly with local timezone
+  const [date, setDate] = useState(moment()); // Initialize with current date in local timezone
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [pageSize, setPageSize] = useState(10);
@@ -29,7 +29,7 @@ const PedidoListado = () => {
   const [currentPage, setPage] = useState(1);
   const api = useApi();
 
-  moment.locale('en', {
+  moment.locale('es', {
     longDateFormat: {
       L: 'DD-MM-YYYY',
     }
@@ -90,7 +90,9 @@ const PedidoListado = () => {
     try {
       const offset = (page - 1) * pageSize;
       setPage(page);
-      const response = await api.get(`/pedidos/fecha/${selectedDate.format("YYYY-MM-DD")}?offset=${offset}&limit=${pageSize}&search=${search}`);
+      // Use local date format to avoid timezone issues
+      const formattedDate = selectedDate.format("YYYY-MM-DD");
+      const response = await api.get(`/pedidos/fecha/${formattedDate}?offset=${offset}&limit=${pageSize}&search=${search}`);
       setPedidos(procesarPedidos(response.data.pedidos));
       setCantidadPedidos(response.data.cantidad);
     } catch (error) {
@@ -105,7 +107,8 @@ const PedidoListado = () => {
 
   const handleDateChange = (newDate) => {
     if (moment(newDate, "DD-MM-YYYY", true).isValid()) {
-      setDate(moment(newDate, "YYYY-MM-DD"));
+      // Parse the date in the local timezone
+      setDate(moment(newDate, "DD-MM-YYYY"));
       setPage(1);
     }
   };

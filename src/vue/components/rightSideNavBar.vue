@@ -319,7 +319,7 @@ export default {
   setup(props, { emit }) {
     const isHidden = ref(false);
     const activeButton = ref('Pedidos');
-    const date = ref(new Date(props.selectedDate).toISOString().split('T')[0]);
+    const date = ref(props.selectedDate);
     const unselectedPedidos = ref([]);
     const isPlanificando = ref(false);
     const isDownloadingPDF = ref(false);

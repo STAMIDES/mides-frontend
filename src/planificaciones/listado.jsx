@@ -23,16 +23,14 @@ const columns = [
 
 const PlanificacionListado = () => {
   const [planificaciones, setPlanificaciones] = useState([]); 
-  const today = new Date();
-  const defaultValue = today.toISOString().slice(0, 10);
-  const [date, setDate] = useState(moment(defaultValue, "YYYY-MM-DD"));
+  const [date, setDate] = useState(moment());
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
   const [cantidadPlanificaciones, setCantidadPlanificaciones] = useState(0);
   const [currentPage, setPage] = useState(1);
   const api = useApi();
 
-  moment.locale('en', {
+  moment.locale('es', {
     longDateFormat: {
       L: 'DD-MM-YYYY',
     }
@@ -100,9 +98,10 @@ const PlanificacionListado = () => {
   
   const handleDateChange = (newDate) => {
     if (moment(newDate, "DD-MM-YYYY", true).isValid()) {
-      setDate(moment(newDate, "YYYY-MM-DD"));
+      setDate(moment(newDate, "DD-MM-YYYY"));
     }
   };
+  
   const handleSearch = (searchTerm) => {
     obtenerPlanificaciones(1, date, searchTerm);
   };
