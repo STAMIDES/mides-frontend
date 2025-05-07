@@ -62,7 +62,19 @@ const InformeEstadistico = () => {
       setSuccess('Informe descargado exitosamente');
     } catch (error) {
       console.error('Error al generar el informe:', error);
-      setError('Error al generar el informe. Por favor intente nuevamente.');
+      if (error.response && error.response.data instanceof Blob) {
+        try {
+          const text = await error.response.data.text();
+          const json = JSON.parse(text);
+          const mensaje = json.detail || 'Error desconocido.';
+          setError(mensaje);
+        } catch (parseError) {
+          console.error('No se pudo parsear el error:', parseError);
+          setError('Error al generar el informe. Por favor intente nuevamente.');
+        }   
+      } else {
+        setError('Error al generar el informe. Por favor intente nuevamente.');
+      }
     } finally {
       setLoading(false);
     }
@@ -125,10 +137,12 @@ const InformeEstadistico = () => {
             
             {error && (
               <Grid item xs={12}>
-                <Alert severity="error">{error}</Alert>
+                <Alert severity="error" sx={{ whiteSpace: 'pre-line' }}>
+                  {error}
+                </Alert>
               </Grid>
             )}
-            
+
             {success && (
               <Grid item xs={12}>
                 <Alert severity="success">{success}</Alert>
