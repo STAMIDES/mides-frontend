@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Container, Paper, Typography, Button, Grid, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControlLabel, Checkbox } from '@mui/material';
 import useApi from '../../network/axios';
 import '../css/detalle.css';
+import { caracteristicasVistas } from './consts';
 
 const CamionetaDetalles = () => {
   const { id } = useParams();
@@ -138,7 +139,7 @@ const CamionetaDetalles = () => {
             <Typography variant="h6">Características:</Typography>
             {camioneta.caracteristicas && camioneta.caracteristicas.length > 0 ? (
               camioneta.caracteristicas.map((caracteristica, index) => (
-                <Typography key={index}>{caracteristica.nombre}</Typography>
+                <Typography key={index}>{caracteristica.nombre in caracteristicasVistas ? caracteristicasVistas[caracteristica.nombre] : caracteristica.nombre}</Typography>
               ))
             ) : (
               <Typography>Sin características asignadas</Typography>

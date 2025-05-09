@@ -6,6 +6,7 @@ import useApi from '../network/axios';
 import { useNavigate } from 'react-router-dom';
 import { geocodeAddress } from '../utils/geocoder';
 import MapaUbicacion from '../components/mapaUbicacion';
+import { caracteristicasVistas } from './consts';
 const CustomAlert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
@@ -320,7 +321,7 @@ const CrearUsuario = ({ usuario = {} }) => {
                               onChange={() => handleCheckboxChange(value.id)}
                             />
                           }
-                          label={value.nombre}
+                          label={value.nombre in caracteristicasVistas ? caracteristicasVistas[value.nombre] : value.nombre}
                         />
                       ))}
                     </FormGroup>

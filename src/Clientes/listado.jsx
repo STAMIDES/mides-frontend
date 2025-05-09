@@ -5,6 +5,7 @@ import ListComponent from "../components/listados";
 import useApi from "../network/axios"; // Ensure this path matches your actual API file path
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { caracteristicasVistas } from './consts';
 
 const columns = [
   { label: "Nombre", key: "nombre" },
@@ -21,12 +22,28 @@ const ClienteListado = () => {
   const [currentPage, setPage] = useState(1);
   const api = useApi();
 
+  const parseCaracteristicas = (caracteristicas) => {
+    if (!caracteristicas) {
+      return [];
+    }
+    return caracteristicas.map(caracteristica => {
+      return {
+        nombre: caracteristica.nombre in caracteristicasVistas ? caracteristicasVistas[caracteristica.nombre] : caracteristica.nombre,
+      };
+    });
+  };
+
   const obtenerClientes = async (page=1, search = '') => {
     try {
       const offset = page * 10 - pageSize;
       setPage(page);
       const response = await api.get(`/clientes?offset=${offset}&limit=${pageSize}&search=${search}`);
-      setClients(response.data.clientes);
+      let clientes = response.data.clientes;
+      clientes = clients.map(cliente => {
+        cliente.caracteristicas = parseCaracteristicas(cliente.caracteristicas);
+        return cliente;
+      });
+      setClients(clientes);
       setCantidadClientes(response.data.cantidad);
     } catch (error) {
       if (error.response) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Checkbox, TextField, Button, Typography, FormLabel, FormGroup, Container, Grid, Paper, FormControl, FormControlLabel, Alert } from '@mui/material';
 import useApi from '../../network/axios';
+import { caracteristicasVistas } from './consts';
 
 const CamionetasCrear = ({ camioneta = {} }) => {
   const [formData, setFormData] = useState({
@@ -104,16 +105,18 @@ const CamionetasCrear = ({ camioneta = {} }) => {
                 <FormLabel component="legend">Caracteristicas</FormLabel>
                 <FormGroup row>
                   {caracteristicasTodas.map((value, index) => (
+                    <div>
                     <FormControlLabel
                       key={value.id}
                       control={
                         <Checkbox
-                          checked={caracteristicas.includes(value.id)}
-                          onChange={() => handleCheckboxChange(value.id)}
+                        checked={caracteristicas.includes(value.id)}
+                        onChange={() => handleCheckboxChange(value.id)}
                         />
                       }
-                      label={value.nombre}
-                    />
+                      label={value.nombre in caracteristicasVistas ? caracteristicasVistas[value.nombre] : value.nombre}
+                      />
+                    </div>
                   ))}
                 </FormGroup>
               </FormControl>
