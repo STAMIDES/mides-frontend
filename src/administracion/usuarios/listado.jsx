@@ -51,9 +51,6 @@ const OperadorListado = () => {
         data={operadores} 
         columns={columns} 
         createLink="/operadores/crear" 
-        icons={[ <ModeEditOutlineIcon />, <DeleteIcon />]}
-        iconsLinks={[ "/operadores/editar?usuario_id=",  "/operadores/eliminar?usuario_id="]}
-        iconsTooltip={["Editar Operador", "Eliminar Operador"]}
         getFunction={obtenerUsuarios}
         pageCounter={Math.ceil(cantidadUsuarios/pageSize)}
       />

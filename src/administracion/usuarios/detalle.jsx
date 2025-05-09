@@ -39,14 +39,14 @@ const OperadorDetalles = () => {
           <Typography variant="h4" gutterBottom>
             Detalles del Operador
           </Typography>
-          <div>
+          {/* <div>
             <Button variant="contained" color="secondary" onClick={handleEdit}>
               Editar
             </Button>
             <Button variant="contained" color="error" onClick={handleDelete} style={{ marginLeft: '10px' }}>
               Borrar
-            </Button>
-          </div>
+            </Button> TODO: editar que? borrar que?
+          </div> */}
         </div>
         <Grid container spacing={3} className='details-container' style={{ width: '100%', margin: '0' }} >
           <Grid item xs={12} sm={6}>
