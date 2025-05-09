@@ -9,7 +9,7 @@ const ListComponent = ({
   detailLink="",
   filterComponentProps,
   filterComponent: FilterComponent,
-  icons,
+  icons=[],
   iconsLinks,
   iconsTooltip,
   getFunction,
