@@ -42,23 +42,36 @@
                 </div>
                 
                 <div class="visitas-container">
-                  <div v-for="(visita, vIndex) in ruta.visitas" :key="vIndex" class="visita-row">
-                    <div class="visita-time">{{ formatTime(visita.hora_llegada) }}</div>
-                    <div class="visita-status-wrapper" :class="getStatusClass(visita.estado)">
-                      <div class="visita-status-circle" :class="getStatusClass(visita.estado)"></div>
+                  <template v-for="(item) in getProcessedVisitas(ruta)" :key="item.unique_key">
+                    <div v-if="item.type === 'visita'" class="visita-row">
+                      <div class="visita-time">{{ formatTime(item.hora_llegada) }}</div>
+                      <div class="visita-status-wrapper" :class="getStatusClass(item.estado)">
+                        <div class="visita-status-circle" :class="getStatusClass(item.estado)"></div>
+                      </div>
+                      <div class="visita-address">
+                        <span v-if="item.tipo_item === 'Lugar común'">
+                          Lugar Comun: {{ item.item.nombre }}
+                        </span>
+                        <span v-else>
+                          {{ item.item.direccion }}
+                        </span>
+                      </div>
                     </div>
-                    <div class="visita-address">
-                      <span v-if="visita.tipo_item === 'Lugar común'">
-                        Lugar Comun: {{ visita.item.nombre }}
-                      </span>
-                      <span v-else>
-                        {{ visita.item.direccion }}
-                      </span>
+                    <div v-else-if="item.type === 'descanso'" class="visita-row descanso-row">
+                      <div class="visita-time">{{ formatTime(item.inicio) }} - {{ formatTime(item.fin) }}</div>
+                      <div class="visita-status-wrapper descanso-status-wrapper">
+                        <div class="visita-status-circle descanso-status-circle">
+                          ☕
+                        </div>
+                      </div>
+                      <div class="visita-address descanso-details">
+                        <strong>Descanso Programado</strong>
+                      </div>
                     </div>
-                  </div>
+                  </template>
                 </div>
-              </div>
             </div>
+          </div>
 
             <div v-if="planificacion.pedidos_no_atendidos && planificacion.pedidos_no_atendidos.length > 0" class="unattended-pedidos">
               <h3 class="unattended-title">Solicitudes no atendidos</h3>
@@ -550,6 +563,44 @@ export default {
         emit('selected-turnos', selectedTurnos);
       }
     });
+    const getProcessedVisitas = (ruta) => {
+      const processedItems = [];
+      let keyCounter = 0; 
+
+      if (ruta.visitas) {
+        ruta.visitas.forEach(v => {
+          processedItems.push({ 
+            ...v, 
+            type: 'visita', 
+            sortTime: v.hora_llegada,
+            unique_key: `visita_${v.id !== undefined ? v.id : keyCounter++}_${v.item?.id || keyCounter++}` 
+          });
+        });
+      }
+
+      if (ruta.descanso_inicio && ruta.descanso_fin) {
+        processedItems.push({ 
+          type: 'descanso', 
+          inicio: ruta.descanso_inicio, 
+          fin: ruta.descanso_fin, 
+          sortTime: ruta.descanso_inicio,
+          unique_key: `descanso_${ruta.id !== undefined ? ruta.id : keyCounter++}_${ruta.descanso_inicio}`
+        });
+      }
+
+      processedItems.sort((a, b) => {
+        if (a.sortTime < b.sortTime) return -1;
+        if (a.sortTime > b.sortTime) return 1;
+        // If times are equal, ensure 'visita' comes before 'descanso' if one is a start/end point
+        // This specific sorting might need adjustment based on exact business logic for ties
+        if (a.type === 'visita' && b.type === 'descanso') return -1;
+        if (a.type === 'descanso' && b.type === 'visita') return 1;
+        return 0;
+      });
+      
+      return processedItems;
+    };
+
     console.log(selectedVehicles.value);
     return {
       isHidden,
@@ -577,6 +628,7 @@ export default {
       getTurnoClass,
       isTurnoVehicleSelected,
       getStatusClass,
+      getProcessedVisitas,
       handleRowHover,
       getRowBackgroundColor,
       downloadPlanificacionPDF,
@@ -1075,8 +1127,8 @@ export default {
 }
 
 .status-completed.visita-status-circle {
-  background-color: #6b7280;
-  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2);
+  background-color: #6b7280; /* Changed from #10b981 to a more neutral completed status */
+  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2); /* Adjusted shadow to match new color */
 }
 
 .visita-status-wrapper::before {
@@ -1094,7 +1146,7 @@ export default {
 }
 
 .status-completed.visita-status-wrapper::before {
-  background-color: #6b7280;
+  background-color: #6b7280; /* Matched to circle color */
 }
 
 .visita-address {
@@ -1142,7 +1194,12 @@ export default {
   border-spacing: 0;
   font-size: 0.85em;
 }
-
+.descanso-row{
+  background-color: #f3e6b5; /* Light creamy yellow for rest periods */
+}
+.descanso-row:hover {
+  background-color: #fff5cc; /* Slightly darker on hover */
+}
 .unattended-table th {
   background-color: #fee2e2;
   color: #991b1b;
@@ -1215,7 +1272,6 @@ export default {
 
 .planification-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
 }
@@ -1243,16 +1299,27 @@ export default {
   border-top-color: #fff;
   animation: spin 1s ease-in-out infinite;
 }
-
-.error-download {
-  margin-top: 10px;
-  padding: 10px;
-  background-color: #fef2f2; /* Light red */
-  color: #b91c1c; /* Dark red */
-  border-radius: 4px;
-  border-left: 4px solid #dc2626; /* Red border */
-  font-size: 0.9em;
+.descanso-status-wrapper.visita-status-wrapper::before { /* Ensure specificity */
+  background-color: #fbbf24; /* Amber/Orange for rest line */
 }
+
+.descanso-status-circle.visita-status-circle { /* Ensure specificity */
+  background-color: #fbbf24; /* Amber/Orange for rest circle */
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3);
+  color: #78350f; /* Dark brown for icon color for contrast */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px; /* Adjusted for icon */
+}
+.descanso-details {
+  color: #78350f; /* Dark brown text for rest details */
+  font-style: italic;
+}
+.visita-row.descanso-row .visita-time {
+  color: #78350f; /* Match text color */
+}
+
 .checkbox-wrapper {
   display: flex;
   align-items: center;
