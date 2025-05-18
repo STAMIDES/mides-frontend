@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { onMounted, watch, ref, defineEmits } from 'vue';
+import { onMounted, watch, ref, defineEmits, nextTick } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import homeImg from '../../imgs/map_home.png';
@@ -446,17 +446,21 @@ const addPlanificacionToMap = () => {
 };
 
 onMounted(() => {
-  map = L.map('map').setView([-34.8704884, -56.1401427], 13);
+  console.log("onMounted1");
+  nextTick(() => {
+    console.log("onMounted2");
+    map = L.map('map').setView([-34.8704884, -56.1401427], 13);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 
-  if (props.showPedidos && props.processedPedidos) {
-    addPedidosToMap();
-  } else if (props.planificacion.rutas) {
-    addPlanificacionToMap();
-  }
+    if (props.showPedidos && props.processedPedidos) {
+      addPedidosToMap();
+    } else if (props.planificacion.rutas) {
+      addPlanificacionToMap();
+    }
+  });
 });
 
 // Watchers

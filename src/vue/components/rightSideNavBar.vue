@@ -235,6 +235,15 @@
                           {{ chofer.nombre }}
                         </option>
                       </select>
+                      <div class="checkbox-wrapper">
+                        <input 
+                          type="checkbox" 
+                          :id="'descanso-' + index + '-' + vehicle.id"
+                          :checked="getTurnoVehicleDescanso(index, vehicle.id)"
+                          @change="toggleDescanso(index, vehicle.id, $event.target.checked)"
+                        />
+                        <label :for="'descanso-' + index + '-' + vehicle.id">Con descanso</label>
+                      </div>
                     </template>
                   </div>
                 </div>
@@ -424,14 +433,20 @@ export default {
       const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
 
       if (index === -1) {
-        turno.vehicles.push({ vehicle_id: vehicleId, lugares_comunes_id: null, chofer_id: null, vehicleIdWithTurnoIndex: `${vehicleId}${turnoIndex}` });
+        turno.vehicles.push({ 
+          vehicle_id: vehicleId, 
+          lugares_comunes_id: null, 
+          chofer_id: null, 
+          vehicleIdWithTurnoIndex: `${vehicleId}${turnoIndex}`,
+          con_descanso: true // Initialize con_descanso as true by default
+        });
       } else {
         turno.vehicles.splice(index, 1);
       }
       
       emit('selected-turnos', turnos.value);
     };
-
+   
     const selectLugarComun = (turnoIndex, vehicleId, lugarComunId) => {
       const turno = turnos.value[turnoIndex];
       const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
@@ -439,13 +454,29 @@ export default {
         turno.vehicles[index].lugares_comunes_id =  parseInt(lugarComunId);
         emit('selected-turnos', turnos.value);
       }
-    };
-
+    }; 
+    
     const selectChofer = (turnoIndex, vehicleId, choferId) => {
       const turno = turnos.value[turnoIndex];
       const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
       if (index !== -1) {
         turno.vehicles[index].chofer_id = parseInt(choferId);
+        emit('selected-turnos', turnos.value);
+      }
+    };
+
+
+    const getTurnoVehicleDescanso = (turnoIndex, vehicleId) => {
+      const vehicle = turnos.value[turnoIndex].vehicles.find(v => v.vehicle_id === vehicleId);
+      return vehicle ? vehicle.con_descanso !== false : true; // Default to true if not explicitly set
+    };
+
+    const toggleDescanso = (turnoIndex, vehicleId, isChecked) => {
+      const turno = turnos.value[turnoIndex];
+      const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
+      
+      if (index !== -1) {
+        turno.vehicles[index].con_descanso = isChecked;
         emit('selected-turnos', turnos.value);
       }
     };
@@ -550,7 +581,9 @@ export default {
       getRowBackgroundColor,
       downloadPlanificacionPDF,
       isDownloadingPDF,
-      downloadError
+      downloadError,
+      getTurnoVehicleDescanso,
+      toggleDescanso
     };
   }
 };
@@ -1219,5 +1252,11 @@ export default {
   border-radius: 4px;
   border-left: 4px solid #dc2626; /* Red border */
   font-size: 0.9em;
+}
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  gap: 5px;
 }
 </style>

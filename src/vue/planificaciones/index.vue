@@ -299,6 +299,7 @@ export default {
                   longitude: lc.longitud
                 },
               },
+              with_rest: vehiculo_selected.con_descanso !== false, // Use the new con_descanso property with a default to true
               depot_end: { //FIXME: hardcodeado
                 id: lc.id,
                 address:  lc.nombre,
@@ -508,6 +509,7 @@ export default {
     };
 
     onMounted(() => {
+      console.log("onMounted1");
       fetchVehiculos()
       fetchChoferes()
       fetchLugaresComunes()
