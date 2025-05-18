@@ -111,7 +111,7 @@ const PlanificacionListado = () => {
       <Header createLink="./crear"  onSearch={handleSearch}
       customButtons={[
         { customLink: "/planificaciones/informe", customMessage: "Generar informe estadístico", 
-          customColor: "tomato" }
+          customColor: "lightseagreen" }
       ]}
       />
       {error && <p>{error}</p>}
