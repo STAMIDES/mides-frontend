@@ -58,7 +58,10 @@
                       </div>
                     </div>
                     <div v-else-if="item.type === 'descanso'" class="visita-row descanso-row">
-                      <div class="visita-time">{{ formatTime(item.inicio) }} - {{ formatTime(item.fin) }}</div>
+                      <div class="descanso-time-container">
+                        <div class="visita-time">{{ formatTime(item.inicio) }}</div>
+                        <div class="visita-time descanso-end-time">{{ formatTime(item.fin) }}</div>
+                      </div>
                       <div class="visita-status-wrapper descanso-status-wrapper">
                         <div class="visita-status-circle descanso-status-circle">
                           ☕
@@ -1325,5 +1328,20 @@ export default {
   align-items: center;
   margin-top: 8px;
   gap: 5px;
+}
+
+.descanso-time-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.descanso-end-time {
+  border-top: 1px dotted #78350f;
+}
+
+.descanso-row {
+  min-height: 60px;
 }
 </style>
