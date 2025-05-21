@@ -3,13 +3,10 @@ import { Container } from "@mui/material";
 import Header from "../../components/headerList";
 import ListComponent from "../../components/listados";
 import useApi from "../../network/axios"; // Ensure this path matches your actual API file path
-import AddCircleIcon from '@mui/icons-material/AddCircle';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
+
 const columns = [
   { label: "Nombre", key: "nombre" },
   { label: "Corre electronico", key: "email" },
-  { label: "Rol", key: "rol" }
 ];
 
 const OperadorListado = () => {
