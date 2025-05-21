@@ -26,6 +26,7 @@ const PlanificacionListado = () => {
   const [date, setDate] = useState(moment());
   const [error, setError] = useState(null);
   const [pageSize, setPageSize] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
   const [cantidadPlanificaciones, setCantidadPlanificaciones] = useState(0);
   const [currentPage, setPage] = useState(1);
   const api = useApi();
@@ -35,6 +36,11 @@ const PlanificacionListado = () => {
       L: 'DD-MM-YYYY',
     }
   });
+
+   
+  useEffect(() => {
+    obtenerPlanificaciones(currentPage, date, searchTerm);
+  }, [date, currentPage, searchTerm]);
   
   const setStatus = async (id, status) => {
     try {
@@ -103,7 +109,8 @@ const PlanificacionListado = () => {
   };
   
   const handleSearch = (searchTerm) => {
-    obtenerPlanificaciones(1, date, searchTerm);
+    setPage(1);
+    setSearchTerm(searchTerm);
   };
 
   return (
