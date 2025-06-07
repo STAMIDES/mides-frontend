@@ -213,13 +213,25 @@
                     </div>
                       <template v-if="isTurnoVehicleSelected(index, vehicle.id)">
                       <select
-                        @change="selectLugarComun(index, vehicle.id, $event.target.value)">
+                        @change="selectLugarComunStart(index, vehicle.id, $event.target.value)">
                         <option value="">Lugar de salida</option>
                         <option 
                           v-for="lugar in lugaresComunes" 
                           :key="lugar.id" 
                           :value="lugar.id"
-                          :selected="turnos[index].vehicles?.some(tv => tv.vehicle_id === vehicle.id && parseInt(tv.lugares_comunes_id) === lugar.id)"
+                          :selected="turnos[index].vehicles?.some(tv => tv.vehicle_id === vehicle.id && parseInt(tv.lugar_comun_start_id) === lugar.id)"
+                        >
+                          {{ lugar.nombre }}
+                        </option>
+                      </select>
+                      <select
+                        @change="selectLugarComunEnd(index, vehicle.id, $event.target.value)">
+                        <option value="">Lugar de llegada</option>
+                        <option 
+                          v-for="lugar in lugaresComunes" 
+                          :key="lugar.id" 
+                          :value="lugar.id"
+                          :selected="turnos[index].vehicles?.some(tv => tv.vehicle_id === vehicle.id && parseInt(tv.lugar_comun_end_id) === lugar.id)"
                         >
                           {{ lugar.nombre }}
                         </option>
@@ -424,7 +436,13 @@ export default {
       const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
 
       if (index === -1) {
-        turno.vehicles.push({ vehicle_id: vehicleId, lugares_comunes_id: null, chofer_id: null, vehicleIdWithTurnoIndex: `${vehicleId}${turnoIndex}` });
+        turno.vehicles.push({ 
+          vehicle_id: vehicleId, 
+          lugar_comun_start_id: null, 
+          lugar_comun_end_id: null, 
+          chofer_id: null, 
+          vehicleIdWithTurnoIndex: `${vehicleId}${turnoIndex}` 
+        });
       } else {
         turno.vehicles.splice(index, 1);
       }
@@ -432,11 +450,20 @@ export default {
       emit('selected-turnos', turnos.value);
     };
 
-    const selectLugarComun = (turnoIndex, vehicleId, lugarComunId) => {
+    const selectLugarComunStart = (turnoIndex, vehicleId, lugarComunId) => {
       const turno = turnos.value[turnoIndex];
       const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
       if (index !== -1) {
-        turno.vehicles[index].lugares_comunes_id =  parseInt(lugarComunId);
+        turno.vehicles[index].lugar_comun_start_id = parseInt(lugarComunId);
+        emit('selected-turnos', turnos.value);
+      }
+    };
+
+    const selectLugarComunEnd = (turnoIndex, vehicleId, lugarComunId) => {
+      const turno = turnos.value[turnoIndex];
+      const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
+      if (index !== -1) {
+        turno.vehicles[index].lugar_comun_end_id = parseInt(lugarComunId);
         emit('selected-turnos', turnos.value);
       }
     };
@@ -533,7 +560,8 @@ export default {
       planificar,
       selectedVehicles,
       toggleSelectionVehiculo,
-      selectLugarComun,
+      selectLugarComunStart,
+      selectLugarComunEnd,
       selectChofer,
       isPlanificando,
       planificar,
