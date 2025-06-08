@@ -1171,7 +1171,7 @@ export default {
 }
 
 .status-completed.visita-status-wrapper::before {
-  background-color: #6b7280; /* Matched to circle color */
+  background-color: #6b7280;
 }
 
 .visita-address {

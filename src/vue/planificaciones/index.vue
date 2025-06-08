@@ -308,7 +308,7 @@ export default {
                   longitude: lcStart.longitud
                 },
               },
-              with_rest: vehiculo_selected.con_descanso !== false, // Use the new con_descanso property with a default to true
+              with_rest: vehiculo_selected.con_descanso !== false,
               depot_end: {
                 id: lcEnd.id,
                 address: lcEnd.nombre,
