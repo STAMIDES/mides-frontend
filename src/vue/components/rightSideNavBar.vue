@@ -1060,7 +1060,6 @@ export default {
   font-weight: bold;
 }
 
-/* Modern colors for each shift */
 .turno-0 { background-color: #f0f9ff; border-left: 4px solid #0284c7; }
 .turno-1 { background-color: #f0fdf4; border-left: 4px solid #16a34a; }
 .turno-2 { background-color: #fef2f2; border-left: 4px solid #dc2626; }
@@ -1153,8 +1152,8 @@ export default {
 }
 
 .status-completed.visita-status-circle {
-  background-color: #6b7280; /* Changed from #10b981 to a more neutral completed status */
-  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2); /* Adjusted shadow to match new color */
+  background-color: #6b7280; 
+  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2); 
 }
 
 .visita-status-wrapper::before {
@@ -1336,7 +1335,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px; /* Adjusted for icon */
+  font-size: 12px;
 }
 .descanso-details {
   color: #78350f; /* Dark brown text for rest details */

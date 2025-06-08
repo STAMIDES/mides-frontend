@@ -525,7 +525,6 @@ export default {
     };
 
     onMounted(() => {
-      console.log("onMounted1");
       fetchVehiculos()
       fetchChoferes()
       fetchLugaresComunes()

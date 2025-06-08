@@ -446,9 +446,7 @@ const addPlanificacionToMap = () => {
 };
 
 onMounted(() => {
-  console.log("onMounted1");
   nextTick(() => {
-    console.log("onMounted2");
     map = L.map('map').setView([-34.8704884, -56.1401427], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
