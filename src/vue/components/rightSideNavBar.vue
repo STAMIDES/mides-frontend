@@ -42,23 +42,39 @@
                 </div>
                 
                 <div class="visitas-container">
-                  <div v-for="(visita, vIndex) in ruta.visitas" :key="vIndex" class="visita-row">
-                    <div class="visita-time">{{ formatTime(visita.hora_llegada) }}</div>
-                    <div class="visita-status-wrapper" :class="getStatusClass(visita.estado)">
-                      <div class="visita-status-circle" :class="getStatusClass(visita.estado)"></div>
+                  <template v-for="(item) in getProcessedVisitas(ruta)" :key="item.unique_key">
+                    <div v-if="item.type === 'visita'" class="visita-row">
+                      <div class="visita-time">{{ formatTime(item.hora_llegada) }}</div>
+                      <div class="visita-status-wrapper" :class="getStatusClass(item.estado)">
+                        <div class="visita-status-circle" :class="getStatusClass(item.estado)"></div>
+                      </div>
+                      <div class="visita-address">
+                        <span v-if="item.tipo_item === 'Lugar común'">
+                          Lugar Comun: {{ item.item.nombre }}
+                        </span>
+                        <span v-else>
+                          {{ item.item.direccion }}
+                        </span>
+                      </div>
                     </div>
-                    <div class="visita-address">
-                      <span v-if="visita.tipo_item === 'Lugar común'">
-                        Lugar Comun: {{ visita.item.nombre }}
-                      </span>
-                      <span v-else>
-                        {{ visita.item.direccion }}
-                      </span>
+                    <div v-else-if="item.type === 'descanso'" class="visita-row descanso-row">
+                      <div class="descanso-time-container">
+                        <div class="visita-time">{{ formatTime(item.inicio) }}</div>
+                        <div class="visita-time descanso-end-time">{{ formatTime(item.fin) }}</div>
+                      </div>
+                      <div class="visita-status-wrapper descanso-status-wrapper">
+                        <div class="visita-status-circle descanso-status-circle">
+                          ☕
+                        </div>
+                      </div>
+                      <div class="visita-address descanso-details">
+                        <strong>Descanso Programado</strong>
+                      </div>
                     </div>
-                  </div>
+                  </template>
                 </div>
-              </div>
             </div>
+          </div>
 
             <div v-if="planificacion.pedidos_no_atendidos && planificacion.pedidos_no_atendidos.length > 0" class="unattended-pedidos">
               <h3 class="unattended-title">Solicitudes no atendidos</h3>
@@ -247,6 +263,15 @@
                           {{ chofer.nombre }}
                         </option>
                       </select>
+                      <div class="checkbox-wrapper">
+                        <input 
+                          type="checkbox" 
+                          :id="'descanso-' + index + '-' + vehicle.id"
+                          :checked="getTurnoVehicleDescanso(index, vehicle.id)"
+                          @change="toggleDescanso(index, vehicle.id, $event.target.checked)"
+                        />
+                        <label :for="'descanso-' + index + '-' + vehicle.id">Con descanso</label>
+                      </div>
                     </template>
                   </div>
                 </div>
@@ -438,6 +463,7 @@ export default {
       if (index === -1) {
         turno.vehicles.push({ 
           vehicle_id: vehicleId, 
+          con_descanso: true,
           lugar_comun_start_id: null, 
           lugar_comun_end_id: null, 
           chofer_id: null, 
@@ -466,13 +492,29 @@ export default {
         turno.vehicles[index].lugar_comun_end_id = parseInt(lugarComunId);
         emit('selected-turnos', turnos.value);
       }
-    };
-
+    }; 
+    
     const selectChofer = (turnoIndex, vehicleId, choferId) => {
       const turno = turnos.value[turnoIndex];
       const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
       if (index !== -1) {
         turno.vehicles[index].chofer_id = parseInt(choferId);
+        emit('selected-turnos', turnos.value);
+      }
+    };
+
+
+    const getTurnoVehicleDescanso = (turnoIndex, vehicleId) => {
+      const vehicle = turnos.value[turnoIndex].vehicles.find(v => v.vehicle_id === vehicleId);
+      return vehicle ? vehicle.con_descanso !== false : true; // Default to true if not explicitly set
+    };
+
+    const toggleDescanso = (turnoIndex, vehicleId, isChecked) => {
+      const turno = turnos.value[turnoIndex];
+      const index = turno.vehicles.findIndex(v => v.vehicle_id === vehicleId);
+      
+      if (index !== -1) {
+        turno.vehicles[index].con_descanso = isChecked;
         emit('selected-turnos', turnos.value);
       }
     };
@@ -546,6 +588,44 @@ export default {
         emit('selected-turnos', selectedTurnos);
       }
     });
+    const getProcessedVisitas = (ruta) => {
+      const processedItems = [];
+      let keyCounter = 0; 
+
+      if (ruta.visitas) {
+        ruta.visitas.forEach(v => {
+          processedItems.push({ 
+            ...v, 
+            type: 'visita', 
+            sortTime: v.hora_llegada,
+            unique_key: `visita_${v.id !== undefined ? v.id : keyCounter++}_${v.item?.id || keyCounter++}` 
+          });
+        });
+      }
+
+      if (ruta.descanso_inicio && ruta.descanso_fin) {
+        processedItems.push({ 
+          type: 'descanso', 
+          inicio: ruta.descanso_inicio, 
+          fin: ruta.descanso_fin, 
+          sortTime: ruta.descanso_inicio,
+          unique_key: `descanso_${ruta.id !== undefined ? ruta.id : keyCounter++}_${ruta.descanso_inicio}`
+        });
+      }
+
+      processedItems.sort((a, b) => {
+        if (a.sortTime < b.sortTime) return -1;
+        if (a.sortTime > b.sortTime) return 1;
+        // If times are equal, ensure 'visita' comes before 'descanso' if one is a start/end point
+        // This specific sorting might need adjustment based on exact business logic for ties
+        if (a.type === 'visita' && b.type === 'descanso') return -1;
+        if (a.type === 'descanso' && b.type === 'visita') return 1;
+        return 0;
+      });
+      
+      return processedItems;
+    };
+
     console.log(selectedVehicles.value);
     return {
       isHidden,
@@ -574,11 +654,14 @@ export default {
       getTurnoClass,
       isTurnoVehicleSelected,
       getStatusClass,
+      getProcessedVisitas,
       handleRowHover,
       getRowBackgroundColor,
       downloadPlanificacionPDF,
       isDownloadingPDF,
-      downloadError
+      downloadError,
+      getTurnoVehicleDescanso,
+      toggleDescanso
     };
   }
 };
@@ -977,7 +1060,6 @@ export default {
   font-weight: bold;
 }
 
-/* Modern colors for each shift */
 .turno-0 { background-color: #f0f9ff; border-left: 4px solid #0284c7; }
 .turno-1 { background-color: #f0fdf4; border-left: 4px solid #16a34a; }
 .turno-2 { background-color: #fef2f2; border-left: 4px solid #dc2626; }
@@ -1070,8 +1152,8 @@ export default {
 }
 
 .status-completed.visita-status-circle {
-  background-color: #6b7280;
-  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2);
+  background-color: #6b7280; 
+  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2); 
 }
 
 .visita-status-wrapper::before {
@@ -1137,7 +1219,12 @@ export default {
   border-spacing: 0;
   font-size: 0.85em;
 }
-
+.descanso-row{
+  background-color: #f3e6b5; /* Light creamy yellow for rest periods */
+}
+.descanso-row:hover {
+  background-color: #fff5cc; /* Slightly darker on hover */
+}
 .unattended-table th {
   background-color: #fee2e2;
   color: #991b1b;
@@ -1210,7 +1297,6 @@ export default {
 
 .planification-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
 }
@@ -1238,14 +1324,46 @@ export default {
   border-top-color: #fff;
   animation: spin 1s ease-in-out infinite;
 }
+.descanso-status-wrapper.visita-status-wrapper::before { /* Ensure specificity */
+  background-color: #fbbf24; /* Amber/Orange for rest line */
+}
 
-.error-download {
-  margin-top: 10px;
-  padding: 10px;
-  background-color: #fef2f2; /* Light red */
-  color: #b91c1c; /* Dark red */
-  border-radius: 4px;
-  border-left: 4px solid #dc2626; /* Red border */
-  font-size: 0.9em;
+.descanso-status-circle.visita-status-circle { /* Ensure specificity */
+  background-color: #fbbf24; /* Amber/Orange for rest circle */
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3);
+  color: #78350f; /* Dark brown for icon color for contrast */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.descanso-details {
+  color: #78350f; /* Dark brown text for rest details */
+  font-style: italic;
+}
+.visita-row.descanso-row .visita-time {
+  color: #78350f; /* Match text color */
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  gap: 5px;
+}
+
+.descanso-time-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.descanso-end-time {
+  border-top: 1px dotted #78350f;
+}
+
+.descanso-row {
+  min-height: 60px;
 }
 </style>

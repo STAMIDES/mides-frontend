@@ -197,11 +197,19 @@ export default {
             }
 
             const vehicle = turno.vehicles.find(v => v.vehicleIdWithTurnoIndex === p.vehicle_id);
+            let descanso_inicio = null;
+            let descanso_fin = null;
+            if (vehicle.con_descanso) {
+              descanso_inicio = p?.rest_time_window?.start;
+              descanso_fin = p?.rest_time_window?.end;
+            }
             normalizedRutas.push({
                     id_vehiculo: vehicle.vehicle_id,
                     id_chofer: vehicle.chofer_id,
                     hora_inicio: arrival_time_start_depot,
                     hora_fin: arrival_time_end_depot,
+                    descanso_inicio: descanso_inicio,
+                    descanso_fin: descanso_fin,
                     geometria: p.geometry,
                     visitas: p.visits.map(v=>{
                       return {
@@ -300,6 +308,7 @@ export default {
                   longitude: lcStart.longitud
                 },
               },
+              with_rest: vehiculo_selected.con_descanso !== false,
               depot_end: {
                 id: lcEnd.id,
                 address: lcEnd.nombre,
