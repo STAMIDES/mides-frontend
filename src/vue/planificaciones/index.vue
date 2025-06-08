@@ -241,6 +241,7 @@ export default {
           rutas: normalizedRutas,
           turnos: normalizedTurnos,
           pedidos_no_atendidos: nueva_planificacion.dropped_rides.map(p => parseInt(p)),
+          pedidos_no_seleccionados: unselectedPedidosIds.value,
         };
         return normalizedPlanificacion;
     }

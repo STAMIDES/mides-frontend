@@ -77,16 +77,17 @@
           </div>
 
             <div v-if="planificacion.pedidos_no_atendidos && planificacion.pedidos_no_atendidos.length > 0" class="unattended-pedidos">
-              <h3 class="unattended-title">Solicitudes no atendidos</h3>
+              <h3 class="unattended-title">Solicitudes no atendidas</h3>
               <div class="unattended-list">
                 <table class="pedidos-table unattended-table">
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Origen y Horario</th>
-                      <th>Paradas Intermedias</th>
-                      <th>Destino y Horario</th>
-                      <th></th>
+                      <th style="width: 5%;">ID</th>
+                      <th style="width: 20%;">Origen y Horario</th>
+                      <th style="width: 30%;">Paradas Intermedias</th>
+                      <th style="width: 20%;">Destino y Horario</th>
+                      <th style="width: 10%; text-align: center;">Motivo</th>
+                      <th style="width: 10%; text-align: center;"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -105,9 +106,13 @@
                       <td class="td-wrapper">
                         {{ pedido.direccion_destino_y_horario }}
                       </td>
-                      <td class="caracteristicas-cell">
-                        <span v-if="pedido.caracteristicas.some(c => c.nombre === 'silla_de_ruedas')">🦽</span>
-                        <span v-if="pedido.caracteristicas.some(c => c.nombre === 'rampa_electrica')">🔧</span>
+                      <td class="td-wrapper icon-cell" style="text-align: center;">
+                        <span v-if="pedido.no_enviado_al_optimizador" title="No enviado al optimizador">👤</span>
+                        <span v-else title="Descartado por optimizador">🤖</span>
+                      </td>
+                      <td class="caracteristicas-cell" style="text-align: center;">
+                        <span v-if="pedido.caracteristicas.some(c => c.nombre === 'silla_de_ruedas')" title="Requiere silla de ruedas">🦽</span>
+                        <span v-if="pedido.caracteristicas.some(c => c.nombre === 'rampa_electrica')" title="Requiere rampa eléctrica">🔧</span>
                       </td>
                     </tr>
                   </tbody>
@@ -149,7 +154,7 @@
                     <th></th>
                   </tr>
                 </thead>
-                <tbody style="font-size: 10px;">
+                <tbody style="font-size: 9px;">
                   <tr
                     v-for="(pedido, index) in processedPedidos"
                     :key="index"
@@ -178,8 +183,8 @@
                     </td>
                     <td>
                       <!-- Add icons for silla_de_ruedas and rampa_electrica -->
-                      <span v-if="pedido.caracteristicas.some(c => c.nombre === 'silla_de_ruedas')">🦽</span>
-                      <span v-if="pedido.caracteristicas.some(c => c.nombre === 'rampa_electrica')">🔧</span>
+                      <span v-if="pedido.caracteristicas.some(c => c.nombre === 'silla_de_ruedas')" title="Requiere silla de ruedas">🦽</span>
+                      <span v-if="pedido.caracteristicas.some(c => c.nombre === 'rampa_electrica')" title="Requiere rampa eléctrica">🔧</span>
                     </td>
                   </tr>
                 </tbody>
@@ -224,8 +229,8 @@
                     <label :for="'turno-' + index + '-' + vehicle.id" class="truncate">{{ vehicle.descripcion }}</label>
                     <label :for="'turno-' + index + '-' + vehicle.id">{{ vehicle.matricula }}</label>
                     <div>
-                      <span v-if="vehicle.caracteristicas.some(c => c.nombre === 'rampa_electrica')">🔧</span>
-                      <span v-if="vehicle.capacidad_silla_de_ruedas"> {{ vehicle.capacidad_silla_de_ruedas }} 🦽</span>
+                      <span title="Contiene rampa eléctrica" v-if="vehicle.caracteristicas.some(c => c.nombre === 'rampa_electrica')">🔧</span>
+                      <span title="# Capacidad de silla de ruedas" v-if="vehicle.capacidad_silla_de_ruedas"> {{ vehicle.capacidad_silla_de_ruedas }} 🦽</span>
                     </div>
                       <template v-if="isTurnoVehicleSelected(index, vehicle.id)">
                       <select
@@ -1077,6 +1082,7 @@ export default {
 
 .rutas-container {
   margin-top: 15px;
+  font-size: 0.7em;
 }
 
 .ruta-block {
@@ -1217,7 +1223,7 @@ export default {
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.85em;
+  font-size: 0.5em;
 }
 .descanso-row{
   background-color: #f3e6b5; /* Light creamy yellow for rest periods */
@@ -1229,7 +1235,7 @@ export default {
   background-color: #fee2e2;
   color: #991b1b;
   font-weight: 600;
-  padding: 10px;
+  padding: 5px;
   text-align: left;
   position: sticky;
   top: 0;
@@ -1237,10 +1243,14 @@ export default {
 }
 
 .unattended-table td {
-  padding: 10px;
+  padding: 5px;
   text-align: left;
   border-bottom: 1px solid #fee2e2;
   word-wrap: break-word;
+}
+
+.unattended-table td.icon-cell {
+  font-size: 1.2em; /* Slightly larger icons */
 }
 
 .unattended-row {
