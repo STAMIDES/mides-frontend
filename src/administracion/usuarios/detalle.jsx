@@ -48,18 +48,14 @@ const OperadorDetalles = () => {
             </Button> TODO: editar que? borrar que?
           </div> */}
         </div>
-        <Grid container spacing={3} className='details-container' style={{ width: '100%', margin: '0' }} >
-          <Grid item xs={12} sm={6}>
+        <Grid container spacing={3} className='details-container' style={{ width: '100%', margin: '0' }}>
+          <Grid item xs={12} sm={6} mb={3}>
             <Typography variant="h6">Nombre:</Typography>
             <Typography>{operador.nombre}</Typography>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={6} mb={3}>
             <Typography variant="h6">Email:</Typography>
             <Typography>{operador.email}</Typography>
-          </Grid>
-          <Grid item xs={12} sm={6} mb={2}>
-            <Typography variant="h6">Rol:</Typography>
-            <Typography>{operador.rol}</Typography>
           </Grid>
         </Grid>
       </Paper>

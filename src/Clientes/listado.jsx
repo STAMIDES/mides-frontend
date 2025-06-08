@@ -39,7 +39,7 @@ const ClienteListado = () => {
       setPage(page);
       const response = await api.get(`/clientes?offset=${offset}&limit=${pageSize}&search=${search}`);
       let clientes = response.data.clientes;
-      clientes = clients.map(cliente => {
+      clientes = clientes.map(cliente => {
         cliente.caracteristicas = parseCaracteristicas(cliente.caracteristicas);
         return cliente;
       });

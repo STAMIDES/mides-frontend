@@ -283,13 +283,14 @@ export default {
       var vehiculosNormalizados =  turnos.value.reduce((acc, turno) => {
         turno.vehicles.forEach((vehiculo_selected)=>{
           const v = vehiculos.value.find(v => v.id === vehiculo_selected.vehicle_id);
-          const lc = lugaresComunes.value.find(l => l.id === vehiculo_selected.lugares_comunes_id);
+          const lcStart = lugaresComunes.value.find(l => l.id === vehiculo_selected.lugar_comun_start_id);
+          const lcEnd = lugaresComunes.value.find(l => l.id === vehiculo_selected.lugar_comun_end_id);
           let supported_characteristics = []; //Agregar aca todas las caracteristicas que tenga el vehiculo que permite que se pueda utilizar si el pedido/cliente indica que tiene esa caracteristica
           if (v?.caracteristicas.some(c => c.nombre === "rampa_electrica")){
             supported_characteristics.push("rampa_electrica");
           }
 
-          if (v) {
+          if (v && lcStart && lcEnd) {
             acc.push({
               id: vehiculo_selected.vehicleIdWithTurnoIndex, 
               seat_capacity : v.capacidad_convencional,
@@ -299,21 +300,21 @@ export default {
                 start: turno.start+':00',
                 end: turno.end+':00',
               },
-              depot_start: { //FIXME: hardcodeado
-                id: lc.id,
-                address: lc.nombre,
+              depot_start: {
+                id: lcStart.id,
+                address: lcStart.nombre,
                 coordinates: {
-                  latitude: lc.latitud,
-                  longitude: lc.longitud
+                  latitude: lcStart.latitud,
+                  longitude: lcStart.longitud
                 },
               },
               with_rest: vehiculo_selected.con_descanso !== false, // Use the new con_descanso property with a default to true
-              depot_end: { //FIXME: hardcodeado
-                id: lc.id,
-                address:  lc.nombre,
+              depot_end: {
+                id: lcEnd.id,
+                address: lcEnd.nombre,
                 coordinates: {
-                  latitude: lc.latitud,
-                  longitude: lc.longitud
+                  latitude: lcEnd.latitud,
+                  longitude: lcEnd.longitud
                 },
               },
             });
@@ -406,8 +407,15 @@ export default {
             return false;
           }
           
-          if (vehicle.lugares_comunes_id === null || vehicle.lugares_comunes_id === undefined) {
-            estadoError.value = `El vehículo ${j+1} del turno ${i+1} no tiene un lugar común asignado.`;
+          if (
+              vehicle.lugar_comun_start_id === null || 
+              vehicle.lugar_comun_start_id === undefined ||
+              isNaN(vehicle.lugar_comun_start_id) ||
+              vehicle.lugar_comun_end_id === null || 
+              vehicle.lugar_comun_end_id === undefined ||
+              isNaN(vehicle.lugar_comun_end_id)  
+            ) {
+            estadoError.value = `El vehículo ${j+1} del turno ${i+1} no tiene lugares comunes de inicio y/o fin asignados.`;
             errorPlanificacion.value++;
             return false;
           }

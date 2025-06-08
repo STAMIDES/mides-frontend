@@ -113,7 +113,6 @@ const PedidoListado = () => {
     }
   };
   const handleSearch = (searchTerm) => {
-    console.log(searchTerm);
     setPage(1);
     setSearchTerm(searchTerm);
   };

@@ -2,16 +2,11 @@ import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, Select, MenuItem, Container, Grid, Paper, FormControl, InputLabel, Alert } from '@mui/material';
 import useApi from '../../network/axios';
 
-const Roles = { 
-  operador: 'Administrador',
-  chofer: 'Chofer'
-};
 
 const OperadorInvitar = ({ usuario = {} }) => {
   const [formData, setFormData] = useState({
     email: '',
     nombre: '',
-    rol: '',
     ...usuario
   });
   const [message, setMessage] = useState(null); 
@@ -62,24 +57,6 @@ const OperadorInvitar = ({ usuario = {} }) => {
                 fullWidth
                 required
               />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth required>
-                <InputLabel id="rol-label">Tipo de Usuario</InputLabel>
-                <Select
-                  labelId="rol-label"
-                  name="rol"
-                  value={formData.rol}
-                  onChange={handleChange}
-                  displayEmpty
-                >
-                  {Object.entries(Roles).map(([key, value]) => (
-                    <MenuItem key={key} value={key}>
-                      {value}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
             </Grid>
             {message && (
               <Alert severity={message.type} sx={{  ml:3 , mt: 3}}>
