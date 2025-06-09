@@ -128,7 +128,8 @@ export default {
               direccion_destino_y_horario: direccionDestinoYHorario,
               paradasProcesadas: paradasProcesadas,
               coords: coords,
-              caracteristicas: pedido.cliente.caracteristicas
+              caracteristicas: pedido.cliente.caracteristicas,
+              no_enviado_al_optimizador: pedido.no_enviado_al_optimizador
           });
       });
       return nuevoListado;
@@ -386,7 +387,7 @@ export default {
 
       // Validar que haya al menos un turno definido
       if (!turnos.value || turnos.value.length === 0) {
-        estadoError.value = "No hay turnos definidos. Debe crear al menos un turno para planificar.";
+        estadoError.value = "No hay turnos definidos. Debe crear al menos un turno para planificar, incluyendo los vehículos que van a utilizar.";
         errorPlanificacion.value++;
         return false;
       }

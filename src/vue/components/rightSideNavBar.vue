@@ -82,7 +82,6 @@
                 <table class="pedidos-table unattended-table">
                   <thead>
                     <tr>
-                      <th style="width: 4%;">Usuario</th>
                       <th style="width: 4%;">Pedido ID</th>
                       <th style="width: 19%;">Origen y Horario</th>
                       <th style="width: 29%;">Paradas Intermedias</th>
@@ -97,7 +96,6 @@
                       :key="index"
                       class="unattended-row"
                     >
-                      <td>{{ pedido.nombre_y_apellido }}</td>
                       <td>{{ pedido.id }}</td>
                       <td class="td-wrapper" v-html="pedido.direccion_origen_y_horario">
                       </td>
@@ -142,13 +140,13 @@
               </button>
             </div>
             <div v-if="activeButton === 'Pedidos'" class="pedidos-list">
-              <table class="pedidos-table">
+              <table class="pedidos-table pedidos-for-the-day">
                 <thead>
                   <tr>
                     <th></th>
                     <th>Usuario</th>
                     <th>Pedido id</th>
-                    <th style="width: 10%;">Origen y Horario</th>
+                    <th>Origen y Horario</th>
                     <th>Paradas Intermedias</th>
                     <th>Destino y Horario</th>
                     <th></th>
@@ -863,10 +861,12 @@ export default {
   text-align: center;
 }
 
-.pedidos-table th:nth-child(2),
-.pedidos-table td:nth-child(2),
-.pedidos-table th:nth-child(3),
-.pedidos-table td:nth-child(3) {
+.unattended-pedido .pedidos-table th:nth-child(1),
+.unattended-pedido .pedidos-table td:nth-child(1),
+.pedidos-table.pedidos-for-the-day th:nth-child(2),
+.pedidos-table.pedidos-for-the-day td:nth-child(2),
+.pedidos-table.pedidos-for-the-day th:nth-child(3),
+.pedidos-table.pedidos-for-the-day td:nth-child(3) {
   width: 3%;
   padding: 1px;
   text-align: center;
@@ -1040,7 +1040,6 @@ export default {
   padding: 8px 10px;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  width: 100px;
   color: #1e293b;
   transition: border-color 0.2s ease;
 }
