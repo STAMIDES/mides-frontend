@@ -101,15 +101,17 @@ export default {
           const nombreYApellido = `${pedido.cliente.nombre}\n${pedido.cliente.apellido}`;
           const paradas = pedido.paradas;
           paradas.sort((a, b) => a.posicion_en_pedido - b.posicion_en_pedido);
-          var direccionOrigenYHorario = `${paradas[0].direccion} \n ${paradas[0].ventana_horaria_inicio || 'Sin horario'}`;
+          var direccionOrigenYHorario = `<div class="direccion">${paradas[0].direccion}</div><div class="horario"><strong>Llegada: </strong>${paradas[0].ventana_horaria_inicio || '<strong>Sin horario</strong>'}</div>`;
 
           var coords = [[paradas[0].latitud, paradas[0].longitud]];
           var paradasProcesadas = [direccionOrigenYHorario]
           var cantParadas = paradas.length;
-          var direccionDestinoYHorario = `${paradas[cantParadas-1].direccion} \n ${paradas[cantParadas-1].ventana_horaria_inicio || 'Sin horario'}`;
+          var direccionDestinoYHorario = `<div class="direccion">${paradas[cantParadas-1].direccion}</div><div class="horario"><strong>Llegada: </strong>${paradas[cantParadas-1].ventana_horaria_inicio || '<strong>Sin horario</strong>'}</div>`;
           var paradasIntermedias = '';
           for (let i = 1; i +1 < cantParadas ; i += 1) {
-              var parada = '*' + paradas[i].direccion + '\n Llegada: ' + paradas[i].ventana_horaria_inicio + '\n Salida: ' + paradas[i].ventana_horaria_fin + '\n\n' ;
+              var parada = '<div class="direccion">' + paradas[i].direccion + '</div>' +
+                           '<div class="horario"><strong>Llegada: </strong>' + paradas[i].ventana_horaria_inicio + '</div>' +
+                           '<div class="horario"><strong>Salida: </strong>' + paradas[i].ventana_horaria_fin + '</div><br>' ;
               paradasIntermedias += parada ;
               coords.push([paradas[i].latitud, paradas[i].longitud]);
               paradasProcesadas.push(parada);

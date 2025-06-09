@@ -82,10 +82,11 @@
                 <table class="pedidos-table unattended-table">
                   <thead>
                     <tr>
-                      <th style="width: 5%;">ID</th>
-                      <th style="width: 20%;">Origen y Horario</th>
-                      <th style="width: 30%;">Paradas Intermedias</th>
-                      <th style="width: 20%;">Destino y Horario</th>
+                      <th style="width: 4%;">Usuario</th>
+                      <th style="width: 4%;">Pedido ID</th>
+                      <th style="width: 19%;">Origen y Horario</th>
+                      <th style="width: 29%;">Paradas Intermedias</th>
+                      <th style="width: 19%;">Destino y Horario</th>
                       <th style="width: 10%; text-align: center;">Motivo</th>
                       <th style="width: 10%; text-align: center;"></th>
                     </tr>
@@ -96,15 +97,13 @@
                       :key="index"
                       class="unattended-row"
                     >
+                      <td>{{ pedido.nombre_y_apellido }}</td>
                       <td>{{ pedido.id }}</td>
-                      <td class="td-wrapper">
-                        {{ pedido.direccion_origen_y_horario }}
+                      <td class="td-wrapper" v-html="pedido.direccion_origen_y_horario">
                       </td>
-                      <td class="td-wrapper">
-                        {{ pedido.paradas_intermedias }}
+                      <td class="td-wrapper" v-html="pedido.paradas_intermedias">
                       </td>
-                      <td class="td-wrapper">
-                        {{ pedido.direccion_destino_y_horario }}
+                      <td class="td-wrapper" v-html="pedido.direccion_destino_y_horario">
                       </td>
                       <td class="td-wrapper icon-cell" style="text-align: center;">
                         <span v-if="pedido.no_enviado_al_optimizador" title="No enviado al optimizador">👤</span>
@@ -147,8 +146,9 @@
                 <thead>
                   <tr>
                     <th></th>
-                    <th>ID</th>
-                    <th>Origen y Horario</th>
+                    <th>Usuario</th>
+                    <th>Pedido id</th>
+                    <th style="width: 10%;">Origen y Horario</th>
                     <th>Paradas Intermedias</th>
                     <th>Destino y Horario</th>
                     <th></th>
@@ -171,15 +171,13 @@
                         @change="toggleSelectionPedido(pedido.id)" 
                       />
                     </td>
+                    <td>{{ pedido.nombre_y_apellido }}</td>
                     <td>{{ pedido.id }}</td>
-                    <td class="td-wrapper">
-                      {{ pedido.direccion_origen_y_horario }}
+                    <td class="td-wrapper" v-html="pedido.direccion_origen_y_horario">
                     </td>
-                    <td class="td-wrapper">
-                      {{ pedido.paradas_intermedias }}
+                    <td class="td-wrapper" v-html="pedido.paradas_intermedias">
                     </td>
-                    <td class="td-wrapper">
-                      {{ pedido.direccion_destino_y_horario }}
+                    <td class="td-wrapper" v-html="pedido.direccion_destino_y_horario">
                     </td>
                     <td>
                       <!-- Add icons for silla_de_ruedas and rampa_electrica -->
@@ -850,11 +848,32 @@ export default {
 
 .pedidos-table th,
 .pedidos-table td {
-  padding: 10px;
+  padding: 9px;
   text-align: left;
   border-bottom: 1px solid #e2e8f0;
   width: 20%;
   box-sizing: border-box;
+}
+
+/* Add these new styles for checkbox and ID columns */
+.pedidos-table th:first-child,
+.pedidos-table td:first-child {
+  width: 2%;
+  padding: 5px;
+  text-align: center;
+}
+
+.pedidos-table th:nth-child(2),
+.pedidos-table td:nth-child(2),
+.pedidos-table th:nth-child(3),
+.pedidos-table td:nth-child(3) {
+  width: 3%;
+  padding: 1px;
+  text-align: center;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  font-size: 1em;
+  white-space: nowrap;
 }
 
 .pedidos-table th {
@@ -874,6 +893,19 @@ export default {
   border-bottom: none;
 }
 
+.direccion {
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #1e293b;
+}
+
+.horario {
+  font-size: 0.85em;
+  color: #64748b;
+  margin-bottom: 2px;
+  padding-left: 4px;
+}
+
 .td-wrapper {
   overflow-wrap: break-word;
   word-wrap: break-word;
@@ -882,6 +914,7 @@ export default {
   min-width: 0;
   font-size: 0.9em;
   color: #475569;
+  padding: 6px !important;
 }
 
 .turnos-container {
