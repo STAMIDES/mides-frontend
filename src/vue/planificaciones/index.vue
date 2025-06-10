@@ -35,7 +35,7 @@ import moment from 'moment';
 
 
 import { api } from "../../network/axios";
-const TIMEWINDOW_TOLERANCE = 15;
+const TIMEWINDOW_TOLERANCE = 30;
 export default {
   name: 'MainPage',
   components: {
@@ -184,7 +184,7 @@ export default {
       }
     };
 
-    const procesarNuevaPlanificacion = (nueva_planificacion, vehiculosNormalizados) => {
+    const procesarNuevaPlanificacion = (nueva_planificacion, pedidosNormalizados) => {
         const normalizedRutas = [];
         const normalizedTurnos = [];
 
@@ -215,6 +215,24 @@ export default {
                     descanso_fin: descanso_fin,
                     geometria: p.geometry,
                     visitas: p.visits.map(v=>{
+                      // Find the requested_time by matching stop_id directly
+                      let requested_time = null;
+                      
+                      // Loop through all normalized pedidos to find matching stop_id
+                      if (v.stop_id) {
+                        for (const pedido of pedidosNormalizados) {
+                          // Check if this is a pickup stop
+                          if (pedido.pickup.stop_id.toString() === v.stop_id.toString()) {
+                            requested_time = pedido.pickup.time_window?.requested_time || null;
+                            break;
+                          }
+                          // Check if this is a delivery stop
+                          else if (pedido.delivery.stop_id.toString() === v.stop_id.toString()) {
+                            requested_time = pedido.delivery.time_window?.requested_time || null;
+                            break;
+                          }
+                        }
+                      }
                       return {
                         direccion: v.address,
                         item: {
@@ -223,8 +241,8 @@ export default {
                         },
                         id_item: v.stop_id,
                         tipo_item: v.ride_id? "Parada" : "Lugar común",
-                        hora_llegada: v.arrival_time,
-                        hora_salida: v.arrival_time,
+                        hora_calculada_de_llegada: v.arrival_time,
+                        hora_pedida: requested_time,
                         tipo_parada: v.type
                       }
                     })
@@ -327,6 +345,13 @@ export default {
         return acc;
       }, []);
 
+      // Validate that vehicles array is not empty
+      if (vehiculosNormalizados.length === 0) {
+        errorPlanificacion.value++;
+        estadoError.value = "No se encontraron vehículos válidos para planificar. Verifique que los vehículos y lugares comunes seleccionados existan en el sistema.";
+        return;
+      }
+
       const problem = {
         "vehicles": vehiculosNormalizados,
         "ride_requests": pedidosNormalizados
@@ -334,7 +359,7 @@ export default {
 
       try {
         const response = await api.post('http://localhost:4210/optimization/v1/solve', problem, {withCredentials: false});
-        const planificacionProcesada = procesarNuevaPlanificacion(response.data, vehiculosNormalizados);
+        const planificacionProcesada = procesarNuevaPlanificacion(response.data, pedidosNormalizados);
         guardarPlanificacion(planificacionProcesada)
         showPedidos.value = false;
         estadoError.value = null;
@@ -488,12 +513,14 @@ export default {
                 normalized.delivery.time_window = {
                   start: addTolerance(destino.ventana_horaria_inicio, "substract"),
                   end: addTolerance(destino.ventana_horaria_inicio),
+                  requested_time: destino.ventana_horaria_inicio,
                 };
               }else if (pedido.tipo=="Solo vuelta"){
                 normalized.direction = "return";
                 normalized.pickup.time_window = {
-                  start: addTolerance(origen.ventana_horaria_inicio, "substract"),
-                  end: addTolerance(origen.ventana_horaria_inicio),
+                  start: addTolerance(origen.ventana_horaria_inicio),
+                  end: addTolerance(origen.ventana_horaria_inicio, "add"),
+                  requested_time: origen.ventana_horaria_inicio,
                 };
               }else if (pedido.tipo=="Ida y vuelta"){
                 if (i==0){
@@ -501,22 +528,26 @@ export default {
                   normalized.delivery.time_window = {
                     start: addTolerance(destino.ventana_horaria_inicio, "substract"),
                     end: addTolerance(destino.ventana_horaria_inicio),
+                    requested_time: destino.ventana_horaria_inicio,
                   };
                 }else if (i + 2 == paradas.length){//last element, return
                   normalized.direction = "return";
                   normalized.pickup.time_window = {
                     start: addTolerance(origen.ventana_horaria_fin),
                     end: addTolerance(origen.ventana_horaria_fin, "add"),
+                    requested_time: origen.ventana_horaria_fin,
                   };
                 }else{ //solo cuando va a 2 o mas lugares y vuelve a su casa
                   normalized.direction = "going"; //TODO: definir que va aca cuando tiene doble time window
                   normalized.pickup.time_window = {
                     start: addTolerance(origen.ventana_horaria_fin),
                     end: addTolerance(origen.ventana_horaria_fin, "add"),
+                    requested_time: origen.ventana_horaria_fin,
                   };
                   normalized.delivery.time_window = {
                     start: addTolerance(destino.ventana_horaria_inicio, "substract"),
                     end: addTolerance(destino.ventana_horaria_inicio),
+                    requested_time: destino.ventana_horaria_inicio,
                   };
                 }
                 

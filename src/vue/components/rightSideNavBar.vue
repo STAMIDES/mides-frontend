@@ -44,7 +44,7 @@
                 <div class="visitas-container">
                   <template v-for="(item) in getProcessedVisitas(ruta)" :key="item.unique_key">
                     <div v-if="item.type === 'visita'" class="visita-row">
-                      <div class="visita-time">{{ formatTime(item.hora_llegada) }}</div>
+                      <div class="visita-time">{{ formatTime(item.hora_calculada_de_llegada) }}</div>
                       <div class="visita-status-wrapper" :class="getStatusClass(item.estado)">
                         <div class="visita-status-circle" :class="getStatusClass(item.estado)"></div>
                       </div>
@@ -598,7 +598,7 @@ export default {
           processedItems.push({ 
             ...v, 
             type: 'visita', 
-            sortTime: v.hora_llegada,
+            sortTime: v.hora_calculada_de_llegada,
             unique_key: `visita_${v.id !== undefined ? v.id : keyCounter++}_${v.item?.id || keyCounter++}` 
           });
         });

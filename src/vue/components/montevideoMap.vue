@@ -390,23 +390,23 @@ const addPlanificacionToMap = () => {
               title = 'Punto de Recogida';
               details = `<b>Dirección:</b> ${visita.item.direccion}<br/>
                          <b>Persona:</b> ${cliente}<br/>
-                         <b>Hora de llegada:</b> ${visita.hora_llegada}`;
+                         <b>Hora de llegada:</b> ${visita.hora_calculada_de_llegada}`;
             } else if (tipoViaje ==='Ida y vuelta' && !visita.item.es_destino){
               title = 'Parada Intermedia';
               details = `<b>Dirección:</b> ${visita.item.direccion}<br/>
                          <b>Persona:</b> ${cliente}<br/>
-                         <b>Hora de llegada:</b> ${visita.hora_llegada}`;
+                         <b>Hora de llegada:</b> ${visita.hora_calculada_de_llegada}`;
             } 
             else {
               title = 'Punto de Entrega';
               details = `<b>Dirección:</b> ${visita.item.direccion}<br/>
                          <b>Persona:</b> ${cliente}<br/>
-                         <b>Hora de llegada:</b> ${visita.hora_llegada}`;
+                         <b>Hora de llegada:</b> ${visita.hora_calculada_de_llegada}`;
             }
           } else {
             title = visita.tipo_item;
             details = `<b>Dirección:</b> ${visita.item.direccion}<br/>
-                       <b>Hora de llegada:</b> ${visita.hora_llegada}`;
+                       <b>Hora de llegada:</b> ${visita.hora_calculada_de_llegada}`;
           }
           
           const marker = L.marker(latLng, { 
@@ -420,12 +420,12 @@ const addPlanificacionToMap = () => {
           // Location already has a marker, append to popup
           if (cliente) {
             if (tipoViaje === "Ida y vuelta" && !visita.item.es_destino) {
-              details = `<b>Recoger a:</b> ${cliente}<br/><b>Hora:</b> ${visita.hora_llegada}`;
+              details = `<b>Recoger a:</b> ${cliente}<br/><b>Hora:</b> ${visita.hora_calculada_de_llegada}`;
             } else{
-              details = `<b>Dejar a:</b> ${cliente}<br/><b>Hora:</b> ${visita.hora_llegada}`;
+              details = `<b>Dejar a:</b> ${cliente}<br/><b>Hora:</b> ${visita.hora_calculada_de_llegada}`;
             }
           } else {
-            details = `<b>Vuelta:</b> ${visita.hora_llegada}`;
+            details = `<b>Vuelta:</b> ${visita.hora_calculada_de_llegada}`;
           }
           
           // Get existing popup content and add new content
