@@ -20,6 +20,8 @@ import { GpsFixed as GpsFixedIcon } from '@mui/icons-material';
 import useApi from '../network/axios';
 import ListComponent from '../components/listados';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { caracteristicasVistas } from './consts';
+
 import ModeEditOutlineIcon from '@mui/icons-material/ModeEditOutline';
 import { geocodeAddress } from '../utils/geocoder';
 
