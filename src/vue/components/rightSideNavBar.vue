@@ -857,7 +857,7 @@ export default {
 .pedidos-table th:first-child,
 .pedidos-table td:first-child {
   width: 2%;
-  padding: 5px;
+  padding: 3px;
   text-align: center;
 }
 
