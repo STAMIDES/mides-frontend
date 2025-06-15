@@ -351,7 +351,7 @@ const addPlanificacionToMap = () => {
     }).addTo(map)
     .bindPopup(createPopupContent(
       `Ruta ${index + 1}`,
-      `<b>Vehículo:</b> ${ruta.vehiculo?.nombre || 'No asignado'}<br/>
+      `<b>Vehículo:</b> ${ruta.vehiculo?.matricula || 'No asignado'}<br/>
        <b>Visitas:</b> ${ruta.visitas.length}`,
       ''
     ));
@@ -374,10 +374,10 @@ const addPlanificacionToMap = () => {
         }
       }
       
-      let cliente = visita.item?.pedido?.cliente?.nombre;
-      let tipoViaje = visita.item?.pedido?.tipo;
-      let sillaIcon = visita.item?.pedido?.cliente?.caracteristicas?.some(c => c.nombre === 'silla_de_ruedas') ? '🦽' : '';
-      let rampaIcon = visita.item?.pedido?.cliente?.caracteristicas?.some(c => c.nombre === 'rampa_electrica') ? '🔧' : '';
+      let cliente = visita.item?.cliente_nombre;
+      let tipoViaje = visita.item?.pedido_tipo;
+      let sillaIcon = visita.item?.cliente_caracteristicas?.includes('silla_de_ruedas') ? '🦽' : '';
+      let rampaIcon = visita.item?.cliente_caracteristicas?.includes('rampa_electrica') ? '🔧' : '';
       let iconsSuffix = `${sillaIcon} ${rampaIcon}`;
       
       if (icon) {  // Only create marker if we have a valid icon
