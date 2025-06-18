@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
-import axios from 'axios';
-import { isPublicPath } from '../network/axios';
+import { api, isPublicPath, setLogoutCallback } from '../network/axios';
 
 const AuthContext = createContext();
 
@@ -9,15 +8,27 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Called when user logs out
+  const removeAuthContext = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+  }, []);
+
+  // Set up the logout callback for axios interceptors
+  useEffect(() => {
+    setLogoutCallback(removeAuthContext);
+  }, [removeAuthContext]);
+
   const checkSession = useCallback(async () => {
     try {
       if (isPublicPath(window.location.pathname)) {
         return;
       }
-      await axios.get('http://localhost:8000/usuarios/check', { withCredentials: true });
+      await api.get('/usuarios/check', { withCredentials: true });
       setIsAuthenticated(true);
     } catch (error) {
-      setIsAuthenticated(false);
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -38,13 +49,6 @@ export const AuthProvider = ({ children }) => {
     setUser(username);
     localStorage.setItem('user', username);
     setIsAuthenticated(true);
-  };
-
-  // Called when user logs out
-  const removeAuthContext = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
   };
 
   return (
