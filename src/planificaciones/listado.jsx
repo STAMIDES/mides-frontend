@@ -51,10 +51,6 @@ const PlanificacionListado = () => {
     }
   };
 
-  useEffect(() => {
-    obtenerPlanificaciones(currentPage, date);
-  }, [date, currentPage]);
-
   const obtenerPlanificaciones = async (page=1, selectedDate, search = '') => {
     try {
       const offset = (page - 1) * pageSize;
