@@ -72,6 +72,7 @@ const colors = ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#8E44AD', '#F39C12'
 const showLegend = ref(true);
 const routesCount = ref(0);
 const markers = ref({}); // Store markers by pedido ID
+const polylines = ref({}); // Store polylines by pedido ID
 
 var myIcon = L.Icon.extend({
     options: {
@@ -115,6 +116,7 @@ const createPopupContent = (title, details, icons, pedidoId) => {
 const addPedidosToMap = () => {
   clearMapLayers();
   markers.value = {}; // Reset markers
+  polylines.value = {}; // Reset polylines
   
   const bounds = [];
   
@@ -134,6 +136,14 @@ const addPedidosToMap = () => {
     bounds.push(originLatLng);
     bounds.push(destinationLatLng);
     
+    // Initialize arrays for this pedido
+    if (!markers.value[pedido.id]) {
+      markers.value[pedido.id] = [];
+    }
+    if (!polylines.value[pedido.id]) {
+      polylines.value[pedido.id] = [];
+    }
+    
     if (originLatLng[0] === destinationLatLng[0] && originLatLng[1] === destinationLatLng[1]){
       // Same location for origin and destination
       const popupContent = createPopupContent(
@@ -146,7 +156,8 @@ const addPedidosToMap = () => {
       
       const marker = L.marker(originLatLng, {
         icon: homeIcon,
-        pedidoId: pedido.id // Store pedido ID in marker options
+        pedidoId: pedido.id,
+        className: 'map-element pedido-marker'
       })
       .addTo(map)
       .bindPopup(popupContent);
@@ -159,10 +170,6 @@ const addPedidosToMap = () => {
         emit('marker-hover', null);
       });
       
-      // Store marker reference
-      if (!markers.value[pedido.id]) {
-        markers.value[pedido.id] = [];
-      }
       markers.value[pedido.id].push(marker);
       
     } else {
@@ -170,7 +177,7 @@ const addPedidosToMap = () => {
       const originPopup = createPopupContent(
         'Punto de Origen', 
         `<b>Dirección:</b> ${pedido.direccion_origen_y_horario}<br/>
-         <b>Persona:</b> ${pedido.nombre_y_apellido}`,
+         <b>Usuario:</b> ${pedido.nombre_y_apellido}`,
         iconsSuffix,
         pedido.id
       );
@@ -178,14 +185,15 @@ const addPedidosToMap = () => {
       const destPopup = createPopupContent(
         'Punto de Destino', 
         `<b>Dirección:</b> ${pedido.direccion_destino_y_horario}<br/>
-         <b>Persona:</b> ${pedido.nombre_y_apellido}`,
+         <b>Usuario:</b> ${pedido.nombre_y_apellido}`,
         iconsSuffix,
         pedido.id
       );
 
       const originMarker = L.marker(originLatLng, {
         icon: homeIcon,
-        pedidoId: pedido.id
+        pedidoId: pedido.id,
+        className: 'map-element pedido-marker'
       })
       .addTo(map)
       .bindPopup(originPopup);
@@ -200,7 +208,8 @@ const addPedidosToMap = () => {
       
       const destMarker = L.marker(destinationLatLng, {
         icon: destinationIcon,
-        pedidoId: pedido.id
+        pedidoId: pedido.id,
+        className: 'map-element pedido-marker'
       })
       .addTo(map)
       .bindPopup(destPopup);
@@ -213,24 +222,22 @@ const addPedidosToMap = () => {
         emit('marker-hover', null);
       });
       
-      // Store marker references
-      if (!markers.value[pedido.id]) {
-        markers.value[pedido.id] = [];
-      }
       markers.value[pedido.id].push(originMarker, destMarker);
     }
-    // Create a dashed line with arrowheads to represent the requested connection
+    
+    // Create polylines and store them
     var cantidad_tramos = 0;
     if (pedido.tipo !== 'Ida y vuelta'){
-      L.polyline([originLatLng, destinationLatLng], { 
+      const polyline = L.polyline([originLatLng, destinationLatLng], { 
         color: '#3388ff',
-        weight: 2,
-        opacity: 0.7,
+        weight: 3,
+        opacity: 0.8,
         dashArray: '5, 10',
+        className: 'map-element pedido-polyline',
         arrowheads: { 
           fill: true,
           frequency: 'endonly',
-          size: '10px'
+          size: '12px'
         }
       }).addTo(map)
         .bindPopup(createPopupContent(
@@ -239,6 +246,8 @@ const addPedidosToMap = () => {
            <b>Destino:</b> ${pedido.direccion_destino_y_horario}`,
           iconsSuffix
         ));
+      
+      polylines.value[pedido.id].push(polyline);
     } else {
       // For "Ida y vuelta" pedidos with intermediate stops
       let prevLatLng = originLatLng;
@@ -247,70 +256,72 @@ const addPedidosToMap = () => {
         const intermediaLatLng = pedido.coords[i];
         bounds.push(intermediaLatLng);
           
-          const stopPopup = createPopupContent(
-            'Parada Intermedia', 
-            `<b>Dirección:</b> ${pedido.paradasProcesadas[i]}<br/>
-             <b>Persona:</b> ${pedido.nombre_y_apellido}`,
-            iconsSuffix
-          );
+        const stopPopup = createPopupContent(
+          'Parada Intermedia', 
+          `<b>Dirección</b>: ${pedido.paradasProcesadas[i]}
+           <b>Usuario</b>: ${pedido.nombre_y_apellido}`,
+          iconsSuffix
+        );
+        
+        let intermediaMarker = L.marker(intermediaLatLng, {
+          icon: homeIcon,
+          pedidoId: pedido.id,
+          className: 'map-element pedido-marker'
+        })
+        .addTo(map)
+        .bindPopup(stopPopup);
+        
+        intermediaMarker.on('mouseover', () => {
+          emit('marker-hover', pedido.id);
+        });
+        
+        intermediaMarker.on('mouseout', () => {
+          emit('marker-hover', null);
+        });
+        
+        markers.value[pedido.id].push(intermediaMarker);
           
-          let intermediaMarker = L.marker(intermediaLatLng, {
-            icon: homeIcon,
-            pedidoId: pedido.id
-          })
-          .addTo(map)
-          .bindPopup(stopPopup);
-          
-          intermediaMarker.on('mouseover', () => {
-            emit('marker-hover', pedido.id);
-          });
-          
-          intermediaMarker.on('mouseout', () => {
-            emit('marker-hover', null);
-          });
-          
-          // Store marker reference
-          if (!markers.value[pedido.id]) {
-            markers.value[pedido.id] = [];
-          }
-          markers.value[pedido.id].push(intermediaMarker);
-          
-        L.polyline([prevLatLng, intermediaLatLng], { 
+        const polyline1 = L.polyline([prevLatLng, intermediaLatLng], { 
           color: '#3388ff',
-          weight: 2,
-          opacity: 0.7,
+          weight: 3,
+          opacity: 0.8,
           dashArray: '5, 10',
+          className: 'map-element pedido-polyline',
           arrowheads: {
             fill: true,
             frequency: 'endonly',
-            size: '10px'
+            size: '12px'
           }
         }).addTo(map)
         .bindPopup(createPopupContent(
           `Pedido de ${pedido.nombre_y_apellido}`,
-          `<b>Tramo:</b> ${cantidad_tramos} de ${cantidad_tramos}`,
+          `<b>Tramo:</b> ${i} de ${cantidad_tramos}`,
           iconsSuffix
         ));
         
+        polylines.value[pedido.id].push(polyline1);
         prevLatLng = intermediaLatLng;
       }
       
-      L.polyline([prevLatLng, destinationLatLng], { 
+      const polyline2 = L.polyline([prevLatLng, destinationLatLng], { 
         color: '#3388ff',
-        weight: 2,
-        opacity: 0.7,
+        weight: 3,
+        opacity: 0.8,
         dashArray: '5, 10',
+        className: 'map-element pedido-polyline',
         arrowheads: {
           fill: true,
           frequency: 'endonly',
-          size: '10px'
+          size: '12px'
         }
       }).addTo(map)
       .bindPopup(createPopupContent(
         `Pedido de ${pedido.nombre_y_apellido}`,
-        `<b>Tramo:</b> ${cantidad_tramos} de ${cantidad_tramos}`,
+        `<b>Tramo final:</b> ${cantidad_tramos} de ${cantidad_tramos}`,
         iconsSuffix
       ));
+      
+      polylines.value[pedido.id].push(polyline2);
     }
   });
   
@@ -389,18 +400,18 @@ const addPlanificacionToMap = () => {
             if (visita.item.posicion_en_pedido === 0) {
               title = 'Punto de Recogida';
               details = `<b>Dirección:</b> ${visita.item.direccion}<br/>
-                         <b>Persona:</b> ${cliente}<br/>
+                         <b>Usuario:</b> ${cliente}<br/>
                          <b>Hora de llegada:</b> ${visita.hora_calculada_de_llegada}`;
             } else if (tipoViaje ==='Ida y vuelta' && !visita.item.es_destino){
               title = 'Parada Intermedia';
               details = `<b>Dirección:</b> ${visita.item.direccion}<br/>
-                         <b>Persona:</b> ${cliente}<br/>
+                         <b>Usuario:</b> ${cliente}<br/>
                          <b>Hora de llegada:</b> ${visita.hora_calculada_de_llegada}`;
             } 
             else {
               title = 'Punto de Entrega';
               details = `<b>Dirección:</b> ${visita.item.direccion}<br/>
-                         <b>Persona:</b> ${cliente}<br/>
+                         <b>Usuario:</b> ${cliente}<br/>
                          <b>Hora de llegada:</b> ${visita.hora_calculada_de_llegada}`;
             }
           } else {
@@ -487,40 +498,81 @@ watch(() => props.unselectedPedidosIds, addPedidosToMap, { deep: true });
 // Watch for hover state changes from sidebar
 watch(() => [props.hoveredPedidoId, props.hoverOrigin], ([newId, origin]) => {
   if (props.showPedidos) {
-    // Reset all markers to default style
-    Object.values(markers.value).flat().forEach(marker => {
-      // Reset marker style
-      const icon = marker.options.icon;
-      marker.setIcon(icon);
-      // Remove any highlight classes
-      const element = marker.getElement();
-      if (element) {
-        element.classList.remove('marker-highlight');
-      }
-      
-      // Close all popups if this is from map hover to avoid popup conflicts
-      if (origin === 'map') {
-        marker.closePopup();
-      }
-    });
-    
-    // Highlight the hovered marker
-    if (newId && markers.value[newId]) {
-      markers.value[newId].forEach(marker => {
-        // Add highlight style to marker
+    // Reset all elements to default style and show them
+    Object.keys(markers.value).forEach(pedidoId => {
+      markers.value[pedidoId].forEach(marker => {
         const element = marker.getElement();
         if (element) {
-          element.classList.add('marker-highlight');
+          element.classList.remove('marker-highlight', 'marker-hidden');
+          element.style.opacity = '1';
         }
-        
-        // Bring marker to front
-        marker.setZIndexOffset(1000);
-        
-        // Open popup if hover originated from sidebar
-        if (origin === 'sidebar') {
-          marker.openPopup();
+        marker.setZIndexOffset(0);
+        if (origin === 'map') {
+          marker.closePopup();
         }
       });
+    });
+    
+    Object.keys(polylines.value).forEach(pedidoId => {
+      polylines.value[pedidoId].forEach(polyline => {
+        const element = polyline.getElement();
+        if (element) {
+          element.classList.remove('polyline-highlight', 'polyline-hidden');
+          element.style.opacity = '0.8';
+        }
+      });
+    });
+    
+    // If hovering over a specific pedido, hide others and highlight the selected one
+    if (newId) {
+      // Hide all other elements
+      Object.keys(markers.value).forEach(pedidoId => {
+        if (parseInt(pedidoId) !== newId) {
+          markers.value[pedidoId].forEach(marker => {
+            const element = marker.getElement();
+            if (element) {
+              element.classList.add('marker-hidden');
+              element.style.opacity = '0.2';
+            }
+          });
+        }
+      });
+      
+      Object.keys(polylines.value).forEach(pedidoId => {
+        if (parseInt(pedidoId) !== newId) {
+          polylines.value[pedidoId].forEach(polyline => {
+            const element = polyline.getElement();
+            if (element) {
+              element.classList.add('polyline-hidden');
+              element.style.opacity = '0.1';
+            }
+          });
+        }
+      });
+      
+      // Highlight the hovered pedido elements
+      if (markers.value[newId]) {
+        markers.value[newId].forEach(marker => {
+          const element = marker.getElement();
+          if (element) {
+            element.classList.add('marker-highlight');
+            element.style.opacity = '1';
+            element.style.transform = 'scale(1.2)';
+          }
+          marker.setZIndexOffset(1000);
+        });
+      }
+      
+      if (polylines.value[newId]) {
+        polylines.value[newId].forEach(polyline => {
+          const element = polyline.getElement();
+          if (element) {
+            element.classList.add('polyline-highlight');
+            element.style.opacity = '1';
+            element.style.strokeWidth = '5';
+          }
+        });
+      }
     }
   }
 });
@@ -655,25 +707,57 @@ watch(() => [props.hoveredPedidoId, props.hoverOrigin], ([newId, origin]) => {
 
 .marker-highlight {
   z-index: 900 !important;
-  filter: drop-shadow(0 0 5px #fff59d) !important; 
-  background-color: #e3f2fd !important; 
-  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 8px #fff59d) drop-shadow(0 0 15px #ffd700) !important;
+  transition: all 0.3s ease !important;
 }
 
 .custom-marker {
   transition: all 0.3s ease;
 }
 
+.map-element {
+  transition: all 0.3s ease;
+}
+
 .marker-highlight::after {
   content: '';
   position: absolute;
-  top: -5px;
-  left: -5px;
-  right: -5px;
-  bottom: -5px;
-  background-color: rgba(255, 245, 157, 0.3); 
-  border-radius: 5px;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  background-color: rgba(255, 245, 157, 0.4);
+  border-radius: 8px;
   z-index: -1;
+  animation: pulse 2s infinite;
 }
 
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+}
+
+/* Hide class for markers and polylines */
+.marker-hidden {
+  display: none !important;
+}
+
+.polyline-hidden {
+  display: none !important;
+}
+
+.polyline-highlight {
+  filter: drop-shadow(0 0 5px #fff59d) drop-shadow(0 0 10px #3388ff) !important;
+  transition: all 0.3s ease !important;
+}
 </style>
