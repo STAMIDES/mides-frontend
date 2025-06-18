@@ -73,7 +73,7 @@ const ClienteDetalles = () => {
         const destino = paradas[i + 1];
 
         const direccionOrigenYHorario = `${origen.direccion} - ${
-          origen.ventana_horaria_inicio || 'Sin horario'
+          i>=1?  origen.ventana_horaria_fin : origen.ventana_horaria_inicio || 'Sin horario'
         }`;
         const direccionDestinoYHorario = `${destino.direccion} - ${
           destino.ventana_horaria_inicio || 'Sin horario'
