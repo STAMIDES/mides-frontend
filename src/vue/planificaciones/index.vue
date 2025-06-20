@@ -217,18 +217,20 @@ export default {
                     visitas: p.visits.map(v=>{
                       // Find the requested_time by matching stop_id directly
                       let requested_time = null;
-                      
+                      let tolerancia = 0;
                       // Loop through all normalized pedidos to find matching stop_id
                       if (v.stop_id) {
                         for (const pedido of pedidosNormalizados) {
                           // Check if this is a pickup stop
                           if (pedido.pickup.stop_id.toString() === v.stop_id.toString()) {
                             requested_time = pedido.pickup.time_window?.requested_time || null;
+                            tolerancia = pedido.pickup.time_window?.tolerancia || 0;
                             break;
                           }
                           // Check if this is a delivery stop
                           else if (pedido.delivery.stop_id.toString() === v.stop_id.toString()) {
                             requested_time = pedido.delivery.time_window?.requested_time || null;
+                            tolerancia =  pedido.delivery.time_window?.tolerancia || 0;
                             break;
                           }
                         }
@@ -243,6 +245,7 @@ export default {
                         tipo_item: v.ride_id? "Parada" : "Lugar común",
                         hora_calculada_de_llegada: v.arrival_time,
                         hora_pedida: requested_time,
+                        tolerancia: tolerancia,
                         tipo_parada: v.type
                       }
                     })
@@ -495,7 +498,7 @@ export default {
                     latitude: origen.latitud,
                     longitude: origen.longitud
                   },
-                  stop_id: origen.id,
+                  stop_id: origen.id + i, //se le suma el indice ya que en el sugundo loop se repetirian los stop_id sino, este id es usado para matchear cuando vuelve del optimizador nomas
                   address: origen.direccion,
                   type: origen.tipo_parada? origen.tipo_parada.nombre: null
                 },
@@ -504,7 +507,7 @@ export default {
                     latitude: destino.latitud,
                     longitude: destino.longitud
                   },
-                  stop_id: destino.id,
+                  stop_id: destino.id + i,
                   address: destino.direccion,
                   type: destino.tipo_parada? destino.tipo_parada.nombre: null
                 }
@@ -515,6 +518,7 @@ export default {
                   start: addTolerance(destino.ventana_horaria_inicio, "substract"),
                   end: addTolerance(destino.ventana_horaria_inicio),
                   requested_time: destino.ventana_horaria_inicio,
+                  tolerancia: -TIMEWINDOW_TOLERANCE
                 };
               }else if (pedido.tipo=="Solo vuelta"){
                 normalized.direction = "return";
@@ -522,6 +526,7 @@ export default {
                   start: addTolerance(origen.ventana_horaria_inicio),
                   end: addTolerance(origen.ventana_horaria_inicio, "add"),
                   requested_time: origen.ventana_horaria_inicio,
+                  tolerancia: TIMEWINDOW_TOLERANCE
                 };
               }else if (pedido.tipo=="Ida y vuelta"){
                 if (i==0){
@@ -530,6 +535,7 @@ export default {
                     start: addTolerance(destino.ventana_horaria_inicio, "substract"),
                     end: addTolerance(destino.ventana_horaria_inicio),
                     requested_time: destino.ventana_horaria_inicio,
+                    tolerancia: -TIMEWINDOW_TOLERANCE
                   };
                 }else if (i + 2 == paradas.length){//last element, return
                   normalized.direction = "return";
@@ -537,6 +543,7 @@ export default {
                     start: addTolerance(origen.ventana_horaria_fin),
                     end: addTolerance(origen.ventana_horaria_fin, "add"),
                     requested_time: origen.ventana_horaria_fin,
+                    tolerancia: TIMEWINDOW_TOLERANCE
                   };
                 }else{ //solo cuando va a 2 o mas lugares y vuelve a su casa
                   normalized.direction = "going"; //TODO: definir que va aca cuando tiene doble time window
@@ -544,11 +551,13 @@ export default {
                     start: addTolerance(origen.ventana_horaria_fin),
                     end: addTolerance(origen.ventana_horaria_fin, "add"),
                     requested_time: origen.ventana_horaria_fin,
+                    tolerancia: TIMEWINDOW_TOLERANCE
                   };
                   normalized.delivery.time_window = {
                     start: addTolerance(destino.ventana_horaria_inicio, "substract"),
                     end: addTolerance(destino.ventana_horaria_inicio),
                     requested_time: destino.ventana_horaria_inicio,
+                    tolerancia: -TIMEWINDOW_TOLERANCE
                   };
                 }
                 
