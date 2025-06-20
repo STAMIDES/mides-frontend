@@ -241,7 +241,7 @@ export default {
                           latitud: v.coordinates.latitude,
                           longitud: v.coordinates.longitude
                         },
-                        id_item: v.stop_id,
+                        id_item: v.stop_id.split('it-')[0],
                         tipo_item: v.ride_id? "Parada" : "Lugar común",
                         hora_calculada_de_llegada: v.arrival_time,
                         hora_pedida: requested_time,
@@ -498,7 +498,7 @@ export default {
                     latitude: origen.latitud,
                     longitude: origen.longitud
                   },
-                  stop_id: origen.id + i, //se le suma el indice ya que en el sugundo loop se repetirian los stop_id sino, este id es usado para matchear cuando vuelve del optimizador nomas
+                  stop_id: origen.id + 'it-'+i, //se le suma el indice ya que en el sugundo loop se repetirian los stop_id sino, este id es usado para matchear cuando vuelve del optimizador nomas
                   address: origen.direccion,
                   type: origen.tipo_parada? origen.tipo_parada.nombre: null
                 },
@@ -507,7 +507,7 @@ export default {
                     latitude: destino.latitud,
                     longitude: destino.longitud
                   },
-                  stop_id: destino.id + i,
+                  stop_id: destino.id + 'it-'+i,
                   address: destino.direccion,
                   type: destino.tipo_parada? destino.tipo_parada.nombre: null
                 }
