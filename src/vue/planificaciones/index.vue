@@ -142,6 +142,7 @@ export default {
         const response = await api.get(`/pedidos/fecha/${selectedDate.value}`);
         pedidos.value = response.data.pedidos;
         planificacion.value = {};
+        unselectedPedidosIds.value = [];
         showPedidos.value = true;
       } catch (error) {
         console.error('Error fetching pedidos:', error);
