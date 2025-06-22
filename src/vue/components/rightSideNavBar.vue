@@ -581,6 +581,11 @@ export default {
       isPlanificando.value = false;
     });
 
+    // Reset unselected pedidos when processed pedidos change (e.g., when fetching new pedidos)
+    watch(() => props.processedPedidos, () => {
+      unselectedPedidos.value = [];
+    });
+
     onMounted(() => {
       const selectedTurnos = JSON.parse(localStorage.getItem('selectedTurnos'));
       if (selectedTurnos) {
