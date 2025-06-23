@@ -491,7 +491,7 @@ export default {
             let normalized ={
                 id: pedido.id,
                 user_id: pedido.cliente_documento,
-                has_companion: pedido.acompanante,
+                has_companion: pedido.acompañante,
                 wheelchair_required: pedido.cliente.caracteristicas.some(c => c.nombre === "silla_de_ruedas"),
                 characteristics: characteristics, //Agregar aca todas las caracteristicas que tengan los pedidos/clientes que restringan que tipo de vehiculo se pueda utilizar
                 pickup: {
