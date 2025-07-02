@@ -208,7 +208,7 @@ const CamionetaDetalles = () => {
                   onChange={() => handleCheckboxChange(caracteristica)}
                 />
               }
-              label={caracteristica.nombre}
+              label={caracteristica.nombre in caracteristicasVistas ? caracteristicasVistas[caracteristica.nombre] : caracteristica.nombre}
             />
           ))}
           </DialogContent>
