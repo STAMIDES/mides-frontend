@@ -135,7 +135,7 @@ const SideNavBar = () => {
           }}
         >
           <Avatar
-            src="/src/imgs/logo_mides_blanco.png"
+            src="/imgs/logo_mides_blanco.png"
             alt="Logo"
             sx={{ 
               width: 70, 
