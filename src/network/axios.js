@@ -1,7 +1,21 @@
 import axios from 'axios';
 
+const BACKEND_API_URL = import.meta.env.VITE_BACKEND_API_URL;
+const ENGINE_API_URL = import.meta.env.VITE_ENGINE_API_URL;
+
+if (!BACKEND_API_URL) {
+  console.error('VITE_BACKEND_API_URL is not set');
+  throw new Error('VITE_BACKEND_API_URL is not set');
+}
+
+if (!ENGINE_API_URL) {
+  // Check at this point so the page doesn't load if the engine API URL is not set
+  console.error('VITE_ENGINE_API_URL is not set');
+  throw new Error('VITE_ENGINE_API_URL is not set');
+}
+
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: BACKEND_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
