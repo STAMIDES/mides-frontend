@@ -363,7 +363,7 @@ export default {
       };
 
       try {
-        const response = await api.post('http://localhost:4210/optimization/v1/solve', problem, {withCredentials: false});
+        const response = await api.post(`${import.meta.env.VITE_ENGINE_API_URL}/optimization/v1/solve`, problem, {withCredentials: false});
         const planificacionProcesada = procesarNuevaPlanificacion(response.data, pedidosNormalizados);
         guardarPlanificacion(planificacionProcesada)
         showPedidos.value = false;

@@ -85,7 +85,7 @@ function ForgetPasswordRequest() {
             }}
           >
             <img 
-              src="/src/imgs/logo_mides_azul.png" 
+              src="/imgs/logo_mides_azul.png" 
               alt="Mides Logo" 
               style={{ 
                 height: '80px',
