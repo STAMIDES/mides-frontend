@@ -124,7 +124,11 @@ const PlanificacionListado = () => {
         filterComponentProps={{ date: date, handleDateChange: handleDateChange }}
         data={planificaciones} 
         columns={columns} 
-        icons={[<ToggleOffIcon style={{color: 'red'}}/>, <ToggleOnIcon style={{color: 'green'}} /> ,<DeleteIcon />]}
+        icons={[
+          { Component: ToggleOffIcon, props: { style: { color: 'red' } }, name: 'ToggleOffIcon' },
+          { Component: ToggleOnIcon, props: { style: { color: 'green' } }, name: 'ToggleOnIcon' },
+          { Component: DeleteIcon, props: {}, name: 'DeleteIcon' }
+        ]}
         iconsTooltip={[  "Marcar como definitiva", "Desmarcar planificación definitiva", "Eliminar Planificación"]}
         setStatus={setStatus}
         onDelete={handleDelete}

@@ -127,7 +127,9 @@ const PedidoListado = () => {
         filterComponentProps={{ date: date, handleDateChange: handleDateChange }}
         data={pedidos} 
         columns={columns} 
-        icons={[ <DeleteIcon />]}
+        icons={[
+                  { Component: DeleteIcon, props: {}, name: 'DeleteIcon' }
+                ]}
         iconsTooltip={[ "Eliminar Solicitud"]}
         onDelete={handleDelete}
         getFunction={setPage}

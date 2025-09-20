@@ -77,7 +77,11 @@ const LugaresComunesListado = () => {
         data={lugares} 
         columns={columns} 
         createLink="/lugares_comunes/crear" 
-        icons={[<ToggleOffIcon style={{color: 'red'}}/>, <ToggleOnIcon style={{color: 'green'}} /> ,<DeleteIcon />]}
+        icons={[
+          { Component: ToggleOffIcon, props: { style: { color: 'red' } }, name: 'ToggleOffIcon' },
+          { Component: ToggleOnIcon, props: { style: { color: 'green' } }, name: 'ToggleOnIcon' },
+          { Component: DeleteIcon, props: {}, name: 'DeleteIcon' }
+        ]}
         iconsLinks={["", "", ""]}
         iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Lugar Comun"]}
         getFunction={obtenerLugaresComunes}

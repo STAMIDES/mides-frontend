@@ -103,31 +103,35 @@ const ListComponent = ({
                         </td>
                       ))}
                       <td className="data-cell actions-cell">
-                        {icons.map((icon, iconIndex) => {
-                          if (icon.type.type.render.displayName === 'ToggleOffIcon'  && (item.activo === true || item.definitiva === true)) {
+                        {icons.map((iconConfig, iconIndex) => {
+                          // Check conditions using the name property instead of displayName
+                          if (iconConfig.name === 'ToggleOffIcon' && (item.activo === true || item.definitiva === true)) {
                             return null;
                           }
-                          if (icon.type.type.render.displayName === 'ToggleOnIcon' && (item.activo === false || item.definitiva === false)) {
+                          if (iconConfig.name === 'ToggleOnIcon' && (item.activo === false || item.definitiva === false)) {
                             return null;
                           }
+                          
+                          const { Component, props } = iconConfig;
+                          
                           return (
                             <IconButton
                               size="small"
                               key={iconIndex}
                               title={iconsTooltip[iconIndex]}
                               onClick={() => {
-                                if (icon.type.type.render.displayName === 'DeleteIcon') {
+                                if (iconConfig.name === 'DeleteIcon') {
                                   handleDeleteClick(item);
-                                } else if (icon.type.type.render.displayName === 'ToggleOnIcon') {
+                                } else if (iconConfig.name === 'ToggleOnIcon') {
                                   setStatus(item.id, false);
-                                } else if ( icon.type.type.render.displayName === 'ToggleOffIcon'){
+                                } else if (iconConfig.name === 'ToggleOffIcon') {
                                   setStatus(item.id, true);
-                                }else {
+                                } else {
                                   navigate(`${iconsLinks[iconIndex]}${item.id}`);
                                 }
                               }}
                             >
-                              {icon}
+                              <Component {...props} />
                             </IconButton>
                           );
                         })}

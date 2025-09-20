@@ -82,7 +82,10 @@ const ClienteListado = () => {
         data={clients} 
         columns={columns} 
         createLink="/clientes/crear" 
-        icons={[<AddCircleIcon />,  <DeleteIcon />]}
+        icons={[
+          { Component: AddCircleIcon },
+          { Component: DeleteIcon, props: {}, name: 'DeleteIcon' }
+        ]}
         iconsLinks={["/solicitudes/crear?usuarioId=", ""]}
         iconsTooltip={["Agregar Solicitud",  "Eliminar Cliente"]}
         getFunction={obtenerClientes}

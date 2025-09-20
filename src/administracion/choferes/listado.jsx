@@ -80,7 +80,11 @@ const UsuarioListado = () => {
         data={choferes} 
         columns={columns} 
         createLink="/choferes/crear" 
-        icons={[<ToggleOffIcon style={{color: 'red'}}/>, <ToggleOnIcon style={{color: 'green'}} /> ,<DeleteIcon />]}
+        icons={[
+        { Component: ToggleOffIcon, props: { style: { color: 'red' } }, name: 'ToggleOffIcon' },
+        { Component: ToggleOnIcon, props: { style: { color: 'green' } }, name: 'ToggleOnIcon' },
+        { Component: DeleteIcon, props: {}, name: 'DeleteIcon' }
+      ]}
         iconsLinks={[  "", "", "/choferes/eliminar?chofer_id="]}
         iconsTooltip={["Marcar como inactivo", "Marcar como activo", "Eliminar Chofer"]}
         getFunction={obtenerChoferes}
